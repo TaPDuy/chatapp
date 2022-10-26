@@ -1,21 +1,22 @@
 package nhom12.chatapp.client;
 
-import javax.swing.JOptionPane;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import nhom12.chatapp.client.view.LoginFrm;
 
 public class EntryPoint {
     
-    public static final String SERVER_NAME = "localhost";
-    public static final int SERVER_PORT = 9999;
-    
     public static void main(String[] args) {
+	LoginFrm login = new LoginFrm();
+	ChatClient client = new ChatClient(login);
+	login.setVisible(true);
 	
-	ChatClient client = new ChatClient();
-	
-	if(client.connect(SERVER_NAME, SERVER_PORT))
-	    (new LoginFrm(client)).setVisible(true);
-	else
-	    JOptionPane.showMessageDialog(null, "Couldn't connect to server.", "Error!", JOptionPane.ERROR_MESSAGE);
-	
+	try {
+	    client.connect("localhost", 7777);
+	} catch (IOException ex) {
+	    Logger.getLogger(EntryPoint.class.getName()).log(Level.SEVERE, null, ex);
+	}
+	client.start();
     }
 }

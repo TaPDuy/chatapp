@@ -1,233 +1,196 @@
 package nhom12.chatapp.server;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nhom12.chatapp.server.dao.UserDAO;
 import nhom12.chatapp.model.User;
+import nhom12.chatapp.server.dao.UserDAO;
 
-public class ServerWorker extends Thread {
+public class ServerWorker implements Runnable {
 
     private final Socket clientSocket;
-    private final Server server;
-    private String viewName = null;
-    private String sdt = null;
-    private final HashSet<String> topicSet = new HashSet<>();
+    private final int clientNumber;
+    private BufferedReader is;
+    private BufferedWriter os;
+    private boolean isClosed;
+    
     private final UserDAO userDAO;
-    private List<User> onlineUser;
+    private User user;
 
-    private OutputStream clientOut;
-    private InputStream clientIn;
-    private ObjectOutputStream clientObjOut;
-    private ObjectInputStream clientObjIn;
+    public BufferedReader getIs() {
+        return is;
+    }
 
-    public ServerWorker(Server server, Socket clientSocket) {
+    public BufferedWriter getOs() {
+        return os;
+    }
 
-        this.server = server;
+    public User getUser() {
+        return this.user;
+    }
+    
+    public int getClientNumber() {
+	return this.clientNumber;
+    }
+
+    public ServerWorker(Socket clientSocket, int clientNumber) {
         this.clientSocket = clientSocket;
-        this.userDAO = new UserDAO();
-        this.onlineUser = new ArrayList<>();
-        try {
-            this.clientOut = clientSocket.getOutputStream();
-            this.clientIn = clientSocket.getInputStream();
-            this.clientObjOut = new ObjectOutputStream(this.clientOut);
-            this.clientObjIn = new ObjectInputStream(this.clientIn);
-        } catch (IOException ex) {
-            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        this.clientNumber = clientNumber;
+        System.out.println("Server thread number " + clientNumber + " Started");
+	
+	this.userDAO = new UserDAO();
+        isClosed = false;
     }
 
     @Override
     public void run() {
         try {
-            handleClientSocket();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private void handleClientSocket() throws IOException, InterruptedException, ClassNotFoundException {
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(clientIn));
-        String line;
-        while ((line = reader.readLine()) != null) {
-
-            System.out.println("[INFO]: Received command: " + line);
-            String[] tokens = line.split(" ");
-
-            if (tokens != null && tokens.length > 0) {
-
-                String cmd = tokens[0];
-
-                if ("logoff".equals(cmd) || "quit".equalsIgnoreCase(cmd)) {
-                    handleLogoff();
+            // Mở luồng vào ra trên Socket tại Server.
+            is = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            os = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+//            System.out.println("Khời động luông mới thành công, ID là: " + clientNumber);
+//            write("get-id" + "," + this.clientNumber);
+            
+//            Server.serverThreadBus.mutilCastSend("global-message"+","+"---Client "+this.clientNumber+" đã đăng nhập---");
+            
+	    String cmd;
+            while (!isClosed) {
+                cmd = is.readLine();
+                if (cmd == null) {
                     break;
-                } else if ("login".equalsIgnoreCase(cmd)) {
-
-                    User user = (User) clientObjIn.readObject();
-                    //System.out.println(user.getViewName());
-                    handleLogin(clientOut, user);
-
-                } else if ("register".equalsIgnoreCase(cmd)) {
-
-                    User user = (User) clientObjIn.readObject();
-                    handleRegister(clientOut, user);
-
-                } else if ("msg".equalsIgnoreCase(cmd)) {
-                    String[] tokensMsg = line.split(" ", 3);
-                    handleMessage(tokensMsg);
-                } else if ("join".equalsIgnoreCase(cmd)) {
-                    handleJoin(tokens);
-                } else if ("leave".equalsIgnoreCase(cmd)) {
-                    handleLeave(tokens);
-                } else {
-                    String msg = "unknown " + cmd + "\n";
-                    clientOut.write(msg.getBytes());
                 }
+		
+		System.out.println("[CLIENT (" + (user != null ? user.getViewName() : "guest") + ")]: " + cmd);
+		handleClientCmd(cmd);
+//                String[] messageSplit = message.split(",");
+//                if(messageSplit[0].equals("send-to-global")){
+//                    Server.serverThreadBus.boardCast(this.getClientNumber(),"global-message"+","+"Client "+messageSplit[2]+": "+messageSplit[1]);
+//                }
+//                if(messageSplit[0].equals("send-to-person")){
+//                    Server.serverThreadBus.sendMessageToPersion(Integer.parseInt(messageSplit[3]),"Client "+ messageSplit[2]+" (tới bạn): "+messageSplit[1]);
+//                }
+
+		
             }
-        }
-
-        clientSocket.close();
-    }
-
-    private void handleLeave(String[] tokens) {
-        if (tokens.length > 1) {
-            String topic = tokens[1];
-            topicSet.remove(topic);
-        }
-    }
-
-    public boolean isMemberOfTopic(String topic) {
-        return topicSet.contains(topic);
-    }
-
-    private void handleJoin(String[] tokens) {
-        if (tokens.length > 1) {
-            String topic = tokens[1];
-            topicSet.add(topic);
+	    
+        } catch (IOException e) {
+	    try {
+		//            isClosed = true;
+//            Server.serverThreadBus.remove(clientNumber);
+//            System.out.println(this.clientNumber+" đã thoát");
+//            Server.serverThreadBus.sendOnlineList();
+//            Server.serverThreadBus.mutilCastSend("global-message"+","+"---Client "+this.clientNumber+" đã thoát---");
+		handleLogoff();
+	    } catch (IOException ex) {
+		Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+	    }
         }
     }
-
-    // format: "msg" "login" body...
-    // format: "msg" "#topic" body...
-    private void handleMessage(String[] tokens) throws IOException {
-        String sendTo = tokens[1];
-        String body = tokens[2];
-
-        boolean isTopic = sendTo.charAt(0) == '#';
-
-        List<ServerWorker> workerList = server.getWorkerList();
-        for (ServerWorker worker : workerList) {
-            if (isTopic) {
-                if (worker.isMemberOfTopic(sendTo)) {
-                    String outMsg = "msg " + sendTo + ":" + sdt + " " + body + "\n";
-                    worker.send(outMsg);
-                }
-            } else {
-                if (sendTo.equalsIgnoreCase(worker.getViewName())) {
-                    String outMsg = "msg " + sdt + " " + body + "\n";
-                    worker.send(outMsg);
-                }
-            }
-        }
+    
+    public void write(String message) throws IOException{
+        os.write(message);
+        os.newLine();
+        os.flush();
     }
-
-    private void handleLogoff() throws IOException {
-        server.removeWorker(this);
-        List<ServerWorker> workerList = server.getWorkerList();
-
-        // send other online users current user's status
-        String offlineMsg = "offline " + viewName + "\n";
-        for (ServerWorker worker : workerList) {
-            if (!sdt.equals(worker.getSdt())) {
-                worker.send(offlineMsg);
-            }
-        }
-        clientSocket.close();
+    
+    private void handleClientCmd(String cmd) throws IOException {
+	String[] tokens = cmd.split(" ");
+	
+	switch(tokens[0]) {
+	    case "login":
+		handleLogin(tokens);
+		break;
+	    case "register":
+		break;
+	    case "global-msg":
+		Server.serverThreadBus.boardCast(user.getViewName(), "display " + user.getViewName() + " " + tokens[1]);
+		break;
+	    case "msg":
+		// Handle group later
+		Server.serverThreadBus.sendMessageToPersion(tokens[1], "display " + user.getViewName() + " " + tokens[2]);
+		break;
+	    case "logoff":
+		handleLogoff();
+		break;
+	    case "join":
+		break;
+	    case "leave":
+		break;
+	    case "groups":
+		break;
+	    case "online-users":
+		break;
+	    case "users":
+		break;
+	    case "create-invite":
+		break;
+	    case "invite-response":
+		break;
+	    case "notifications":
+		break;
+	    default:
+		// Unknown command
+		break;
+	}
     }
-
-    public String getViewName() {
-        return viewName;
-    }
-
-    private void handleLogin(OutputStream outputStream, User user) throws IOException {
-
-        if (userDAO.checkLogin(user)) {
-
-            String msg = "ok login\n";
-            outputStream.write(msg.getBytes());
-
-            viewName = user.getViewName();
-            sdt = user.getSdt();
-            System.out.println("[INFO]: User logged in: " + user.getViewName());
-
-            List<ServerWorker> workerList = server.getWorkerList();
-
-                // send current user all other online logins
-                for(ServerWorker worker : workerList) {
-                    if (worker.getViewName()!= null) {
-                        if (!sdt.equals(worker.getSdt())) {
-                            String msg2 = "online " + worker.getViewName()+ " " + worker.getSdt() + "\n";
-                            send(msg2);
-                        }
-                    }
-                }
-                // send other online users current user's status
-                String onlineMsg = "online " + viewName + " " + sdt + "\n";
-                for(ServerWorker worker : workerList) {
-                    if (!sdt.equals(worker.getSdt())) {
-                        worker.send(onlineMsg);
-                    }
-                }
+    
+    private void handleLogin(String[] tokens) throws IOException {
+	
+	if(tokens.length != 3)
+	    // Handle error
+	    return;
+	
+	String viewname = tokens[1];
+	String password = tokens[2];
+	
+	if ((this.user = userDAO.checkLogin(viewname, password)) != null) {
+            
+	    write("ok-login");
+            System.out.println("[INFO]: User logged in: " + this.user.getViewName());
+//
+//            List<ServerWorker> workerList = server.getWorkerList();
+//
+//                // send current user all other online logins
+//                for(ServerWorker worker : workerList) {
+//                    if (worker.getViewName()!= null) {
+//                        if (!sdt.equals(worker.getSdt())) {
+//                            String msg2 = "online " + worker.getViewName()+ " " + worker.getSdt() + "\n";
+//                            send(msg2);
+//                        }
+//                    }
+//                }
+//                // send other online users current user's status
+//                String onlineMsg = "online " + viewName + " " + sdt + "\n";
+//                for(ServerWorker worker : workerList) {
+//                    if (!sdt.equals(worker.getSdt())) {
+//                        worker.send(onlineMsg);
+//                    }
+//                }
         } else {
-
-            String msg = "error login\n";
-            outputStream.write(msg.getBytes());
-            System.err.println("[ERROR]: User login failed: " + user.getSdt());
-        }
-
-    }
-
-    private void handleRegister(OutputStream outputStream, User user) throws IOException {
-        if (!userDAO.checkExist(user)) {
-            if (userDAO.insertUser(user)) {
-                String msg = "register success\n";
-                outputStream.write(msg.getBytes());
-            } else {
-                String msg = "error register\n";
-                outputStream.write(msg.getBytes());
-            }
-        }
-        else{
-            String msg = "Number phone is existed\n";
-            outputStream.write(msg.getBytes());
+            write("error-login");
+            System.err.println("[ERROR]: User login failed: " + viewname);
         }
     }
-
-    private void send(String msg) throws IOException {
-        if (sdt != null) {
-            try {
-                clientOut.write(msg.getBytes());
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
+    
+    private void handleRegister(String[] tokens) {
+	
+	if(tokens.length != 1)
+	    // Handle error
+	    return;
     }
-
-    private String getSdt() {
-        return sdt;
+    
+    private void handleLogoff() throws IOException {
+	isClosed = true;
+	Server.serverThreadBus.boardCast(user.getViewName(), "display-server " + "User '" + user.getViewName() + "' logged off.");
+	Server.serverThreadBus.remove(clientNumber);
+	Server.serverThreadBus.sendOnlineList();
+	clientSocket.close();
     }
-
 }

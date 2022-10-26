@@ -118,6 +118,7 @@ public class ChatClient {
             
             bufferedIn = new BufferedReader(new InputStreamReader(serverIn));
             String response = bufferedIn.readLine();
+	    System.out.println("[SERVER]: " + response);
 	    return "ok login".equalsIgnoreCase(response);
 	    
         } catch (IOException ex) {

@@ -9,7 +9,7 @@ import nhom12.chatapp.model.User;
 
 public class UserDAO extends DAO {
 
-    private final String CHECK_LOGIN = "SELECT * FROM tbluser WHERE sdt = ? AND password = ?";
+    private final String CHECK_LOGIN = "SELECT * FROM tbluser WHERE viewname = ? AND password = ?";
     private final String INSERT_USER = "INSERT INTO tbluser(sdt, password, viewname, fullname,gender, address, dob) VALUES (?,?,?,?,?,?,?);";
     private final String CHECK_EXIST = "SELECT * FROM tbluser WHERE sdt = ? limit 1";
     private final String GET_USER_BY_PHONE = "SELECT * FROM tbluser WHERE sdt = ?";
@@ -18,13 +18,17 @@ public class UserDAO extends DAO {
         super();
     }
 
-    public boolean checkLogin(User user) {
-        boolean result = false;
+    public User checkLogin(String viewname, String password) {
+        
+	User user = null;
         try {
+	    
             PreparedStatement ps = con.prepareStatement(CHECK_LOGIN);
-            ps.setString(1, user.getSdt());
-            ps.setString(2, user.getPassword());
+            ps.setString(1, viewname);
+            ps.setString(2, password);
+	    
             ResultSet rs = ps.executeQuery();
+	    user = new User();
             if (rs.next()) {
                 user.setId(rs.getInt("id"));
                 user.setViewName(rs.getString("viewname"));
@@ -33,13 +37,13 @@ public class UserDAO extends DAO {
                 user.setAddress(rs.getString("address"));
                 user.setDob(rs.getDate("dob"));
                 user.setStatus("1");
-                
-                result = true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
+            }else
+		return null;
+	    
+        } catch (SQLException ex) {
+	    Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+	}
+        return user;
     }
 
     public boolean checkExist(User user) {

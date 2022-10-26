@@ -1,16 +1,16 @@
 package nhom12.chatapp.client.view;
 
 import javax.swing.JOptionPane;
-import nhom12.chatapp.client.ChatClient;
-import nhom12.chatapp.model.User;
+import nhom12.chatapp.client.listener.MessageListener;
+import nhom12.chatapp.client.listener.WindowListener;
 
-public class LoginFrm extends javax.swing.JFrame {
+public class LoginFrm extends javax.swing.JFrame implements GenericView {
 
-    private final ChatClient client;
+    private MessageListener listener;
+    private WindowListener windowListener;
 
-    public LoginFrm(ChatClient client) {
+    public LoginFrm() {
         initComponents();
-        this.client = client;
     }
 
     @SuppressWarnings("unchecked")
@@ -122,8 +122,10 @@ public class LoginFrm extends javax.swing.JFrame {
     }//GEN-LAST:event_txtSDTMouseClicked
 
     private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterActionPerformed
-        (new RegisterFrm(client)).setVisible(true);
-        this.dispose();
+        RegisterFrm frm = new RegisterFrm();
+	frm.setVisible(true);
+	windowListener.onSwitch(frm);
+	this.dispose();
     }//GEN-LAST:event_btnRegisterActionPerformed
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
@@ -131,17 +133,30 @@ public class LoginFrm extends javax.swing.JFrame {
         String password = new String(txtPassword.getPassword());
         User user = new User(sdt, password);
 	
-	if (client.checkLogin(user)){
+	if (listener.checkLogin(sdt, password)){
 	    JOptionPane.showMessageDialog(this, "Login successed");
-            (new HomeChatFrm(client)).setVisible(true);
-            this.dispose();
+	    ClientView view = new ClientView();
+	    view.setVisible(true);
+	    windowListener.onSwitch(view);
+	    this.dispose();
         }
         else{
 	    JOptionPane.showMessageDialog(this, "Login failed");
-            (new LoginFrm(client)).setVisible(true);
+            txtSDT.setText("");
+	    txtPassword.setText("");
         }
     }//GEN-LAST:event_btnLoginActionPerformed
 
+    @Override
+    public void setMessageListener(MessageListener listener) {
+	this.listener = listener;
+    }
+    
+    @Override
+    public void setWindowListener(WindowListener listener) {
+	this.windowListener = listener;
+    }
+    
     private void txtPasswordMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtPasswordMouseClicked
         txtPassword.setText("");
     }//GEN-LAST:event_txtPasswordMouseClicked

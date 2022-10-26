@@ -6,16 +6,16 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import nhom12.chatapp.client.ChatClient;
-import nhom12.chatapp.model.User;
+import nhom12.chatapp.client.listener.MessageListener;
+import nhom12.chatapp.client.listener.WindowListener;
 
-public class RegisterFrm extends javax.swing.JFrame {
+public class RegisterFrm extends javax.swing.JFrame implements GenericView {
 
-    private final ChatClient client;
+    private MessageListener listener;
+    private WindowListener windowListener;
 
-    public RegisterFrm(ChatClient client) {
+    public RegisterFrm() {
         initComponents();
-        this.client = client;
     }
 
     @SuppressWarnings("unchecked")
@@ -283,10 +283,10 @@ public class RegisterFrm extends javax.swing.JFrame {
         user.setAddress(address);
         user.setDob(dobDate);
 
-        switch (client.addNewUser(user)) {
+        switch (listener.registerUser(user)) {
             case 1:
                 JOptionPane.showMessageDialog(this, "Register successed");
-                (new LoginFrm(client)).setVisible(true);
+                (new LoginFrm()).setVisible(true);
                 this.dispose();
                 break;
             case 2:
@@ -299,13 +299,17 @@ public class RegisterFrm extends javax.swing.JFrame {
     }//GEN-LAST:event_btnRegisterActionPerformed
 
     private void btnBacktologinActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBacktologinActionPerformed
-        (new LoginFrm(client)).setVisible(true);
-        this.dispose();
+        LoginFrm frm = new LoginFrm();
+	frm.setVisible(true);
+	windowListener.onSwitch(frm);
+	this.dispose();
     }//GEN-LAST:event_btnBacktologinActionPerformed
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        (new LoginFrm(client)).setVisible(true);
-        this.dispose();
+        LoginFrm frm = new LoginFrm();
+	frm.setVisible(true);
+	windowListener.onSwitch(frm);
+	this.dispose();
     }//GEN-LAST:event_btnBackActionPerformed
 
     private void txtMonthActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMonthActionPerformed
@@ -328,6 +332,15 @@ public class RegisterFrm extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtCFPasswordActionPerformed
 
+    @Override
+    public void setMessageListener(MessageListener listener) {
+	this.listener = listener;
+    }
+    
+    @Override
+    public void setWindowListener(WindowListener listener) {
+	this.windowListener = listener;
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBack;

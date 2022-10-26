@@ -3,46 +3,48 @@ package nhom12.chatapp.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Server extends Thread {
-    
-    private final int serverPort;
-    private final ArrayList<ServerWorker> workerList = new ArrayList<>();
+public class Server {
 
-    public Server(int serverPort) {
-        this.serverPort = serverPort;
-    }
+    public static volatile ServerWorkerBus serverThreadBus;
+    public static Socket clientSocket;
 
-    public List<ServerWorker> getWorkerList() {
-        return workerList;
-    }
+    public static void main(String[] args) throws IOException {
+	
+        ServerSocket listener = new ServerSocket(7777);
+        serverThreadBus = new ServerWorkerBus();
+        System.out.println("Server is waiting to accept user...");
+        int clientNumber = 0;
 
-    @Override
-    public void run() {
+        // Mở một ServerSocket tại cổng 7777.
+        // Chú ý bạn không thể chọn cổng nhỏ hơn 1023 nếu không là người dùng
+        // đặc quyền (privileged users (root)).
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 100, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<>(8));
         try {
-            ServerSocket serverSocket = new ServerSocket(serverPort);
-            while(true) {
+            while (true) {
 		
-                System.out.println("[INFO]: Listening for client connection...");
-		
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("[INFO]: Accepted connection from " + clientSocket);
-		
-                ServerWorker worker = new ServerWorker(this, clientSocket);
-                workerList.add(worker);
-                worker.start();
+                // Chấp nhận một yêu cầu kết nối từ phía Client.
+                // Đồng thời nhận được một đối tượng Socket tại server.
+                clientSocket = listener.accept();
+                ServerWorker serverThread = new ServerWorker(clientSocket, clientNumber++);
+                serverThreadBus.add(serverThread);
+                System.out.println("Số thread đang chạy là: "+serverThreadBus.getLength());
+                executor.execute(serverThread);
+                
             }
-        } catch (IOException e) {
-            System.out.println("[ERROR]: Unexpected server error.");
-	    Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, e);
+        } catch (IOException ex) {
+            Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                listener.close();
+            } catch (IOException ex) {
+                Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-    }
-
-    public void removeWorker(ServerWorker serverWorker) {
-        workerList.remove(serverWorker);
     }
 }

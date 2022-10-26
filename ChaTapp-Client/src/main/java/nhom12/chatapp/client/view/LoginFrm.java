@@ -131,10 +131,15 @@ public class LoginFrm extends javax.swing.JFrame {
         String password = new String(txtPassword.getPassword());
         User user = new User(sdt, password);
 	
-	if (client.checkLogin(user))
+	if (client.checkLogin(user)){
 	    JOptionPane.showMessageDialog(this, "Login successed");
-	else
+            (new HomeChatFrm(client)).setVisible(true);
+            this.dispose();
+        }
+        else{
 	    JOptionPane.showMessageDialog(this, "Login failed");
+            (new LoginFrm(client)).setVisible(true);
+        }
     }//GEN-LAST:event_btnLoginActionPerformed
 
     private void txtPasswordMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtPasswordMouseClicked

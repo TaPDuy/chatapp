@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
@@ -19,30 +20,31 @@ public class ServerWorker extends Thread {
 
     private final Socket clientSocket;
     private final Server server;
-    private String userName = null;
-    
+    private String viewName = null;
+    private String sdt = null;
     private final HashSet<String> topicSet = new HashSet<>();
     private final UserDAO userDAO;
-    
+    private List<User> onlineUser;
+
     private OutputStream clientOut;
     private InputStream clientIn;
     private ObjectOutputStream clientObjOut;
     private ObjectInputStream clientObjIn;
 
     public ServerWorker(Server server, Socket clientSocket) {
-	
-	this.server = server;
-	this.clientSocket = clientSocket;
-	this.userDAO = new UserDAO();
-	
-	try {    
-	    this.clientOut = clientSocket.getOutputStream();
-	    this.clientIn = clientSocket.getInputStream();
-	    this.clientObjOut = new ObjectOutputStream(this.clientOut);
-	    this.clientObjIn = new ObjectInputStream(this.clientIn);
-	} catch (IOException ex) {
-	    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-	}
+
+        this.server = server;
+        this.clientSocket = clientSocket;
+        this.userDAO = new UserDAO();
+        this.onlineUser = new ArrayList<>();
+        try {
+            this.clientOut = clientSocket.getOutputStream();
+            this.clientIn = clientSocket.getInputStream();
+            this.clientObjOut = new ObjectOutputStream(this.clientOut);
+            this.clientObjIn = new ObjectInputStream(this.clientIn);
+        } catch (IOException ex) {
+            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -61,28 +63,28 @@ public class ServerWorker extends Thread {
         BufferedReader reader = new BufferedReader(new InputStreamReader(clientIn));
         String line;
         while ((line = reader.readLine()) != null) {
-	    
+
             System.out.println("[INFO]: Received command: " + line);
             String[] tokens = line.split(" ");
-	    
+
             if (tokens != null && tokens.length > 0) {
-		
+
                 String cmd = tokens[0];
-		
+
                 if ("logoff".equals(cmd) || "quit".equalsIgnoreCase(cmd)) {
                     handleLogoff();
                     break;
                 } else if ("login".equalsIgnoreCase(cmd)) {
-                    
+
                     User user = (User) clientObjIn.readObject();
-                    System.out.println(user.getUserName());
+                    //System.out.println(user.getViewName());
                     handleLogin(clientOut, user);
-                    
+
                 } else if ("register".equalsIgnoreCase(cmd)) {
-                    
+
                     User user = (User) clientObjIn.readObject();
                     handleRegister(clientOut, user);
-		    
+
                 } else if ("msg".equalsIgnoreCase(cmd)) {
                     String[] tokensMsg = line.split(" ", 3);
                     handleMessage(tokensMsg);
@@ -130,12 +132,12 @@ public class ServerWorker extends Thread {
         for (ServerWorker worker : workerList) {
             if (isTopic) {
                 if (worker.isMemberOfTopic(sendTo)) {
-                    String outMsg = "msg " + sendTo + ":" + userName + " " + body + "\n";
+                    String outMsg = "msg " + sendTo + ":" + sdt + " " + body + "\n";
                     worker.send(outMsg);
                 }
             } else {
-                if (sendTo.equalsIgnoreCase(worker.getUserName())) {
-                    String outMsg = "msg " + userName + " " + body + "\n";
+                if (sendTo.equalsIgnoreCase(worker.getViewName())) {
+                    String outMsg = "msg " + sdt + " " + body + "\n";
                     worker.send(outMsg);
                 }
             }
@@ -147,76 +149,85 @@ public class ServerWorker extends Thread {
         List<ServerWorker> workerList = server.getWorkerList();
 
         // send other online users current user's status
-        String onlineMsg = "offline " + userName + "\n";
+        String offlineMsg = "offline " + viewName + "\n";
         for (ServerWorker worker : workerList) {
-            if (!userName.equals(worker.getUserName())) {
-                worker.send(onlineMsg);
+            if (!sdt.equals(worker.getSdt())) {
+                worker.send(offlineMsg);
             }
         }
         clientSocket.close();
     }
 
-    public String getUserName() {
-        return userName;
+    public String getViewName() {
+        return viewName;
     }
 
     private void handleLogin(OutputStream outputStream, User user) throws IOException {
-	
+
         if (userDAO.checkLogin(user)) {
-	    
+
             String msg = "ok login\n";
             outputStream.write(msg.getBytes());
-	    
-            userName = user.getUserName();
-            System.out.println("[INFO]: User logged in: " + user.getUserName());
+
+            viewName = user.getViewName();
+            sdt = user.getSdt();
+            System.out.println("[INFO]: User logged in: " + user.getViewName());
 
             List<ServerWorker> workerList = server.getWorkerList();
 
-            // send current user all other online logins
-            for (ServerWorker worker : workerList) {
-                if (worker.getUserName() != null) {
-                    if (!userName.equals(worker.getUserName())) {
-                        String msg2 = "online " + worker.getUserName() + "\n";
-                        send(msg2);
+                // send current user all other online logins
+                for(ServerWorker worker : workerList) {
+                    if (worker.getViewName()!= null) {
+                        if (!sdt.equals(worker.getSdt())) {
+                            String msg2 = "online " + worker.getViewName()+ " " + worker.getSdt() + "\n";
+                            send(msg2);
+                        }
                     }
                 }
-            }
-
-            // send other online users current user's status
-            String onlineMsg = "online " + userName + "\n";
-            for (ServerWorker worker : workerList) {
-                if (!userName.equals(worker.getUserName())) {
-                    worker.send(onlineMsg);
+                // send other online users current user's status
+                String onlineMsg = "online " + viewName + " " + sdt + "\n";
+                for(ServerWorker worker : workerList) {
+                    if (!sdt.equals(worker.getSdt())) {
+                        worker.send(onlineMsg);
+                    }
                 }
-            }
         } else {
-	    
+
             String msg = "error login\n";
             outputStream.write(msg.getBytes());
-            System.err.println("[ERROR]: User login failed: " + user.getUserName());
+            System.err.println("[ERROR]: User login failed: " + user.getSdt());
         }
 
     }
 
     private void handleRegister(OutputStream outputStream, User user) throws IOException {
-        if(userDAO.insertUser(user)){
-            String msg = "register success\n";
-            outputStream.write(msg.getBytes());
+        if (!userDAO.checkExist(user)) {
+            if (userDAO.insertUser(user)) {
+                String msg = "register success\n";
+                outputStream.write(msg.getBytes());
+            } else {
+                String msg = "error register\n";
+                outputStream.write(msg.getBytes());
+            }
         }
         else{
-            String msg = "error register\n";
+            String msg = "Number phone is existed\n";
             outputStream.write(msg.getBytes());
         }
     }
 
     private void send(String msg) throws IOException {
-        if (userName != null) {
+        if (sdt != null) {
             try {
                 clientOut.write(msg.getBytes());
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
         }
+    }
+
+    private String getSdt() {
+        return sdt;
     }
 
 }

@@ -1,9 +1,5 @@
 package nhom12.chatapp.client.controller;
 
-import duyta.listener.MessageListener;
-import duyta.listener.WindowListener;
-import duyta.model.User;
-import duyta.view.GenericView;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -14,6 +10,10 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JTextArea;
+import nhom12.chatapp.client.listener.MessageListener;
+import nhom12.chatapp.client.listener.WindowListener;
+import nhom12.chatapp.client.view.GenericView;
+import nhom12.chatapp.model.User;
 
 public class ChatClient extends Thread implements MessageListener, WindowListener {
 

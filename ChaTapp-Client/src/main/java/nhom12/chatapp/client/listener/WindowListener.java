@@ -1,7 +1,7 @@
 package nhom12.chatapp.client.listener;
 
-import nhom12.chatapp.client.view.GenericView;
+import java.awt.Window;
 
 public interface WindowListener {
-    public void onSwitch(GenericView newView);
+    public void onSwitchFrame(String newComponentName);
 }

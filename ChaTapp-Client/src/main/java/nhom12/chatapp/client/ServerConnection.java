@@ -30,4 +30,10 @@ public class ServerConnection {
 	return is.readLine();
     }
     
+    public void close() throws IOException {
+	os.close();
+	is.close();
+	serverSocket.close();
+    }
+    
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nhom12.chatapp.client.controller.LoginController;
+import nhom12.chatapp.client.controller.WindowController;
 import nhom12.chatapp.client.view.LoginFrm;
 
 public class EntryPoint {
@@ -17,11 +18,7 @@ public class EntryPoint {
 	}
 	
 	if(server != null) {
-	    LoginFrm login = new LoginFrm();
-	    LoginController loginCtrl = new LoginController(login, server);
-	    login.setLoginListener(loginCtrl);
-    //	ChatClient client = new ChatClient(login);
-	    login.setVisible(true);
+	    WindowController winCtrl = new WindowController(server);
 	} else {
 	    System.out.println("[ERROR]: Failed to connect to server.");
 	}

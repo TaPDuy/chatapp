@@ -2,13 +2,11 @@ package nhom12.chatapp.client.view;
 
 import javax.swing.JOptionPane;
 import nhom12.chatapp.client.listener.LoginListener;
-import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.listener.WindowListener;
 import nhom12.chatapp.model.User;
 
-public class LoginFrm extends javax.swing.JFrame implements GenericView {
+public class LoginFrm extends javax.swing.JFrame {
 
-    private MessageListener listener;
     private WindowListener windowListener;
     private LoginListener loginListener;
 
@@ -125,10 +123,7 @@ public class LoginFrm extends javax.swing.JFrame implements GenericView {
     }//GEN-LAST:event_txtSDTMouseClicked
 
     private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterActionPerformed
-        RegisterFrm frm = new RegisterFrm();
-	frm.setVisible(true);
-	windowListener.onSwitch(frm);
-	this.dispose();
+        windowListener.onSwitchFrame("RegisterFrm");
     }//GEN-LAST:event_btnRegisterActionPerformed
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
@@ -138,10 +133,7 @@ public class LoginFrm extends javax.swing.JFrame implements GenericView {
 	
 	if (loginListener.checkLogin(sdt, password)){
 	    JOptionPane.showMessageDialog(this, "Login successed");
-	    ClientView view = new ClientView();
-	    view.setVisible(true);
-	    windowListener.onSwitch(view);
-	    this.dispose();
+	    windowListener.onSwitchFrame("ClientView");
         }
         else{
 	    JOptionPane.showMessageDialog(this, "Login failed");
@@ -150,12 +142,6 @@ public class LoginFrm extends javax.swing.JFrame implements GenericView {
         }
     }//GEN-LAST:event_btnLoginActionPerformed
 
-    @Override
-    public void setMessageListener(MessageListener listener) {
-	this.listener = listener;
-    }
-    
-    @Override
     public void setWindowListener(WindowListener listener) {
 	this.windowListener = listener;
     }

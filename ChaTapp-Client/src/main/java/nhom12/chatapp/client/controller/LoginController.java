@@ -4,16 +4,25 @@ import java.io.IOException;
 import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.LoginListener;
 import nhom12.chatapp.client.view.LoginFrm;
+import nhom12.chatapp.client.view.RegisterFrm;
 import nhom12.chatapp.model.User;
 
 public class LoginController implements LoginListener {
 
-    private final LoginFrm loginFrm;
+    private LoginFrm loginFrm;
+    private RegisterFrm registryFrm;
     private final ServerConnection server;
     
-    public LoginController(LoginFrm loginFrm, ServerConnection server) {
-	this.loginFrm = loginFrm;
+    public LoginController(ServerConnection server) {
 	this.server = server;
+    }
+
+    public void setLoginForm(LoginFrm loginFrm) {
+	this.loginFrm = loginFrm;
+    }
+
+    public void setRegistryForm(RegisterFrm registryFrm) {
+	this.registryFrm = registryFrm;
     }
     
     @Override

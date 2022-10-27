@@ -1,38 +1,32 @@
 package nhom12.chatapp.client.controller;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JTextArea;
+import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.MessageListener;
-import nhom12.chatapp.client.listener.WindowListener;
-import nhom12.chatapp.client.view.GenericView;
-import nhom12.chatapp.model.User;
+import nhom12.chatapp.client.view.ClientView;
 
-public class ChatClient extends Thread implements MessageListener, WindowListener {
+public class ChatClient extends Thread implements MessageListener {
 
-    private BufferedWriter os;
-    private BufferedReader is;
-    private Socket serverSocket;
+    private final ServerConnection server;
+    
     private List<String> onlineList;
     private int id;
     
-    private GenericView view;
+    private ClientView view;
 
-    public ChatClient(GenericView view) {
-	onSwitch(view);
+    public ChatClient(ServerConnection server) {
+	this.server = server;
+	this.view = view;
 	
 	onlineList = new ArrayList<>();
         id = -1;
     }
-    
-    public void setView(GenericView view) {
+
+    public void setView(ClientView view) {
 	this.view = view;
     }
     
@@ -44,7 +38,7 @@ public class ChatClient extends Thread implements MessageListener, WindowListene
 	    String message;
 	    while (true) {
                             
-		message = is.readLine();
+		message = server.readLine();
 		if(message==null)
 		    break;
 		
@@ -79,26 +73,11 @@ public class ChatClient extends Thread implements MessageListener, WindowListene
 		}
 	    }
 	    
-	    os.close();
-	    is.close();
-	    serverSocket.close();
+	    server.close();
 	    
 	} catch (UnknownHostException e) {
 	} catch (IOException e) {
 	}
-    } 
-
-    public void connect(String serverName, int serverPort) throws IOException {
-	serverSocket = new Socket(serverName, serverPort);
-	System.out.println("[INFO]: Connected to server " + serverSocket.getInetAddress().getHostAddress() + ":" + serverSocket.getPort());
-	os = new BufferedWriter(new OutputStreamWriter(serverSocket.getOutputStream()));
-	is = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
-    }   
-    
-    private void write(String message) throws IOException {
-        os.write(message);
-        os.newLine();
-        os.flush();
     }
     
     private void setID(int id){
@@ -107,47 +86,11 @@ public class ChatClient extends Thread implements MessageListener, WindowListene
 
     @Override
     public void sendGlobal(String msg) throws IOException {
-	write("msg-global " + msg);
+	server.write("msg-global " + msg);
     }
 
     @Override
     public void send(String msg, String receiver) throws IOException {
-	write("msg " + receiver + " " + msg);
+	server.write("msg " + receiver + " " + msg);
     }
-
-    @Override
-    public boolean checkLogin(String viewname, String password) {
-	boolean result = false;
-	try {
-	    System.out.println("[INFO]: Logging in with username '" + viewname + "'...");
-	    write("login " + viewname + " " + password);
-	    
-	    String response = is.readLine();
-	    System.out.println("[SERVER]: " + response);
-	    result = response.equals("ok-login");
-	    if (result)
-		System.out.println("[INFO]: Logged in successful.");
-	    else
-		System.out.println("[INFO]: Logged in failed.");
-	    
-	} catch (IOException ex) {
-	    System.out.println("[ERROR]: Login failed caused by " + ex.getMessage());
-	}
-	return result;
-    }
-
-    @Override
-    public int registerUser(User user) {
-	
-    	return 0;
-	
-    }
-
-    @Override
-    public void onSwitch(GenericView newView) {
-	newView.setMessageListener(this);
-	newView.setWindowListener(this);
-	this.view = newView;
-    }
-
 }

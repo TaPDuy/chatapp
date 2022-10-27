@@ -6,13 +6,14 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import nhom12.chatapp.client.listener.MessageListener;
+import nhom12.chatapp.client.listener.LoginListener;
 import nhom12.chatapp.client.listener.WindowListener;
+import nhom12.chatapp.model.User;
 
-public class RegisterFrm extends javax.swing.JFrame implements GenericView {
+public class RegisterFrm extends javax.swing.JFrame {
 
-    private MessageListener listener;
     private WindowListener windowListener;
+    private LoginListener loginListener;
 
     public RegisterFrm() {
         initComponents();
@@ -276,6 +277,7 @@ public class RegisterFrm extends javax.swing.JFrame implements GenericView {
                 Logger.getLogger(RegisterFrm.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+	
         User user = new User(sdt, password);
         user.setViewName(username);
         user.setFullname(fullname);
@@ -283,7 +285,7 @@ public class RegisterFrm extends javax.swing.JFrame implements GenericView {
         user.setAddress(address);
         user.setDob(dobDate);
 
-        switch (listener.registerUser(user)) {
+        switch (loginListener.registerUser(user)) {
             case 1:
                 JOptionPane.showMessageDialog(this, "Register successed");
                 (new LoginFrm()).setVisible(true);
@@ -299,17 +301,11 @@ public class RegisterFrm extends javax.swing.JFrame implements GenericView {
     }//GEN-LAST:event_btnRegisterActionPerformed
 
     private void btnBacktologinActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBacktologinActionPerformed
-        LoginFrm frm = new LoginFrm();
-	frm.setVisible(true);
-	windowListener.onSwitch(frm);
-	this.dispose();
+        windowListener.onSwitchFrame("LoginFrm");
     }//GEN-LAST:event_btnBacktologinActionPerformed
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        LoginFrm frm = new LoginFrm();
-	frm.setVisible(true);
-	windowListener.onSwitch(frm);
-	this.dispose();
+        windowListener.onSwitchFrame("LoginFrm");
     }//GEN-LAST:event_btnBackActionPerformed
 
     private void txtMonthActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMonthActionPerformed
@@ -332,14 +328,12 @@ public class RegisterFrm extends javax.swing.JFrame implements GenericView {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtCFPasswordActionPerformed
 
-    @Override
-    public void setMessageListener(MessageListener listener) {
-	this.listener = listener;
-    }
-    
-    @Override
     public void setWindowListener(WindowListener listener) {
 	this.windowListener = listener;
+    }
+    
+    public void setLoginListener(LoginListener listener) {
+	this.loginListener = listener;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

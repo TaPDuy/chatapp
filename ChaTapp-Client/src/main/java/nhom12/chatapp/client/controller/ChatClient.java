@@ -46,7 +46,7 @@ public class ChatClient extends Thread implements MessageListener {
 		
 		System.out.println("[SERVER]: " + message);
 		
-		String[] messageSplit = message.split(",");
+		String[] messageSplit = message.split(" ", 2);
 		
 		switch (messageSplit[0]) {
 		    case "get-id":
@@ -65,9 +65,15 @@ public class ChatClient extends Thread implements MessageListener {
 			view.getTextArea2().setText(online);
 			view.updateCombobox(onlineList);
 			break;
-		    case "global-message":
+		    case "display":
+			String[] args = messageSplit[1].split(" ", 2);
 			JTextArea txtArea = view.getTextArea1();
-			txtArea.setText(txtArea.getText()+messageSplit[1]+"\n");
+			txtArea.setText(txtArea.getText() + "[" + args[0] + "]: " + args[1] + "\n");
+			txtArea.setCaretPosition(txtArea.getDocument().getLength());
+			break;
+		    case "display-global":
+			txtArea = view.getTextArea1();
+			txtArea.setText(txtArea.getText() + "[SERVER]: " + messageSplit[1] + "\n");
 			txtArea.setCaretPosition(txtArea.getDocument().getLength());
 			break;
 		    default:

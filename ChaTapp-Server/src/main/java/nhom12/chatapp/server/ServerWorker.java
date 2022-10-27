@@ -116,7 +116,7 @@ public class ServerWorker implements Runnable {
                     Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 break;
-            case "global-msg":
+            case "msg-global":
                 Server.serverThreadBus.boardCast(user.getViewName(), "display " + user.getViewName() + " " + tokens[1]);
                 break;
             case "msg":
@@ -126,6 +126,11 @@ public class ServerWorker implements Runnable {
             case "logoff":
                 handleLogoff();
                 break;
+	    case "get-user":
+		write("set-user");
+		os.writeObject(this.user);
+		os.flush();
+		break;
             case "join":
                 break;
             case "leave":
@@ -159,6 +164,11 @@ public class ServerWorker implements Runnable {
             write("ok-login");
             
             System.out.println("[INFO]: User logged in: " + this.user.getViewName());
+	    
+	    write("set-user");
+	    os.writeObject(this.user);
+	    os.flush();
+	    
 	    Server.serverThreadBus.sendOnlineList();
 //
 //            List<ServerWorker> workerList = server.getWorkerList();

@@ -10,7 +10,7 @@ public class DAO {
         String url = "jdbc:mysql://localhost:3306/app_multi_chat";
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection(url, "root", "315147");
+            con = DriverManager.getConnection(url, "root", "bandzu1231");
         } catch (ClassNotFoundException | SQLException ex) {
             ex.printStackTrace();
         }

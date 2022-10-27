@@ -9,7 +9,7 @@ import javax.swing.JTextArea;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.listener.WindowListener;
 
-public class ClientView extends javax.swing.JFrame implements GenericView {
+public class ClientView extends javax.swing.JFrame {
 
     private MessageListener listener;
     private WindowListener windowListener;
@@ -203,12 +203,10 @@ public class ClientView extends javax.swing.JFrame implements GenericView {
 	onlineList.forEach(id -> jComboBox1.addItem(id));
     }
     
-    @Override
     public void setMessageListener(MessageListener listener) {
 	this.listener = listener;
     }
     
-    @Override
     public void setWindowListener(WindowListener listener) {
 	this.windowListener = listener;
     }

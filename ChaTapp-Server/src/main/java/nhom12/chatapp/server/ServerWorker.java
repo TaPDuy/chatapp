@@ -20,24 +20,16 @@ public class ServerWorker implements Runnable {
     
     private final Socket clientSocket;
     private final int clientNumber;
-    private OutputStream os;
-    private InputStream is;
-    private BufferedReader bufferedReader;
-    private BufferedWriter bufferedWriter;
+//    private OutputStream os;
+//    private InputStream is;
+//    private BufferedReader bufferedReader;
+//    private BufferedWriter bufferedWriter;
     private boolean isClosed;
-    private ObjectOutputStream clientObjOut;
-    private ObjectInputStream clientObjIn;
+    private ObjectOutputStream os;
+    private ObjectInputStream is;
     
     private final UserDAO userDAO;
     private User user;
-    
-    public BufferedReader getBufferedReader() {
-        return bufferedReader;
-    }
-    
-    public BufferedWriter getBufferedWriter() {
-        return bufferedWriter;
-    }
     
     public User getUser() {
         return this.user;
@@ -62,11 +54,9 @@ public class ServerWorker implements Runnable {
         try {
             // Mở luồng vào ra trên Socket tại Server.
             
-            os = clientSocket.getOutputStream();
-            is = clientSocket.getInputStream();
-            //clientObjIn = new ObjectInputStream(is);
-            //clientObjOut = new ObjectOutputStream(os);
-            bufferedReader = new BufferedReader(new InputStreamReader(is));
+            is = new ObjectInputStream(clientSocket.getInputStream());
+            os = new ObjectOutputStream(clientSocket.getOutputStream());
+//            bufferedReader = new BufferedReader(new InputStreamReader(is));
             //bufferedWriter = new BufferedWriter(new OutputStreamWriter(os));
 //            System.out.println("Khời động luông mới thành công, ID là: " + clientNumber);
 //            write("get-id" + "," + this.clientNumber);
@@ -74,7 +64,7 @@ public class ServerWorker implements Runnable {
 //            Server.serverThreadBus.mutilCastSend("global-message"+","+"---Client "+this.clientNumber+" đã đăng nhập---");
             String cmd;
             while (!isClosed) {
-                cmd = bufferedReader.readLine();
+                cmd = is.readUTF();
                 if (cmd == null) {
                     break;
                 }
@@ -106,10 +96,8 @@ public class ServerWorker implements Runnable {
     }
     
     public void write(String message) throws IOException {
-        bufferedWriter = new BufferedWriter(new OutputStreamWriter(os));
-        bufferedWriter.write(message);
-        bufferedWriter.newLine();
-        bufferedWriter.flush();
+        os.writeUTF(message);
+        os.flush();
     }
     
     private void handleClientCmd(String cmd) throws IOException {
@@ -122,8 +110,7 @@ public class ServerWorker implements Runnable {
             case "register":
                 User userGet;
                 try {
-                    clientObjIn = new ObjectInputStream(is);
-                    userGet = (User) clientObjIn.readObject();
+                    userGet = (User) is.readObject();
                     handleRegister(userGet);
                 } catch (ClassNotFoundException ex) {
                     Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);

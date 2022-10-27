@@ -101,11 +101,11 @@ public class ServerWorker implements Runnable {
     }
     
     private void handleClientCmd(String cmd) throws IOException {
-        String[] tokens = cmd.split(" ");
+        String[] tokens = cmd.split(" ", 2);
         
         switch (tokens[0]) {
             case "login":
-                handleLogin(tokens);
+                handleLogin(tokens[1]);
                 break;
             case "register":
                 User userGet;
@@ -116,16 +116,21 @@ public class ServerWorker implements Runnable {
                     Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 break;
-            case "global-msg":
+            case "msg-global":
                 Server.serverThreadBus.boardCast(user.getViewName(), "display " + user.getViewName() + " " + tokens[1]);
                 break;
             case "msg":
                 // Handle group later
-                Server.serverThreadBus.sendMessageToPersion(tokens[1], "display " + user.getViewName() + " " + tokens[2]);
+                handleMsg(tokens[1]);
                 break;
             case "logoff":
                 handleLogoff();
                 break;
+	    case "get-user":
+		write("set-user");
+		os.writeObject(this.user);
+		os.flush();
+		break;
             case "join":
                 break;
             case "leave":
@@ -148,21 +153,22 @@ public class ServerWorker implements Runnable {
         }
     }
     
-    private void handleLogin(String[] tokens) throws IOException {
+    private void handleLogin(String argstr) throws IOException {
         
-        if (tokens.length != 3) // Handle error
-        {
-            return;
-        }
-        
-        String viewname = tokens[1];
-        String password = tokens[2];
+	String[] args = argstr.split(" ", 2);
+        String viewname = args[0];
+        String password = args[1];
         
         if ((this.user = userDAO.checkLogin(viewname, password)) != null) {
             
             write("ok-login");
             
             System.out.println("[INFO]: User logged in: " + this.user.getViewName());
+	    
+	    write("set-user");
+	    os.writeObject(this.user);
+	    os.flush();
+	    
 	    Server.serverThreadBus.sendOnlineList();
 //
 //            List<ServerWorker> workerList = server.getWorkerList();
@@ -214,5 +220,10 @@ public class ServerWorker implements Runnable {
         Server.serverThreadBus.remove(clientNumber);
         Server.serverThreadBus.sendOnlineList();
         clientSocket.close();
+    }
+    
+    private void handleMsg(String argstr) {
+	String[] args = argstr.split(" ", 2);
+	Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getViewName() + " " + args[1]);
     }
 }

@@ -10,6 +10,7 @@ import javax.swing.JTextArea;
 import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.view.ClientView;
+import nhom12.chatapp.model.User;
 
 public class ChatClient extends Thread implements MessageListener {
 
@@ -17,11 +18,14 @@ public class ChatClient extends Thread implements MessageListener {
     
     private List<String> onlineList;
     private int id;
+    private User user;
     
     private ClientView view;
 
     public ChatClient(ServerConnection server) {
 	this.server = server;
+	this.user = new User();
+	this.user.setViewName("guest");
 	
 	onlineList = new ArrayList<>();
         id = -1;
@@ -49,16 +53,16 @@ public class ChatClient extends Thread implements MessageListener {
 		String[] messageSplit = message.split(" ", 2);
 		
 		switch (messageSplit[0]) {
-		    case "get-id":
-			setID(Integer.parseInt(messageSplit[1]));
-			view.setTitle("Client " + this.id);
+		    case "set-user":
+			this.user = (User) server.readObject();
+			view.setTitle("Client " + this.user.getViewName());
 			break;
 		    case "update-online-list":
 			onlineList = new ArrayList<>();
 			String online = "";
 			String[] onlineSplit = messageSplit[1].split("-");
 			for (String onlineSplit1 : onlineSplit) {
-			    if (!onlineSplit1.equals("" + this.id))
+			    if (!onlineSplit1.equals(this.user.getViewName()))
 				onlineList.add("Client " + onlineSplit1);
 			    online += "Client " + onlineSplit1 + " đang online\n";
 			}	
@@ -83,8 +87,12 @@ public class ChatClient extends Thread implements MessageListener {
 	    
 	    server.close();
 	    
-	} catch (UnknownHostException e) {
-	} catch (IOException e) {
+	} catch (UnknownHostException ex) {
+	    Logger.getLogger(ChatClient.class.getName()).log(Level.SEVERE, null, ex);
+	} catch (IOException ex) {
+	    Logger.getLogger(ChatClient.class.getName()).log(Level.SEVERE, null, ex);
+	} catch (ClassNotFoundException ex) {
+	    Logger.getLogger(ChatClient.class.getName()).log(Level.SEVERE, null, ex);
 	}
 
     }

@@ -5,6 +5,7 @@
 package view;
 
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 /**
  *
@@ -16,6 +17,8 @@ public class HomeFrm extends javax.swing.JFrame {
      * Creates new form HomeFrm
      */
     private HomeChatPanel chatPanel;
+    private AddFriendPanel addFriendPanel;
+    private MyFriendPanel myFriendPanel;
     public HomeFrm() {
         initComponents();
     }
@@ -32,9 +35,9 @@ public class HomeFrm extends javax.swing.JFrame {
         jToolBar1 = new javax.swing.JToolBar();
         btnHomeChat = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
-        jButton2 = new javax.swing.JButton();
+        btnMyFriend = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
-        jButton3 = new javax.swing.JButton();
+        btnAddFr = new javax.swing.JButton();
         jSeparator3 = new javax.swing.JToolBar.Separator();
         jButton4 = new javax.swing.JButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
@@ -59,18 +62,28 @@ public class HomeFrm extends javax.swing.JFrame {
         jToolBar1.add(btnHomeChat);
         jToolBar1.add(jSeparator1);
 
-        jButton2.setText("My friend");
-        jButton2.setFocusable(false);
-        jButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(jButton2);
+        btnMyFriend.setText("My friend");
+        btnMyFriend.setFocusable(false);
+        btnMyFriend.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnMyFriend.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnMyFriend.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMyFriendActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnMyFriend);
         jToolBar1.add(jSeparator2);
 
-        jButton3.setText("Add Friend");
-        jButton3.setFocusable(false);
-        jButton3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButton3.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToolBar1.add(jButton3);
+        btnAddFr.setText("Add Friend");
+        btnAddFr.setFocusable(false);
+        btnAddFr.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnAddFr.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnAddFr.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddFrActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnAddFr);
         jToolBar1.add(jSeparator3);
 
         jButton4.setText("Friend request");
@@ -122,8 +135,31 @@ public class HomeFrm extends javax.swing.JFrame {
             chatPanel = new HomeChatPanel();
             mainTabPanel.addTab("Home Chat", chatPanel);
         }
-        mainTabPanel.setSelectedComponent(mainTabPanel);
+        else{
+            mainTabPanel.addTab("Home Chat", chatPanel);
+        }
+        //mainTabPanel.setSelectedCompomainTabPanel.addTab("Home Chat", chatPanel);nent(mainTabPanel);
     }//GEN-LAST:event_btnHomeChatActionPerformed
+        
+    private void btnAddFrActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddFrActionPerformed
+       if(addFriendPanel == null){
+            addFriendPanel = new AddFriendPanel();
+            mainTabPanel.addTab("Add Friend", addFriendPanel);
+        }
+        else{
+            mainTabPanel.addTab("Add Friend", addFriendPanel);
+        }
+    }//GEN-LAST:event_btnAddFrActionPerformed
+
+    private void btnMyFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMyFriendActionPerformed
+        if(myFriendPanel == null){
+            myFriendPanel = new MyFriendPanel();
+            mainTabPanel.addTab("My Friend", myFriendPanel);
+        }
+        else{
+            mainTabPanel.addTab("My Friend", myFriendPanel);
+        }
+    }//GEN-LAST:event_btnMyFriendActionPerformed
 
     /**
      * @param args the command line arguments
@@ -161,9 +197,9 @@ public class HomeFrm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddFr;
     private javax.swing.JButton btnHomeChat;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
+    private javax.swing.JButton btnMyFriend;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;

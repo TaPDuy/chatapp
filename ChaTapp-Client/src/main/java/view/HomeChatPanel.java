@@ -52,20 +52,20 @@ public class HomeChatPanel extends javax.swing.JPanel {
         jScrollPane1.setViewportView(jTextArea1);
 
         add(jScrollPane1);
-        jScrollPane1.setBounds(10, 40, 380, 340);
+        jScrollPane1.setBounds(10, 40, 480, 350);
 
         jLabel3.setText("Online Friend");
         add(jLabel3);
-        jLabel3.setBounds(440, 10, 100, 21);
+        jLabel3.setBounds(560, 10, 100, 21);
 
         jTextArea2.setColumns(20);
         jTextArea2.setRows(5);
         jScrollPane2.setViewportView(jTextArea2);
 
         add(jScrollPane2);
-        jScrollPane2.setBounds(400, 40, 170, 340);
+        jScrollPane2.setBounds(500, 40, 200, 350);
         add(jSeparator1);
-        jSeparator1.setBounds(0, 30, 580, 10);
+        jSeparator1.setBounds(0, 30, 710, 10);
 
         jTextField1.setText("enter content");
         add(jTextField1);
@@ -73,7 +73,7 @@ public class HomeChatPanel extends javax.swing.JPanel {
 
         jButton1.setText("Send");
         add(jButton1);
-        jButton1.setBounds(440, 400, 90, 29);
+        jButton1.setBounds(400, 400, 90, 29);
     }// </editor-fold>//GEN-END:initComponents
 
 

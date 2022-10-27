@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nhom12.chatapp.client.view.LoginFrm;
+import nhom12.chatapp.client.controller.ChatClient;
 
 public class EntryPoint {
     

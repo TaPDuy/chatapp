@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.listener.WindowListener;
+import nhom12.chatapp.model.User;
 
 public class RegisterFrm extends javax.swing.JFrame implements GenericView {
 
@@ -251,7 +252,7 @@ public class RegisterFrm extends javax.swing.JFrame implements GenericView {
 
     private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterActionPerformed
         String sdt = txtSDT.getText();
-        String password = txtPassword.getText();
+        String password = new String(txtPassword.getPassword());
         String username = txtNickname.getText();
         String fullname = txtFullname.getText();
         String gender = null;

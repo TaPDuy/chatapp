@@ -18,7 +18,7 @@ public class ClientView extends javax.swing.JFrame implements GenericView {
         initComponents();
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
-        this.setVisible(true);
+        //this.setVisible(true);
         jTextArea1.setEditable(false);
         jTextArea2.setEditable(false);
     }

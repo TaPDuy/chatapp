@@ -44,6 +44,7 @@ public class WindowController implements WindowListener {
 		view.setWindowListener(this);
 		view.setVisible(true);
 		currentWindow = view;
+		chatCtrl.start();
 		break;
 	    case "LoginFrm":
 		LoginFrm frm = new LoginFrm();

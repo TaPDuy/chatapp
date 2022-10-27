@@ -154,6 +154,7 @@ public class ServerWorker implements Runnable {
             
 	    write("ok-login");
             System.out.println("[INFO]: User logged in: " + this.user.getViewName());
+	    Server.serverThreadBus.sendOnlineList();
 //
 //            List<ServerWorker> workerList = server.getWorkerList();
 //

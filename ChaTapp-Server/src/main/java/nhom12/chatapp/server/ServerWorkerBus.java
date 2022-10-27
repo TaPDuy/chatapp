@@ -53,7 +53,7 @@ public class ServerWorkerBus {
 	
         String res = "";
 	res = Server.serverThreadBus.getListServerThreads().stream().map(worker -> worker.getUser().getViewName() + "-").reduce(res, String::concat);
-        Server.serverThreadBus.mutilCastSend("update-online-list" + "," + res);
+        Server.serverThreadBus.mutilCastSend("update-online-list " + res);
     }
     
     public void sendMessageToPersion(String to, String message) {

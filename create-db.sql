@@ -31,6 +31,19 @@ CREATE TABLE `app_multi_chat`.`tblgroup` (
   UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE
 );
 
+CREATE TABLE `app_multi_chat`.`tbl_group_user` (
+  `group_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  PRIMARY KEY (`group_id`, `user_id`),
+  INDEX `user_id_idx` (`user_id` ASC) VISIBLE,
+    FOREIGN KEY (`group_id`)
+    REFERENCES `app_multi_chat`.`tblgroup` (`id`)
+    ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`)
+    REFERENCES `app_multi_chat`.`tbluser` (`id`)
+    ON DELETE CASCADE
+);
+
 /*
 status trạng thái 0 ứng chưa là bạn 1 là bạn 2 là đang đợi đồng ý
 */

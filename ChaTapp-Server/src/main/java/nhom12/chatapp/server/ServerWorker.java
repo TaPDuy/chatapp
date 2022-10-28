@@ -13,7 +13,9 @@ import java.net.Socket;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import nhom12.chatapp.model.Group;
 import nhom12.chatapp.model.User;
+import nhom12.chatapp.server.dao.GroupDAO;
 import nhom12.chatapp.server.dao.UserDAO;
 
 public class ServerWorker implements Runnable {
@@ -29,6 +31,7 @@ public class ServerWorker implements Runnable {
     private ObjectInputStream is;
     
     private final UserDAO userDAO;
+    private final GroupDAO groupDAO;
     private User user;
     
     public User getUser() {
@@ -46,6 +49,7 @@ public class ServerWorker implements Runnable {
         System.out.println("Server thread number " + clientNumber + " Started");
         
         this.userDAO = new UserDAO();
+	this.groupDAO = new GroupDAO();
         isClosed = false;
     }
     
@@ -100,12 +104,14 @@ public class ServerWorker implements Runnable {
         os.flush();
     }
     
-    private void handleClientCmd(String cmd) throws IOException {
-        String[] tokens = cmd.split(" ", 2);
+    private void handleClientCmd(String clientCmd) throws IOException {
+        String[] tokens = clientCmd.split(" ", 2);
+	String cmd = tokens[0];
+	String args = tokens[1];
         
-        switch (tokens[0]) {
+        switch (cmd) {
             case "login":
-                handleLogin(tokens[1]);
+                handleLogin(args);
                 break;
             case "register":
                 User userGet;
@@ -117,11 +123,11 @@ public class ServerWorker implements Runnable {
                 }
                 break;
             case "msg-global":
-                Server.serverThreadBus.boardCast(user.getViewName(), "display " + user.getViewName() + " " + tokens[1]);
+                Server.serverThreadBus.boardCast(user.getViewName(), "display " + user.getViewName() + " " + args);
                 break;
             case "msg":
                 // Handle group later
-                handleMsg(tokens[1]);
+                handleMsg(args);
                 break;
             case "logoff":
                 handleLogoff();
@@ -135,6 +141,9 @@ public class ServerWorker implements Runnable {
                 break;
             case "leave":
                 break;
+	    case "create-group":
+		handleCreateGroup(args);
+		break;
             case "groups":
                 break;
             case "online-users":
@@ -225,5 +234,18 @@ public class ServerWorker implements Runnable {
     private void handleMsg(String argstr) {
 	String[] args = argstr.split(" ", 2);
 	Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getViewName() + " " + args[1]);
+    }
+    
+    private void handleCreateGroup(String argstr) throws IOException {
+	
+	Group group = new Group().setName(argstr);
+	if (groupDAO.checkExist(group)) {
+	    write("group-existed");
+	} else {
+	    if (groupDAO.insertGroup(group))
+		write("group-created");
+	    else
+		write("group-error");
+	}
     }
 }

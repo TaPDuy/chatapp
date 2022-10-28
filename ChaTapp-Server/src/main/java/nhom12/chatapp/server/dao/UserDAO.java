@@ -9,10 +9,10 @@ import nhom12.chatapp.model.User;
 
 public class UserDAO extends DAO {
 
-    private final String CHECK_LOGIN = "SELECT * FROM tbluser WHERE viewname = ? AND password = ?";
-    private final String INSERT_USER = "INSERT INTO tbluser(sdt, password, viewname, fullname,gender, address, dob) VALUES (?,?,?,?,?,?,?);";
-    private final String CHECK_EXIST = "SELECT * FROM tbluser WHERE sdt = ? limit 1";
-    private final String GET_USER_BY_PHONE = "SELECT * FROM tbluser WHERE sdt = ?";
+    private static final String CHECK_LOGIN = "SELECT * FROM tbluser WHERE viewname = ? AND password = ?";
+    private static final String INSERT_USER = "INSERT INTO tbluser(sdt, password, viewname, fullname,gender, address, dob) VALUES (?,?,?,?,?,?,?);";
+    private static final String CHECK_EXIST = "SELECT * FROM tbluser WHERE sdt = ? limit 1";
+    private static final String GET_USER_BY_PHONE = "SELECT * FROM tbluser WHERE sdt = ?";
     
     public UserDAO() {
         super();
@@ -47,11 +47,13 @@ public class UserDAO extends DAO {
     }
 
     public boolean checkExist(User user) {
-        PreparedStatement p;
+        PreparedStatement ps;
         try {
-            p = con.prepareStatement(CHECK_EXIST);
-            p.setString(1, user.getSdt());
-            ResultSet rs = p.executeQuery();
+            ps = con.prepareStatement(CHECK_EXIST);
+            ps.setString(1, user.getSdt());
+	    
+	    System.out.println("[DB]: Executing sql statement '" + ps.toString() + "'");
+            ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return true;
             }

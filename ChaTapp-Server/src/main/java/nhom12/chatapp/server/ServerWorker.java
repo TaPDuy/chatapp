@@ -18,10 +18,6 @@ public class ServerWorker implements Runnable {
     
     private final Socket clientSocket;
     private final int clientNumber;
-//    private OutputStream os;
-//    private InputStream is;
-//    private BufferedReader bufferedReader;
-//    private BufferedWriter bufferedWriter;
     private boolean isClosed;
     private ObjectOutputStream os;
     private ObjectInputStream is;
@@ -60,46 +56,27 @@ public class ServerWorker implements Runnable {
     @Override
     public void run() {
         try {
-            // Mở luồng vào ra trên Socket tại Server.
-            
+	    
             is = new ObjectInputStream(clientSocket.getInputStream());
             os = new ObjectOutputStream(clientSocket.getOutputStream());
-//            bufferedReader = new BufferedReader(new InputStreamReader(is));
-            //bufferedWriter = new BufferedWriter(new OutputStreamWriter(os));
-//            System.out.println("Khời động luông mới thành công, ID là: " + clientNumber);
-//            write("get-id" + "," + this.clientNumber);
-
-//            Server.serverThreadBus.mutilCastSend("global-message"+","+"---Client "+this.clientNumber+" đã đăng nhập---");
-            String cmd;
+	    
+	    String cmd;
             while (!isClosed) {
+		
                 cmd = is.readUTF();
-                if (cmd == null) {
-                    break;
-                }
-                
-                System.out.println("[CLIENT (" + (user != null ? user.getViewName() : "guest") + ")]: " + cmd);
-                handleClientCmd(cmd);
-//                String[] messageSplit = message.split(",");
-//                if(messageSplit[0].equals("send-to-global")){
-//                    Server.serverThreadBus.boardCast(this.getClientNumber(),"global-message"+","+"Client "+messageSplit[2]+": "+messageSplit[1]);
-//                }
-//                if(messageSplit[0].equals("send-to-person")){
-//                    Server.serverThreadBus.sendMessageToPersion(Integer.parseInt(messageSplit[3]),"Client "+ messageSplit[2]+" (tới bạn): "+messageSplit[1]);
-//                }
-
+                if (cmd != null){
+		    System.out.println("[CLIENT-" + clientNumber + "]: " + cmd);
+		    handleClientCmd(cmd);   
+		}
             }
             
         } catch (IOException e) {
-//            try {
-//                            isClosed = true;
-//            Server.serverThreadBus.remove(clientNumber);
-//            System.out.println(this.clientNumber+" đã thoát");
-//            Server.serverThreadBus.sendOnlineList();
-//            Server.serverThreadBus.mutilCastSend("global-message"+","+"---Client "+this.clientNumber+" đã thoát---");
-//                handleLogoff();
-//            } catch (IOException ex) {
-//                Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-//            }
+            try {
+		System.out.println("[CLIENT-" + clientNumber + "]: Logging off...");
+		handleLogoff();
+            } catch (IOException ex) {
+                Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
     
@@ -189,25 +166,7 @@ public class ServerWorker implements Runnable {
 	    List<Group> groups = groupUserDAO.getGroupsByUser(this.user);
 	    groupNames = new ArrayList<>();
 	    groups.stream().map(group -> group.getName()).forEach(groupNames::add);
-//
-//            List<ServerWorker> workerList = server.getWorkerList();
-//
-//                // send current user all other online logins
-//                for(ServerWorker worker : workerList) {
-//                    if (worker.getViewName()!= null) {
-//                        if (!sdt.equals(worker.getSdt())) {
-//                            String msg2 = "online " + worker.getViewName()+ " " + worker.getSdt() + "\n";
-//                            send(msg2);
-//                        }
-//                    }
-//                }
-//                // send other online users current user's status
-//                String onlineMsg = "online " + viewName + " " + sdt + "\n";
-//                for(ServerWorker worker : workerList) {
-//                    if (!sdt.equals(worker.getSdt())) {
-//                        worker.send(onlineMsg);
-//                    }
-//                }
+
         } else {
             write("error-login");
             System.err.println("[ERROR]: User login failed: " + viewname);

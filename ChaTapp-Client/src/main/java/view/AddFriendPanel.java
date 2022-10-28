@@ -4,6 +4,8 @@
  */
 package view;
 
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author Smile
@@ -15,6 +17,12 @@ public class AddFriendPanel extends javax.swing.JPanel {
      */
     public AddFriendPanel() {
         initComponents();
+        DefaultTableModel dtm = new DefaultTableModel();
+        dtm.setColumnIdentifiers(new String[]{"ID", "Name", "No", "Hire Date", "Job", "Salary", "Department", "Manager ID"});
+        for(int i =0; i<10;i++){
+            dtm.addRow(new String[]{i+"", i+"", i+""});
+        }
+        jTable1.setModel(dtm);
     }
 
     /**
@@ -75,7 +83,7 @@ public class AddFriendPanel extends javax.swing.JPanel {
         }
 
         add(jScrollPane1);
-        jScrollPane1.setBounds(10, 60, 690, 400);
+        jScrollPane1.setBounds(10, 60, 690, 130);
     }// </editor-fold>//GEN-END:initComponents
 
 

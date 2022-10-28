@@ -1,14 +1,8 @@
 package nhom12.chatapp.server;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.List;
 import java.util.logging.Level;
@@ -16,6 +10,7 @@ import java.util.logging.Logger;
 import nhom12.chatapp.model.Group;
 import nhom12.chatapp.model.User;
 import nhom12.chatapp.server.dao.GroupDAO;
+import nhom12.chatapp.server.dao.GroupUserDAO;
 import nhom12.chatapp.server.dao.UserDAO;
 
 public class ServerWorker implements Runnable {
@@ -32,7 +27,10 @@ public class ServerWorker implements Runnable {
     
     private final UserDAO userDAO;
     private final GroupDAO groupDAO;
+    private final GroupUserDAO groupUserDAO;
+    
     private User user;
+    private List<String> groupNames;
     
     public User getUser() {
         return this.user;
@@ -50,6 +48,7 @@ public class ServerWorker implements Runnable {
         
         this.userDAO = new UserDAO();
 	this.groupDAO = new GroupDAO();
+	this.groupUserDAO = new GroupUserDAO();
         isClosed = false;
     }
     
@@ -247,5 +246,25 @@ public class ServerWorker implements Runnable {
 	    else
 		write("group-error");
 	}
+    }
+    
+    private void handleJoin(String argstr) throws IOException {
+	
+	Group group = new Group().setName(argstr);
+	if (groupDAO.checkExist(group)) {
+	    
+	    if (!groupNames.contains(argstr)) {
+		
+		if (groupUserDAO.insertGroupUser(group, this.user)) {
+		    groupNames.add(argstr);
+		    write("join-ok");
+		} else
+		    write("join-error");
+	    }
+	    else
+		write("join-already");	
+	} else
+	    write("join-not-exist");
+
     }
 }

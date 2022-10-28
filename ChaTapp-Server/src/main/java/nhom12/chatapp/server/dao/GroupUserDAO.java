@@ -14,6 +14,7 @@ import static nhom12.chatapp.server.dao.DAO.con;
 public class GroupUserDAO extends DAO {
 
     public static final String INSERT = "INSERT INTO tbl_group_user (group_id, user_id) VALUES (?, ?)";
+    public static final String DELETE = "DELETE FROM tbl_group_user WHERE group_id = ? AND user_id = ?";
     public static final String SELECT_BY_USER = "SELECT * FROM tbl_group_user WHERE user_id = ?";
     
     private final GroupDAO groupDAO;
@@ -46,6 +47,27 @@ public class GroupUserDAO extends DAO {
 	    Logger.getLogger(GroupUserDAO.class.getName()).log(Level.SEVERE, null, ex);
 	    return false;
 	}
+	
+	return true;
+    }
+    
+    public boolean deleteGroupUser(Group group, User user) {
+	
+	try {
+	    
+	    PreparedStatement ps = con.prepareStatement(DELETE);
+	    ps.setInt(1, group.getId());
+	    ps.setInt(2, user.getId());
+	    
+	    System.out.println("[DB]: Executing sql statement '" + ps.toString() + "'");
+	    ps.executeUpdate();
+	    
+	} catch (SQLException ex) {
+	    System.out.println("[DB]: Could not delete group-user: " + group.getId() + "-" + user.getId());
+	    Logger.getLogger(GroupUserDAO.class.getName()).log(Level.SEVERE, null, ex);
+	    return false;
+	}
+	
 	return true;
     }
     

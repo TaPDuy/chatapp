@@ -141,6 +141,7 @@ public class ServerWorker implements Runnable {
 		handleJoin(args);
                 break;
             case "leave":
+		handleLeave(args);
                 break;
 	    case "create-group":
 		handleCreateGroup(args);
@@ -273,5 +274,24 @@ public class ServerWorker implements Runnable {
 	} else
 	    write("join-not-exist");
 
+    }
+    
+    private void handleLeave(String argstr) throws IOException {
+	
+	Group group = new Group().setName(argstr);
+	if (groupDAO.checkExist(group)) {
+	    
+	    if (groupNames.contains(argstr)) {
+		
+		if (groupUserDAO.deleteGroupUser(group, this.user)) {
+		    groupNames.remove(argstr);
+		    write("leave-ok");
+		} else
+		    write("leave-error");
+	    }
+	    else
+		write("leave-not-join");	
+	} else
+	    write("leave-not-exist");
     }
 }

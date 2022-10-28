@@ -37,6 +37,10 @@ public class ServerWorker implements Runnable {
         return this.user;
     }
     
+    public List<String> getGroupNames() {
+	return this.groupNames;
+    }
+    
     public int getClientNumber() {
         return this.clientNumber;
     }
@@ -126,7 +130,6 @@ public class ServerWorker implements Runnable {
                 Server.serverThreadBus.boardCast(user.getViewName(), "display " + user.getViewName() + " " + args);
                 break;
             case "msg":
-                // Handle group later
                 handleMsg(args);
                 break;
             case "logoff":
@@ -240,7 +243,11 @@ public class ServerWorker implements Runnable {
     
     private void handleMsg(String argstr) {
 	String[] args = argstr.split(" ", 2);
-	Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getViewName() + " " + args[1]);
+	
+	if (args[0].charAt(0) == '#')
+	    Server.serverThreadBus.broadCastGroup(user.getViewName(), args[0].substring(1), "display " + user.getViewName() + " " + args[1]);
+	else
+	    Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getViewName() + " " + args[1]);
     }
     
     private void handleCreateGroup(String argstr) throws IOException {

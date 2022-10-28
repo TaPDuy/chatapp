@@ -45,6 +45,19 @@ public class ServerWorkerBus {
 	});
     }
     
+    public void broadCastGroup(String from, String groupName, String msg) {
+	
+	listServerThreads.stream().filter(
+	    worker -> !worker.getUser().getViewName().equals(from) && worker.getGroupNames().contains(groupName)
+	).forEach(worker -> {
+	    try {
+		worker.write(msg);
+	    } catch (IOException ex) {
+		Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	});
+    }
+    
     public int getLength() {
         return listServerThreads.size();
     }

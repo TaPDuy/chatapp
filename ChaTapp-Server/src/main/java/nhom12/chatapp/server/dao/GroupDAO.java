@@ -12,6 +12,7 @@ public class GroupDAO extends DAO {
 
     private static final String CHECK_EXIST = "SELECT * FROM tblgroup WHERE name = ? limit 1";
     private static final String INSERT_GROUP = "INSERT INTO tblgroup(name) VALUES (?)";
+    private static final String GET_BY_ID = "SELECT * FROM tblgroup WHERE id = ?";
     
     public GroupDAO() {
 	super();
@@ -32,6 +33,27 @@ public class GroupDAO extends DAO {
             Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
+    }
+    
+    public Group getGroupByID (int id) {
+	
+	try {
+	    
+	    PreparedStatement ps = con.prepareStatement(CHECK_EXIST);
+	    ps.setInt(1, id);
+	    
+	    Group group = new Group();
+	    ResultSet rs = ps.executeQuery();
+	    if(rs.next()) {
+		group.setId(rs.getInt("id"));
+		group.setName(rs.getString("name"));
+	    }
+	    
+	} catch (SQLException ex) {
+	    Logger.getLogger(GroupDAO.class.getName()).log(Level.SEVERE, null, ex);
+	}
+	
+	return null;
     }
     
     public boolean insertGroup(Group group) {

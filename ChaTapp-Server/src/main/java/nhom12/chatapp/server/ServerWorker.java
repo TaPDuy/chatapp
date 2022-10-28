@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,7 +49,7 @@ public class ServerWorker implements Runnable {
         
         this.userDAO = new UserDAO();
 	this.groupDAO = new GroupDAO();
-	this.groupUserDAO = new GroupUserDAO();
+	this.groupUserDAO = new GroupUserDAO(this.groupDAO);
         isClosed = false;
     }
     
@@ -137,6 +138,7 @@ public class ServerWorker implements Runnable {
 		os.flush();
 		break;
             case "join":
+		handleJoin(args);
                 break;
             case "leave":
                 break;
@@ -178,6 +180,11 @@ public class ServerWorker implements Runnable {
 	    os.flush();
 	    
 	    Server.serverThreadBus.sendOnlineList();
+	    
+	    // TODO: Sends group list to client
+	    List<Group> groups = groupUserDAO.getGroupsByUser(this.user);
+	    groupNames = new ArrayList<>();
+	    groups.stream().map(group -> group.getName()).forEach(groupNames::add);
 //
 //            List<ServerWorker> workerList = server.getWorkerList();
 //

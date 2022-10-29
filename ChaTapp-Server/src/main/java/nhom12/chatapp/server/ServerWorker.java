@@ -13,6 +13,7 @@ import nhom12.chatapp.model.User;
 import nhom12.chatapp.server.dao.GroupDAO;
 import nhom12.chatapp.server.dao.GroupUserDAO;
 import nhom12.chatapp.server.dao.UserDAO;
+import nhom12.chatapp.util.ConsoleLogger;
 
 public class ServerWorker implements Runnable {
     
@@ -45,7 +46,7 @@ public class ServerWorker implements Runnable {
         this.clientSocket = clientSocket;
         this.clientNumber = clientNumber;
         
-        System.out.println("Server thread number " + clientNumber + " Started");
+	ConsoleLogger.log("Server thread started", "CLIENT-" + clientNumber, ConsoleLogger.INFO);
         
         this.userDAO = new UserDAO();
 	this.groupDAO = new GroupDAO();
@@ -65,14 +66,14 @@ public class ServerWorker implements Runnable {
 		
                 cmd = is.readUTF();
                 if (cmd != null){
-		    System.out.println("[CLIENT-" + clientNumber + "]: " + cmd);
+		    ConsoleLogger.log(cmd, "CLIENT-" + clientNumber, ConsoleLogger.INFO);
 		    handleClientCmd(cmd);   
 		}
             }
             
         } catch (IOException e) {
             try {
-		System.out.println("[CLIENT-" + clientNumber + "]: Logging off...");
+		ConsoleLogger.log("Logging off...", "CLIENT-" + clientNumber, ConsoleLogger.INFO);
 		handleLogoff();
             } catch (IOException ex) {
                 Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
@@ -154,8 +155,9 @@ public class ServerWorker implements Runnable {
             
             write("ok-login");
             
-            System.out.println("[INFO]: User logged in: " + this.user.getViewName());
+            ConsoleLogger.log("Login successfully with username: " + viewname, "CLIENT-" + clientNumber, ConsoleLogger.INFO);
 	    
+	    // Initialize worker and send post-login info to client
 	    write("set-user");
 	    os.writeObject(this.user);
 	    os.flush();
@@ -167,9 +169,11 @@ public class ServerWorker implements Runnable {
 	    groupNames = new ArrayList<>();
 	    groups.stream().map(group -> group.getName()).forEach(groupNames::add);
 
+	    ConsoleLogger.log("Worker initialized", "CLIENT-" + clientNumber, ConsoleLogger.INFO);
+	    
         } else {
             write("error-login");
-            System.err.println("[ERROR]: User login failed: " + viewname);
+	    ConsoleLogger.log("Login failed with username: " + viewname, "CLIENT-" + clientNumber, ConsoleLogger.ERROR);
         }
     }
     
@@ -230,16 +234,46 @@ public class ServerWorker implements Runnable {
 	    if (!groupNames.contains(argstr)) {
 		
 		if (groupUserDAO.insertGroupUser(group, this.user)) {
+		    
 		    groupNames.add(argstr);
 		    write("join-ok");
-		} else
+		    
+		    ConsoleLogger.log(
+			"Joined group: '" + argstr + "'", 
+			"CLIENT-" + clientNumber, 
+			ConsoleLogger.INFO
+		    );
+		    
+		} else {
+		    
+		    ConsoleLogger.log(
+			"Something went wrong trying to join group: '" + argstr + "'", 
+			"CLIENT-" + clientNumber, 
+			ConsoleLogger.ERROR
+		    );
 		    write("join-error");
+		}
 	    }
-	    else
+	    else {
+		
+		ConsoleLogger.log(
+		    "Tried to join a group they already joined: '" + argstr + "'", 
+		    "CLIENT-" + clientNumber, 
+		    ConsoleLogger.ERROR
+		);
 		write("join-already");	
-	} else
+	    }
+	    
+	} else {
+	    
+	    ConsoleLogger.log(
+		"Tried to join a non-existing group: '" + argstr + "'", 
+		"CLIENT-" + clientNumber, 
+		ConsoleLogger.ERROR
+	    );
 	    write("join-not-exist");
-
+	}
+	    
     }
     
     private void handleLeave(String argstr) throws IOException {
@@ -250,14 +284,44 @@ public class ServerWorker implements Runnable {
 	    if (groupNames.contains(argstr)) {
 		
 		if (groupUserDAO.deleteGroupUser(group, this.user)) {
+		    
 		    groupNames.remove(argstr);
 		    write("leave-ok");
-		} else
+		    
+		    ConsoleLogger.log(
+			"Left group: '" + argstr + "'", 
+			"CLIENT-" + clientNumber, 
+			ConsoleLogger.INFO
+		    );
+		    
+		} else {
+		    
+		    ConsoleLogger.log(
+			"Something went wrong trying to leave group: '" + argstr + "'", 
+			"CLIENT-" + clientNumber, 
+			ConsoleLogger.ERROR
+		    );
 		    write("leave-error");
-	    }
-	    else
+		}
+	    } else {
+		
+		ConsoleLogger.log(
+		    "Tried to leave a group they haven't joined: '" + argstr + "'", 
+		    "CLIENT-" + clientNumber, 
+		    ConsoleLogger.ERROR
+		);
 		write("leave-not-join");	
-	} else
+	    }
+	    
+	} else {
+	    
+	    ConsoleLogger.log(
+		"Tried to leave a non-existing group: '" + argstr + "'", 
+		"CLIENT-" + clientNumber, 
+		ConsoleLogger.ERROR
+	    );
 	    write("leave-not-exist");
+	}
+	    
     }
 }

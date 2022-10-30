@@ -44,7 +44,7 @@ public class ClientView extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
-        jTextField1 = new javax.swing.JTextField();
+        txtf_chat = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -101,8 +101,8 @@ public class ClientView extends javax.swing.JFrame {
 
         jPanel2.add(jScrollPane1);
         jScrollPane1.setBounds(6, 37, 297, 340);
-        jPanel2.add(jTextField1);
-        jTextField1.setBounds(0, 420, 280, 29);
+        jPanel2.add(txtf_chat);
+        txtf_chat.setBounds(0, 420, 280, 29);
 
         jButton1.setText("Gửi");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -299,27 +299,28 @@ public class ClientView extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String parner = jLabel3.getText();
-        if (parner.equalsIgnoreCase("{Người nhận}")) {
-            parner = onlineUser.get(0).substring(7, onlineUser.get(0).length());
-        }
-
-        String messageContent = jTextField1.getText();
-        if (messageContent.isEmpty()) {
-            JOptionPane.showMessageDialog(rootPane, "Bạn chưa nhập tin nhắn");
-            return;
-        }
-
-        try {
-            listener.send(messageContent, parner);
-            jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner + "): " + messageContent + "\n");
-            jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
-            //}
-        } catch (IOException ex) {
-            Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        jTextField1.setText("");
+//        String parner = jLabel3.getText();
+//        if (parner.equalsIgnoreCase("{Người nhận}")) {
+//            parner = onlineUser.get(0).substring(7, onlineUser.get(0).length());
+//        }
+//
+//        String messageContent = jTextField1.getText();
+//        if (messageContent.isEmpty()) {
+//            JOptionPane.showMessageDialog(rootPane, "Bạn chưa nhập tin nhắn");
+//            return;
+//        }
+//
+//        try {
+//            listener.send(messageContent, parner);
+//            jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner + "): " + messageContent + "\n");
+//            jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
+//            //}
+//        } catch (IOException ex) {
+//            Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//
+//        jTextField1.setText("");
+	listener.sendMessage(txtf_chat.getText());
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
@@ -390,6 +391,11 @@ public class ClientView extends javax.swing.JFrame {
     public JTextArea getTextArea2() {
         return this.jTextArea2;
     }
+    
+    public void printMessage(String msg) {
+	jTextArea1.setText(jTextArea1.getText() + msg);
+	jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
+    }
 
     public void setUser(User user) {
         this.user = user;
@@ -457,10 +463,10 @@ public class ClientView extends javax.swing.JFrame {
     private javax.swing.JTable jTable1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextArea jTextArea2;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTable tblMyFriend;
     private javax.swing.JTable tblUserInSys;
     private javax.swing.JTextField txtKey;
     private javax.swing.JTextField txtKeyNickName;
+    private javax.swing.JTextField txtf_chat;
     // End of variables declaration//GEN-END:variables
 }

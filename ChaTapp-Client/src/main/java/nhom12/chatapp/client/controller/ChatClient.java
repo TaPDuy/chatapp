@@ -59,6 +59,7 @@ public class ChatClient extends Thread implements MessageListener {
 			this.user = (User) server.readObject();
                         System.out.println(user.getId());
                         view.setUser(user);
+                        view.updateCombobox(onlineList);
 			break;
 		    case "update-online-list":
 			onlineList = new ArrayList<>();

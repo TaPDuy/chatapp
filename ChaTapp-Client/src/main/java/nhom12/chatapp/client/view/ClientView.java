@@ -48,10 +48,10 @@ public class ClientView extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
         jLabel6 = new javax.swing.JLabel();
-        comboboxGroup = new javax.swing.JComboBox<>();
+        comboBoxGroup = new javax.swing.JComboBox<>();
+        comboBoxUser = new javax.swing.JComboBox<>();
+        jLabel10 = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         btnSearchAddFriend = new javax.swing.JButton();
@@ -116,9 +116,9 @@ public class ClientView extends javax.swing.JFrame {
         jScrollPane1.setViewportView(jTextArea1);
 
         jPanel2.add(jScrollPane1);
-        jScrollPane1.setBounds(6, 37, 297, 340);
+        jScrollPane1.setBounds(6, 107, 610, 270);
         jPanel2.add(jTextField1);
-        jTextField1.setBounds(10, 420, 280, 29);
+        jTextField1.setBounds(10, 420, 480, 29);
 
         jButton1.setText("Gửi");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -127,7 +127,7 @@ public class ClientView extends javax.swing.JFrame {
             }
         });
         jPanel2.add(jButton1);
-        jButton1.setBounds(360, 420, 180, 29);
+        jButton1.setBounds(510, 420, 100, 29);
 
         jLabel2.setText("Nhập tin nhắn");
         jPanel2.add(jLabel2);
@@ -137,56 +137,23 @@ public class ClientView extends javax.swing.JFrame {
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel3.setText("{Người nhận}");
         jPanel2.add(jLabel3);
-        jLabel3.setBounds(6, 10, 290, 20);
-
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null},
-                {null},
-                {null},
-                {null}
-            },
-            new String [] {
-                "Title 1"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        jTable1.setColumnSelectionAllowed(true);
-        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jTable1MouseClicked(evt);
-            }
-        });
-        jScrollPane3.setViewportView(jTable1);
-        jTable1.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        if (jTable1.getColumnModel().getColumnCount() > 0) {
-            jTable1.getColumnModel().getColumn(0).setResizable(false);
-        }
-
-        jPanel2.add(jScrollPane3);
-        jScrollPane3.setBounds(340, 10, 230, 190);
+        jLabel3.setBounds(160, 80, 290, 20);
 
         jLabel6.setText("Group");
         jPanel2.add(jLabel6);
-        jLabel6.setBounds(430, 220, 48, 21);
+        jLabel6.setBounds(520, 10, 48, 21);
 
-        comboboxGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jPanel2.add(comboboxGroup);
-        comboboxGroup.setBounds(340, 260, 230, 29);
+        comboBoxGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jPanel2.add(comboBoxGroup);
+        comboBoxGroup.setBounds(470, 40, 140, 29);
+
+        comboBoxUser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jPanel2.add(comboBoxUser);
+        comboBoxUser.setBounds(20, 40, 140, 29);
+
+        jLabel10.setText("Online Friend");
+        jPanel2.add(jLabel10);
+        jLabel10.setBounds(40, 10, 90, 21);
 
         jTabbedPane1.addTab("Nhắn tin", jPanel2);
 
@@ -523,17 +490,6 @@ public class ClientView extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_tblUserInSysMouseClicked
 
-    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
-        int column = jTable1.getColumnModel().
-        getColumnIndexAtX(evt.getX()); // get the coloum of the button
-        int row = evt.getY() / jTable1.getRowHeight(); // get row
-        // *Checking the row or column is valid or not
-        if (row < jTable1.getRowCount() && row >= 0
-            && column < jTable1.getColumnCount() && column >= 0) {
-            jLabel3.setText("Đang nhắn với " + onlineUser.get(row).substring(7, onlineUser.get(row).length()));
-        }
-    }//GEN-LAST:event_jTable1MouseClicked
-
     public JTextArea getTextArea1() {
         return this.jTextArea1;
     }
@@ -557,19 +513,17 @@ public class ClientView extends javax.swing.JFrame {
     public void updateCombobox(List<String> onlineList) {
         onlineUser = new ArrayList<>();
         this.onlineUser = onlineList;
-        DefaultTableModel dtm = new DefaultTableModel();
-        dtm.setColumnIdentifiers(new String[]{"Online Friend"});
-        dtm.setRowCount(0);
-        for (String user : onlineList) {
-            String nickName = user.substring(7, user.length());
+        comboBoxGroup.removeAllItems();
+        for (String us : onlineUser) {
+            System.out.println(us);
+            String nickName = us.substring(7, us.length());
             System.out.println(nickName);
             for (User friend : listFriend) {
                 if (nickName.equalsIgnoreCase(friend.getViewName())) {
-                    dtm.addRow(new String[]{nickName});
+                    comboBoxUser.addItem("Client "+ nickName);
                 }
             }
         }
-        jTable1.setModel(dtm);
         setTableFriend();
     }
 
@@ -594,11 +548,13 @@ public class ClientView extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnSearchAddFriend;
-    private javax.swing.JComboBox<String> comboboxGroup;
+    private javax.swing.JComboBox<String> comboBoxGroup;
+    private javax.swing.JComboBox<String> comboBoxUser;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -615,13 +571,11 @@ public class ClientView extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel6;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTable jTable2;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextArea jTextArea2;

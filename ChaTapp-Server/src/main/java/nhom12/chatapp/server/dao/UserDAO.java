@@ -18,6 +18,7 @@ public class UserDAO extends DAO {
     private final String GET_ALL_FRIEND = "Select distinct b.*  from tbluser a, tbluser b join tblfriend1 c on (c.user_id = ? and b.id = c.userf_id and c.status = 1) or (c.userf_id = ? and b.id = c.user_id and c.status = 1)";
     private final String DELETE_FRIEND = "Delete from tblfriend1 where (user_id = ? and userf_id=?) or (user_id = ? and userf_id=?)";
     private final String GET_ALL_USER = "Select * from tbluser where viewname like ?";
+
     public UserDAO() {
         super();
     }
@@ -94,11 +95,13 @@ public class UserDAO extends DAO {
     }
 
     public boolean checkExist(User user) {
-        PreparedStatement p;
+        PreparedStatement ps;
         try {
-            p = con.prepareStatement(CHECK_EXIST);
-            p.setString(1, user.getSdt());
-            ResultSet rs = p.executeQuery();
+            ps = con.prepareStatement(CHECK_EXIST);
+            ps.setString(1, user.getSdt());
+	    
+	    System.out.println("[DB]: Executing sql statement '" + ps.toString() + "'");
+            ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return true;
             }

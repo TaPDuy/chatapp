@@ -8,8 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import nhom12.chatapp.model.Group;
 import nhom12.chatapp.model.User;
+import nhom12.chatapp.server.dao.GroupDAO;
+import nhom12.chatapp.server.dao.GroupUserDAO;
 import nhom12.chatapp.server.dao.UserDAO;
+import nhom12.chatapp.util.ConsoleLogger;
 
 public class ServerWorker implements Runnable {
     
@@ -20,10 +24,18 @@ public class ServerWorker implements Runnable {
     private ObjectInputStream is;
     
     private final UserDAO userDAO;
+    private final GroupDAO groupDAO;
+    private final GroupUserDAO groupUserDAO;
+    
     private User user;
+    private List<String> groupNames;
     
     public User getUser() {
         return this.user;
+    }
+    
+    public List<String> getGroupNames() {
+	return this.groupNames;
     }
     
     public int getClientNumber() {
@@ -34,40 +46,38 @@ public class ServerWorker implements Runnable {
         this.clientSocket = clientSocket;
         this.clientNumber = clientNumber;
         
-        System.out.println("Server thread number " + clientNumber + " Started");
+	ConsoleLogger.log("Server thread started", "CLIENT-" + clientNumber, ConsoleLogger.INFO);
         
         this.userDAO = new UserDAO();
+	this.groupDAO = new GroupDAO();
+	this.groupUserDAO = new GroupUserDAO(this.groupDAO);
         isClosed = false;
     }
     
     @Override
     public void run() {
         try {
-            // Mở luồng vào ra trên Socket tại Server.
-            
+	    
             is = new ObjectInputStream(clientSocket.getInputStream());
             os = new ObjectOutputStream(clientSocket.getOutputStream());
-            String cmd;
+	    
+	    String cmd;
             while (!isClosed) {
+		
                 cmd = is.readUTF();
-                if (cmd == null) {
-                    break;
-                }        
-                System.out.println("[CLIENT (" + (user != null ? user.getViewName() : "guest") + ")]: " + cmd);
-                handleClientCmd(cmd);
+                if (cmd != null){
+		    ConsoleLogger.log(cmd, "CLIENT-" + clientNumber, ConsoleLogger.INFO);
+		    handleClientCmd(cmd);   
+		}
             }
             
         } catch (IOException e) {
-//            try {
-//                            isClosed = true;
-//            Server.serverThreadBus.remove(clientNumber);
-//            System.out.println(this.clientNumber+" đã thoát");
-//            Server.serverThreadBus.sendOnlineList();
-//            Server.serverThreadBus.mutilCastSend("global-message"+","+"---Client "+this.clientNumber+" đã thoát---");
-//                handleLogoff();
-//            } catch (IOException ex) {
-//                Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-//            }
+            try {
+		ConsoleLogger.log("Logging off...", "CLIENT-" + clientNumber, ConsoleLogger.INFO);
+		handleLogoff();
+            } catch (IOException ex) {
+                Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
     
@@ -75,12 +85,15 @@ public class ServerWorker implements Runnable {
         os.writeUTF(message);
         os.flush();
     }
-    
-    private void handleClientCmd(String cmd) throws IOException {
-        String[] tokens = cmd.split(" ", 2);
-        switch (tokens[0]) {
+
+    private void handleClientCmd(String clientCmd) throws IOException {
+        String[] tokens = clientCmd.split(" ", 2);
+	String cmd = tokens[0];
+	String args = tokens[1];
+        
+        switch (cmd) {
             case "login":
-                handleLogin(tokens[1]);
+                handleLogin(args);
                 break;
             case "register":
                 User userGet;
@@ -99,11 +112,10 @@ public class ServerWorker implements Runnable {
                 handleDeleteFriend(id_friend);
                 break;
             case "msg-global":
-                Server.serverThreadBus.boardCast(user.getViewName(), "display " + user.getViewName() + " " + tokens[1]);
+                Server.serverThreadBus.boardCast(user.getViewName(), "display " + user.getViewName() + " " + args);
                 break;
             case "msg":
-                // Handle group later
-                handleMsg(tokens[1]);
+                handleMsg(args);
                 break;
             case "logoff":
                 handleLogoff();
@@ -114,9 +126,14 @@ public class ServerWorker implements Runnable {
 		os.flush();
 		break;
             case "join":
+		handleJoin(args);
                 break;
             case "leave":
+		handleLeave(args);
                 break;
+	    case "create-group":
+		handleCreateGroup(args);
+		break;
             case "groups":
                 break;
             case "online-users":
@@ -145,16 +162,25 @@ public class ServerWorker implements Runnable {
             
             write("ok-login");
             
-            System.out.println("[INFO]: User logged in: " + this.user.getViewName());
+            ConsoleLogger.log("Login successfully with username: " + viewname, "CLIENT-" + clientNumber, ConsoleLogger.INFO);
 	    
+	    // Initialize worker and send post-login info to client
 	    write("set-user");
 	    os.writeObject(this.user);
 	    os.flush();
 	    
 	    Server.serverThreadBus.sendOnlineList();
+	    
+	    // TODO: Sends group list to client
+	    List<Group> groups = groupUserDAO.getGroupsByUser(this.user);
+	    groupNames = new ArrayList<>();
+	    groups.stream().map(group -> group.getName()).forEach(groupNames::add);
+
+	    ConsoleLogger.log("Worker initialized", "CLIENT-" + clientNumber, ConsoleLogger.INFO);
+	    
         } else {
             write("error-login");
-            System.err.println("[ERROR]: User login failed: " + viewname);
+	    ConsoleLogger.log("Login failed with username: " + viewname, "CLIENT-" + clientNumber, ConsoleLogger.ERROR);
         }
     }
     
@@ -210,7 +236,123 @@ public class ServerWorker implements Runnable {
     
     private void handleMsg(String argstr) {
 	String[] args = argstr.split(" ", 2);
-	Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getViewName() + " " + args[1]);
+	
+	if (args[0].charAt(0) == '#')
+	    Server.serverThreadBus.broadCastGroup(user.getViewName(), args[0].substring(1), "display " + user.getViewName() + " " + args[1]);
+	else
+	    Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getViewName() + " " + args[1]);
+    }
+    
+    private void handleCreateGroup(String argstr) throws IOException {
+	
+	Group group = new Group().setName(argstr);
+	if (groupDAO.checkExist(group)) {
+	    write("group-existed");
+	} else {
+	    if (groupDAO.insertGroup(group))
+		write("group-created");
+	    else
+		write("group-error");
+	}
+    }
+    
+    private void handleJoin(String argstr) throws IOException {
+	
+	Group group = new Group().setName(argstr);
+	if (groupDAO.checkExist(group)) {
+	    
+	    if (!groupNames.contains(argstr)) {
+		
+		if (groupUserDAO.insertGroupUser(group, this.user)) {
+		    
+		    groupNames.add(argstr);
+		    write("join-ok");
+		    
+		    ConsoleLogger.log(
+			"Joined group: '" + argstr + "'", 
+			"CLIENT-" + clientNumber, 
+			ConsoleLogger.INFO
+		    );
+		    
+		} else {
+		    
+		    ConsoleLogger.log(
+			"Something went wrong trying to join group: '" + argstr + "'", 
+			"CLIENT-" + clientNumber, 
+			ConsoleLogger.ERROR
+		    );
+		    write("join-error");
+		}
+	    }
+	    else {
+		
+		ConsoleLogger.log(
+		    "Tried to join a group they already joined: '" + argstr + "'", 
+		    "CLIENT-" + clientNumber, 
+		    ConsoleLogger.ERROR
+		);
+		write("join-already");	
+	    }
+	    
+	} else {
+	    
+	    ConsoleLogger.log(
+		"Tried to join a non-existing group: '" + argstr + "'", 
+		"CLIENT-" + clientNumber, 
+		ConsoleLogger.ERROR
+	    );
+	    write("join-not-exist");
+	}
+	    
+    }
+    
+    private void handleLeave(String argstr) throws IOException {
+	
+	Group group = new Group().setName(argstr);
+	if (groupDAO.checkExist(group)) {
+	    
+	    if (groupNames.contains(argstr)) {
+		
+		if (groupUserDAO.deleteGroupUser(group, this.user)) {
+		    
+		    groupNames.remove(argstr);
+		    write("leave-ok");
+		    
+		    ConsoleLogger.log(
+			"Left group: '" + argstr + "'", 
+			"CLIENT-" + clientNumber, 
+			ConsoleLogger.INFO
+		    );
+		    
+		} else {
+		    
+		    ConsoleLogger.log(
+			"Something went wrong trying to leave group: '" + argstr + "'", 
+			"CLIENT-" + clientNumber, 
+			ConsoleLogger.ERROR
+		    );
+		    write("leave-error");
+		}
+	    } else {
+		
+		ConsoleLogger.log(
+		    "Tried to leave a group they haven't joined: '" + argstr + "'", 
+		    "CLIENT-" + clientNumber, 
+		    ConsoleLogger.ERROR
+		);
+		write("leave-not-join");	
+	    }
+	    
+	} else {
+	    
+	    ConsoleLogger.log(
+		"Tried to leave a non-existing group: '" + argstr + "'", 
+		"CLIENT-" + clientNumber, 
+		ConsoleLogger.ERROR
+	    );
+	    write("leave-not-exist");
+	}
+	    
     }
 //
 //    private void handleAddFriend(String key) {

@@ -1,7 +1,9 @@
 package nhom12.chatapp.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class User implements Serializable{
     
@@ -17,10 +19,13 @@ public class User implements Serializable{
     private String address;
     private Date dob;
     private String status;
+    private List<User> friends;
 
     public User(String sdt, String password) {
         this.sdt = sdt;
         this.password = password;
+        this.status = "offline";
+        friends = new ArrayList<>();
     }
 
     public User() {
@@ -106,11 +111,19 @@ public class User implements Serializable{
         this.dob = dob;
     }
 
-    public String isStatus() {
+    public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public List<User> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(List<User> friends) {
+        this.friends = friends;
     }
 }

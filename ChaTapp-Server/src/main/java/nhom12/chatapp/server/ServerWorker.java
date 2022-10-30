@@ -1,15 +1,10 @@
 package nhom12.chatapp.server;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,10 +15,6 @@ public class ServerWorker implements Runnable {
     
     private final Socket clientSocket;
     private final int clientNumber;
-//    private OutputStream os;
-//    private InputStream is;
-//    private BufferedReader bufferedReader;
-//    private BufferedWriter bufferedWriter;
     private boolean isClosed;
     private ObjectOutputStream os;
     private ObjectInputStream is;
@@ -56,29 +47,14 @@ public class ServerWorker implements Runnable {
             
             is = new ObjectInputStream(clientSocket.getInputStream());
             os = new ObjectOutputStream(clientSocket.getOutputStream());
-//            bufferedReader = new BufferedReader(new InputStreamReader(is));
-            //bufferedWriter = new BufferedWriter(new OutputStreamWriter(os));
-//            System.out.println("Khời động luông mới thành công, ID là: " + clientNumber);
-//            write("get-id" + "," + this.clientNumber);
-
-//            Server.serverThreadBus.mutilCastSend("global-message"+","+"---Client "+this.clientNumber+" đã đăng nhập---");
             String cmd;
             while (!isClosed) {
                 cmd = is.readUTF();
                 if (cmd == null) {
                     break;
-                }
-                
+                }        
                 System.out.println("[CLIENT (" + (user != null ? user.getViewName() : "guest") + ")]: " + cmd);
                 handleClientCmd(cmd);
-//                String[] messageSplit = message.split(",");
-//                if(messageSplit[0].equals("send-to-global")){
-//                    Server.serverThreadBus.boardCast(this.getClientNumber(),"global-message"+","+"Client "+messageSplit[2]+": "+messageSplit[1]);
-//                }
-//                if(messageSplit[0].equals("send-to-person")){
-//                    Server.serverThreadBus.sendMessageToPersion(Integer.parseInt(messageSplit[3]),"Client "+ messageSplit[2]+" (tới bạn): "+messageSplit[1]);
-//                }
-
             }
             
         } catch (IOException e) {
@@ -102,7 +78,6 @@ public class ServerWorker implements Runnable {
     
     private void handleClientCmd(String cmd) throws IOException {
         String[] tokens = cmd.split(" ", 2);
-        
         switch (tokens[0]) {
             case "login":
                 handleLogin(tokens[1]);
@@ -115,6 +90,13 @@ public class ServerWorker implements Runnable {
                 } catch (ClassNotFoundException ex) {
                     Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                break;
+//            case "addFriend":
+//                handleAddFriend(tokens[1]);
+//                break;
+            case "deletefriend":
+                int id_friend = Integer.parseInt(tokens[1]);
+                handleDeleteFriend(id_friend);
                 break;
             case "msg-global":
                 Server.serverThreadBus.boardCast(user.getViewName(), "display " + user.getViewName() + " " + tokens[1]);
@@ -170,25 +152,6 @@ public class ServerWorker implements Runnable {
 	    os.flush();
 	    
 	    Server.serverThreadBus.sendOnlineList();
-//
-//            List<ServerWorker> workerList = server.getWorkerList();
-//
-//                // send current user all other online logins
-//                for(ServerWorker worker : workerList) {
-//                    if (worker.getViewName()!= null) {
-//                        if (!sdt.equals(worker.getSdt())) {
-//                            String msg2 = "online " + worker.getViewName()+ " " + worker.getSdt() + "\n";
-//                            send(msg2);
-//                        }
-//                    }
-//                }
-//                // send other online users current user's status
-//                String onlineMsg = "online " + viewName + " " + sdt + "\n";
-//                for(ServerWorker worker : workerList) {
-//                    if (!sdt.equals(worker.getSdt())) {
-//                        worker.send(onlineMsg);
-//                    }
-//                }
         } else {
             write("error-login");
             System.err.println("[ERROR]: User login failed: " + viewname);
@@ -214,6 +177,29 @@ public class ServerWorker implements Runnable {
         }
     }
     
+    private void handleUpDateUser(){
+        System.out.println(user.getPassword());
+        User userUpdate = new User();
+        userUpdate = userDAO.checkLogin(user.getViewName(), user.getPassword());
+        System.out.println(userUpdate.getId());
+        try {
+            write("set-user");
+            os.writeObject(userUpdate);
+            os.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+    }
+    
+    private void handleDeleteFriend(int id_friend){
+        if(userDAO.deleteFriend(user, id_friend)){
+           handleUpDateUser();
+        }
+        
+    }
+    
     private void handleLogoff() throws IOException {
         isClosed = true;
         Server.serverThreadBus.boardCast(user.getViewName(), "display-server " + "User '" + user.getViewName() + "' logged off.");
@@ -226,4 +212,18 @@ public class ServerWorker implements Runnable {
 	String[] args = argstr.split(" ", 2);
 	Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getViewName() + " " + args[1]);
     }
+//
+//    private void handleAddFriend(String key) {
+//        List<User> userInSystem = new ArrayList<>();
+//        userInSystem = userDAO.getAllUser(key);
+//        System.out.println(userInSystem.size());
+//        try {
+//            write("User-In-System");
+//            os.writeObject(userInSystem);
+//            os.flush();
+//        } catch (IOException ex) {
+//            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
+
 }

@@ -19,6 +19,7 @@ public class ChatClient extends Thread implements MessageListener {
     private List<String> onlineList;
     private int id;
     private User user;
+    private List<User> userInsystem;
     
     private ClientView view;
 
@@ -28,6 +29,7 @@ public class ChatClient extends Thread implements MessageListener {
 	this.user.setViewName("guest");
 	
 	onlineList = new ArrayList<>();
+        userInsystem = new ArrayList<>();
         id = -1;
     }
 
@@ -55,7 +57,8 @@ public class ChatClient extends Thread implements MessageListener {
 		switch (messageSplit[0]) {
 		    case "set-user":
 			this.user = (User) server.readObject();
-			view.setTitle("Client " + this.user.getViewName());
+                        System.out.println(user.getId());
+                        view.setUser(user);
 			break;
 		    case "update-online-list":
 			onlineList = new ArrayList<>();
@@ -69,6 +72,10 @@ public class ChatClient extends Thread implements MessageListener {
 			view.getTextArea2().setText(online);
 			view.updateCombobox(onlineList);
 			break;
+//                    case "User-In-System":
+//                        this.userInsystem = (List<User>) server.readObject();
+//                        view.setTableUserSys(userInsystem);
+//                        break;
 		    case "display":
 			String[] args = messageSplit[1].split(" ", 2);
 			JTextArea txtArea = view.getTextArea1();
@@ -110,4 +117,15 @@ public class ChatClient extends Thread implements MessageListener {
     public void send(String msg, String receiver) throws IOException {
 	server.write("msg " + receiver + " " + msg);
     }
+
+    @Override
+    public void sendDeleteFriend(String idFriend) throws IOException {
+        server.write("deletefriend " + idFriend);
+    }
+
+    @Override
+    public void sendAddFriend(String nickName) throws IOException {
+        server.write("addFriend " + nickName);
+    }
+
 }

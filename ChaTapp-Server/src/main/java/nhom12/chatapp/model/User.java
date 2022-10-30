@@ -126,4 +126,19 @@ public class User implements Serializable{
     public void setFriends(List<User> friends) {
         this.friends = friends;
     }
+
+    @Override
+    public String toString() {
+	return
+	    "(User) -> {\n"
+	    + "\tid: "		+ this.id		+ ",\n"
+	    + "\tviewname: '"	+ this.viewName		+ "',\n" 
+	    + "\tpassword: "	+ this.password		+ ",\n"
+	    + "\tfullname: "	+ this.fullname		+ ",\n"
+	    + "\tgender: "	+ this.gender		+ ",\n"
+	    + "\tdob: "		+ this.dob.toString()	+ ",\n"
+	    + "\tsdt: "		+ this.sdt		+ ",\n"
+	    + "\taddress: "	+ this.address		+ ",\n"
+	    + "\tstatus: "	+ this.status		+ "\n}";
+    }
 }

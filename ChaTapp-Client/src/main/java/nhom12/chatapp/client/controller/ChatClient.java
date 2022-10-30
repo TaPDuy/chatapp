@@ -3,6 +3,7 @@ package nhom12.chatapp.client.controller;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +21,9 @@ public class ChatClient extends Thread implements MessageListener {
     private int id;
     private User user;
     private List<User> userInsystem;
+    private String receiverName;
+    
+    private HashMap<String, List<String>> loadedMessages;
     
     private ClientView view;
 
@@ -30,6 +34,7 @@ public class ChatClient extends Thread implements MessageListener {
 	
 	onlineList = new ArrayList<>();
         userInsystem = new ArrayList<>();
+	loadedMessages = new HashMap<>();
         id = -1;
     }
 
@@ -42,28 +47,29 @@ public class ChatClient extends Thread implements MessageListener {
 
 	try {
 	    
-	    String message;
+	    String cmdLine;
 	    while (true) {
 
-		message = server.read();
-
-		if(message==null)
+		cmdLine = server.read();
+		if(cmdLine==null)
 		    break;
 		
-		System.out.println("[SERVER]: " + message);
+		System.out.println("[SERVER]: " + cmdLine);
 		
-		String[] messageSplit = message.split(" ", 2);
+		String[] cmdSplit = cmdLine.split(" ", 2);
+		String cmd = cmdSplit[0];
+		String argstr = cmdSplit[1];
 		
-		switch (messageSplit[0]) {
+		switch (cmd) {
 		    case "set-user":
 			this.user = (User) server.readObject();
-                        System.out.println(user.getId());
                         view.setUser(user);
+                        view.updateCombobox(onlineList);
 			break;
 		    case "update-online-list":
 			onlineList = new ArrayList<>();
 			String online = "";
-			String[] onlineSplit = messageSplit[1].split("-");
+			String[] onlineSplit = argstr.split("-");
 			for (String onlineSplit1 : onlineSplit) {
 			    if (!onlineSplit1.equals(this.user.getViewName()))
 				onlineList.add("Client " + onlineSplit1);
@@ -77,15 +83,11 @@ public class ChatClient extends Thread implements MessageListener {
 //                        view.setTableUserSys(userInsystem);
 //                        break;
 		    case "display":
-			String[] args = messageSplit[1].split(" ", 2);
-			JTextArea txtArea = view.getTextArea1();
-			txtArea.setText(txtArea.getText() + "[" + args[0] + "]: " + args[1] + "\n");
-			txtArea.setCaretPosition(txtArea.getDocument().getLength());
+			String[] args = argstr.split(" ", 2);
+			view.printMessage("[" + args[0] + "]: " + args[1]);
 			break;
-		    case "display-global":
-			txtArea = view.getTextArea1();
-			txtArea.setText(txtArea.getText() + "[SERVER]: " + messageSplit[1] + "\n");
-			txtArea.setCaretPosition(txtArea.getDocument().getLength());
+		    case "display-server":
+			view.printMessage("[SERVER]: " + argstr);
 			break;
 		    default:
 			break;
@@ -114,8 +116,16 @@ public class ChatClient extends Thread implements MessageListener {
     }
 
     @Override
-    public void send(String msg, String receiver) throws IOException {
-	server.write("msg " + receiver + " " + msg);
+    public void sendMessage(String msg) {
+	try {
+	    
+	    if(receiverName != null) {
+		view.printMessage("[You]: " + msg);
+		server.write("msg " + receiverName + " " + msg);
+	    }
+	} catch (IOException ex) {
+	    Logger.getLogger(ChatClient.class.getName()).log(Level.SEVERE, null, ex);
+	}
     }
 
     @Override

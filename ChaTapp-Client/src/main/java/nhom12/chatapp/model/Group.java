@@ -23,20 +23,25 @@ public class Group implements Serializable {
 	return id;
     }
 
-    public void setId(int id) {
+    public Group setId(int id) {
 	this.id = id;
+	return this;
     }
 
     public String getName() {
 	return name;
     }
 
-    public void setName(String name) {
+    public Group setName(String name) {
 	this.name = name;
+	return this;
     }
 
     @Override
     public String toString() {
-	return "Group: {id: " + this.id + ", name: '" + this.name + "'}";
+	return 
+	    "(Group) -> {\n"
+	    + "\tid: "	    + this.id	+ ",\n"
+	    + "\tname: '"   + this.name + "'\n}";
     }
 }

@@ -39,6 +39,9 @@ public class Group implements Serializable {
 
     @Override
     public String toString() {
-	return "Group: {id: " + this.id + ", name: '" + this.name + "'}";
+	return 
+	    "(Group) -> {\n"
+	    + "\tid: "	    + this.id	+ ",\n"
+	    + "\tname: '"   + this.name + "'\n}";
     }
 }

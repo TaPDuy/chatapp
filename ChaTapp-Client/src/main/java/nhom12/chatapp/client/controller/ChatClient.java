@@ -57,7 +57,6 @@ public class ChatClient extends Thread implements MessageListener {
 		switch (messageSplit[0]) {
 		    case "set-user":
 			this.user = (User) server.readObject();
-                        System.out.println(user.getId());
                         view.setUser(user);
                         view.updateCombobox(onlineList);
 			break;

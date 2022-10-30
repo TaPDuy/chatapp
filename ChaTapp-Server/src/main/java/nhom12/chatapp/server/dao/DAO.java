@@ -17,7 +17,7 @@ public class DAO {
 	    {
 		String url = "jdbc:mysql://localhost:3306/app_multi_chat";
 		Class.forName("com.mysql.cj.jdbc.Driver");
-		con = DriverManager.getConnection(url, "root", "bandzu1231");
+		con = DriverManager.getConnection(url, "root", "315147");
 	    }
 	} catch (SQLException ex) {
 	    Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);

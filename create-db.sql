@@ -55,16 +55,36 @@ create table tblfriend(
  FOREIGN KEY (`user_id`) REFERENCES `tbluser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
  FOREIGN KEY (`userf_id`) REFERENCES `tbluser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE);
  
- create table tblmessage(
-	 id int not null auto_increment primary key,
-     content NVarchar(500),
-     `image` longblob,
-     `imageString` varchar(255) DEFAULT '');
+CREATE TABLE `app_multi_chat`.`tbl_message` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `content` VARCHAR(500) NULL,
+  `sender_id` INT NULL,
+  `time_sent` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_message_user_sender_id_idx` (`sender_id` ASC) VISIBLE,
+  CONSTRAINT `fk_message_user_sender_id`
+    FOREIGN KEY (`sender_id`)
+    REFERENCES `app_multi_chat`.`tbluser` (`id`)
+    ON DELETE SET NULL
+);
      
-create table tblmessagesendreceive(
- mess_id int primary key,
- users_id int not null,
- userr_id int not null,
- FOREIGN KEY (`mess_id`) REFERENCES `tblmessage` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
- FOREIGN KEY (`users_id`) REFERENCES `tbluser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
- FOREIGN KEY (`userr_id`) REFERENCES `tbluser` (`id`) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE `app_multi_chat`.`tbl_receiver` (
+  `message_id` INT NOT NULL,
+  `receiver_id` INT NOT NULL,
+  `group_id` INT NULL,
+  PRIMARY KEY (`message_id`, `receiver_id`),
+  INDEX `fk_receiver_user_receiver_id_idx` (`receiver_id` ASC) VISIBLE,
+  INDEX `fk_receiver_group_id_idx` (`group_id` ASC) VISIBLE,
+  CONSTRAINT `fk_receiver_message_id`
+    FOREIGN KEY (`message_id`)
+    REFERENCES `app_multi_chat`.`tbl_message` (`id`)
+    ON DELETE CASCADE,
+  CONSTRAINT `fk_receiver_user_receiver_id`
+    FOREIGN KEY (`receiver_id`)
+    REFERENCES `app_multi_chat`.`tbluser` (`id`)
+    ON DELETE CASCADE,
+  CONSTRAINT `fk_receiver_group_id`
+    FOREIGN KEY (`group_id`)
+    REFERENCES `app_multi_chat`.`tblgroup` (`id`)
+    ON DELETE CASCADE
+);

@@ -18,6 +18,7 @@ public class UserDAO extends DAO {
     private final String GET_ALL_FRIEND = "Select distinct b.*  from tbluser a, tbluser b join tblfriend1 c on (c.user_id = ? and b.id = c.userf_id and c.status = 1) or (c.userf_id = ? and b.id = c.user_id and c.status = 1)";
     private final String DELETE_FRIEND = "Delete from tblfriend1 where (user_id = ? and userf_id=?) or (user_id = ? and userf_id=?)";
     private final String GET_ALL_USER = "Select * from tbluser where viewname like ?";
+    private final String ADD_FRIEND = "INSERT INTO tblfriend1 (user_id, userf_id, status) values(?, ?, ?)";
 
     public UserDAO() {
         super();
@@ -30,7 +31,7 @@ public class UserDAO extends DAO {
             ps = con.prepareStatement(GET_ALL_USER);
             ps.setString(1, '%'+key+'%');
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
+            while (rs.next()) {
                 User user = new User();
                 user.setId(rs.getInt("id"));
                 user.setSdt(rs.getString("sdt"));
@@ -98,7 +99,7 @@ public class UserDAO extends DAO {
         PreparedStatement ps;
         try {
             ps = con.prepareStatement(CHECK_EXIST);
-            ps.setString(1, user.getSdt());
+            ps.setString(1, user.getViewName());
 	    
 	    System.out.println("[DB]: Executing sql statement '" + ps.toString() + "'");
             ResultSet rs = ps.executeQuery();
@@ -167,5 +168,19 @@ public class UserDAO extends DAO {
             Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
+    }
+
+    public boolean insertFriend(User user, int userf_id) {
+        try {
+            PreparedStatement ps = con.prepareStatement(ADD_FRIEND);
+            ps.setInt(1, user.getId());
+            ps.setInt(2, userf_id);
+            ps.setString(3, "2");            
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            return false;
+        }
+        return true;
     }
 }

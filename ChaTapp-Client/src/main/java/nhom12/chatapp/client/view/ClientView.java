@@ -14,13 +14,14 @@ import nhom12.chatapp.client.listener.WindowListener;
 import nhom12.chatapp.model.User;
 
 public class ClientView extends javax.swing.JFrame {
-
+    
     private MessageListener listener;
     private WindowListener windowListener;
     private List<String> onlineUser;
     private User user;
     public List<User> listFriend;
-
+    private List<User> usInSysList;
+    
     public ClientView() {
         initComponents();
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -30,8 +31,9 @@ public class ClientView extends javax.swing.JFrame {
         jTextArea2.setEditable(false);
         user = new User();
         listFriend = new ArrayList<>();
+        usInSysList = new ArrayList<>();
     }
-
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -407,23 +409,13 @@ public class ClientView extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, "Bạn chưa nhập tin nhắn");
             return;
         }
-        if (comboBoxUser.getSelectedIndex() == 0) {
-            try {
-                listener.send(messageContent, user.getViewName()+ "");
-                jTextArea1.setText(jTextArea1.getText() + "Bạn: " + messageContent + "\n");
-                jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(rootPane, "Có lỗi xảy ra");
-            }
-        } else {
-            try {
-                String[] parner = ((String) comboBoxUser.getSelectedItem()).split(" ");
-                listener.send(messageContent, parner[1]+ "");
-                jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner[1] + "): " + messageContent + "\n");
-                jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(rootPane, "Có lỗi xảy ra");
-            }
+        try {
+            String[] parner = ((String) comboBoxUser.getSelectedItem()).split(" ");
+            listener.send(messageContent, parner[1] + "");
+            jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner[1] + "): " + messageContent + "\n");
+            jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Có lỗi xảy ra");
         }
         jTextField1.setText("");
     }//GEN-LAST:event_jButton1ActionPerformed
@@ -456,6 +448,7 @@ public class ClientView extends javax.swing.JFrame {
                 try {
                     listener.sendDeleteFriend(friendDelete.getId() + "");
                     updateCombobox(onlineUser);
+                    setTableFriend();
                 } catch (IOException ex) {
                     Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -464,32 +457,36 @@ public class ClientView extends javax.swing.JFrame {
     }//GEN-LAST:event_tblMyFriendMouseClicked
 
     private void btnSearchAddFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchAddFriendActionPerformed
-        DefaultTableModel dtm = new DefaultTableModel();
-        dtm.setRowCount(0);
-        dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
-        for (String nickName : onlineUser) {
-            for (User us : listFriend) {
-                if (!us.getViewName().equalsIgnoreCase(nickName)) {
-                    dtm.addRow(new String[]{us.getViewName(), us.getFullname(), "online", "no friend"});
-                }
-            }
+        try {
+            //        DefaultTableModel dtm = new DefaultTableModel();
+//        dtm.setRowCount(0);
+//        dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
+//        for (String nickName : onlineUser) {
+//            for (User us : listFriend) {
+//                if (!us.getViewName().equalsIgnoreCase(nickName)) {
+//                    dtm.addRow(new String[]{us.getViewName(), us.getFullname(), "online", "no friend"});
+//                }
+//            }
+//        }
+//        tblUserInSys.setModel(dtm);
+            listener.sendFindFriend(txtKeyNickName.getText());
+        } catch (IOException ex) {
+            Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
         }
-        tblUserInSys.setModel(dtm);
     }//GEN-LAST:event_btnSearchAddFriendActionPerformed
 
     private void tblUserInSysMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblUserInSysMouseClicked
-        int column = tblMyFriend.getColumnModel().
+        int column = tblUserInSys.getColumnModel().
                 getColumnIndexAtX(evt.getX()); // get the coloum of the button
-        int row = evt.getY() / tblMyFriend.getRowHeight(); // get row 
+        int row = evt.getY() / tblUserInSys.getRowHeight(); // get row 
         // *Checking the row or column is valid or not
-        if (row < tblMyFriend.getRowCount() && row >= 0
-                && column < tblMyFriend.getColumnCount() && column >= 0) {
-            User friendDelete = listFriend.get(row);
-            int choice = JOptionPane.showConfirmDialog(this, "Do you want delete friend " + friendDelete.getViewName() + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+        if (row < tblUserInSys.getRowCount() && row >= 0
+                && column < tblUserInSys.getColumnCount() && column >= 0) {
+            User addFriend = usInSysList.get(row);
+            int choice = JOptionPane.showConfirmDialog(this, "Do you want add friend " + addFriend.getViewName() + " ?", "Ask", JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
                 try {
-                    listener.sendDeleteFriend(friendDelete.getId() + "");
-                    updateCombobox(onlineUser);
+                    listener.sendAddFriend(addFriend.getId());
                 } catch (IOException ex) {
                     Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -500,27 +497,29 @@ public class ClientView extends javax.swing.JFrame {
     private void comboBoxUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxUserActionPerformed
         jLabel3.setText("Đang nhắn với " + comboBoxUser.getSelectedItem());
     }//GEN-LAST:event_comboBoxUserActionPerformed
-
+    
     public JTextArea getTextArea1() {
         return this.jTextArea1;
     }
-
+    
     public JTextArea getTextArea2() {
         return this.jTextArea2;
     }
-
+    
     public void setUser(User user) {
-        listFriend = new ArrayList<>();
+        //listFriend = new ArrayList<>();
         this.user = user;
         listFriend = user.getFriends();
         this.setTitle(user.getViewName());
+        System.out.println(listFriend.size());
         setTableFriend();
     }
-
+    
     public void updateCombobox(List<String> onlineList) {
         onlineUser = new ArrayList<>();
         this.onlineUser = onlineList;
         comboBoxUser.removeAllItems();
+        System.out.println(listFriend.size());
         for (String us : onlineUser) {
             System.out.println(us);
             String nickName = us.substring(7, us.length());
@@ -533,21 +532,43 @@ public class ClientView extends javax.swing.JFrame {
         }
         //setTableFriend();
     }
-
+    
     public void setTableFriend() {
         DefaultTableModel dtm = new DefaultTableModel();
         dtm.setRowCount(0);
         dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Date Is Friend"});
-        for (User friend : listFriend) {
-            dtm.addRow(new String[]{friend.getViewName(), friend.getFullname(), ""});
+        if (listFriend != null) {
+            for (User friend : listFriend) {
+                dtm.addRow(new String[]{friend.getViewName(), friend.getFullname(), ""});
+            }
         }
         tblMyFriend.setModel(dtm);
+        
     }
-
+    
+    public void setTableUserSys(List<User> usInSys) {
+        if (usInSys != null) {
+            usInSysList = usInSys;
+            
+            DefaultTableModel dtm = new DefaultTableModel();
+            dtm.setRowCount(0);
+            dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
+            if (listFriend != null) {
+                for (User us : usInSysList) {
+                    //for (User friend : listFriend) {
+                    //if(!us.getViewName().equals(friend.getViewName()))
+                    dtm.addRow(new String[]{us.getViewName(), us.getFullname(), "", ""});
+                    //}
+                }
+            }
+            tblUserInSys.setModel(dtm);
+        }
+    }
+    
     public void setMessageListener(MessageListener listener) {
         this.listener = listener;
     }
-
+    
     public void setWindowListener(WindowListener listener) {
         this.windowListener = listener;
     }

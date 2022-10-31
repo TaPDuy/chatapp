@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import nhom12.chatapp.model.User;
 
 public class ServerWorkerBus {
     
@@ -72,13 +73,25 @@ public class ServerWorkerBus {
     public void sendMessageToPersion(String to, String message) {
 	
 	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getViewName().equals(to)).findAny();
-	if(receiver.isPresent()) {
+	//if(receiver.isPresent()) {
 	    try {
 		receiver.get().write(message);
 	    } catch (IOException ex) {
 		Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
 	    }
-	}
+	//}
+    }
+    
+    public void sendDeleteFriendToPersion(int to, String message) {
+	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == to).findAny();
+        if(receiver.isPresent()) {
+            receiver.get().handleUpDateUser(); 
+        }
+    }
+    
+    public void sendUsInSys(int from, List<User> usInSys){
+        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == from).findAny();
+        receiver.get().writeUsInSys("User-In-System", usInSys);
     }
     
     public void remove(int id) {

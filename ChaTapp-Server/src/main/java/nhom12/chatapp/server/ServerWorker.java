@@ -104,9 +104,13 @@ public class ServerWorker implements Runnable {
                     Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 break;
-//            case "addFriend":
-//                handleAddFriend(tokens[1]);
-//                break;
+            case "findFriend":
+                handleGetUserInSys(tokens[1]);
+                break;
+            case "addFriend":
+                int idUs = Integer.parseInt(tokens[1]);
+                System.out.println(idUs);
+                handleAddFriend(idUs);
             case "deletefriend":
                 int id_friend = Integer.parseInt(tokens[1]);
                 handleDeleteFriend(id_friend);
@@ -203,11 +207,10 @@ public class ServerWorker implements Runnable {
         }
     }
     
-    private void handleUpDateUser(){
-        System.out.println(user.getPassword());
+    public void handleUpDateUser(){
         User userUpdate = new User();
         userUpdate = userDAO.checkLogin(user.getViewName(), user.getPassword());
-        System.out.println(userUpdate.getId());
+        System.out.println(userUpdate.getFriends().size());
         try {
             write("set-user");
             os.writeObject(userUpdate);
@@ -221,7 +224,9 @@ public class ServerWorker implements Runnable {
     
     private void handleDeleteFriend(int id_friend){
         if(userDAO.deleteFriend(user, id_friend)){
-           handleUpDateUser();
+            String message = "set-user";
+            handleUpDateUser();
+            Server.serverThreadBus.sendDeleteFriendToPersion(id_friend, message);
         }
         
     }
@@ -354,18 +359,28 @@ public class ServerWorker implements Runnable {
 	}
 	    
     }
-//
-//    private void handleAddFriend(String key) {
-//        List<User> userInSystem = new ArrayList<>();
-//        userInSystem = userDAO.getAllUser(key);
-//        System.out.println(userInSystem.size());
-//        try {
-//            write("User-In-System");
-//            os.writeObject(userInSystem);
-//            os.flush();
-//        } catch (IOException ex) {
-//            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
+
+    private void handleGetUserInSys(String key) {
+        List<User> userInSystem = new ArrayList<>();
+        userInSystem = userDAO.getAllUser(key);
+        System.out.println(userInSystem.size());
+        Server.serverThreadBus.sendUsInSys(user.getId(), userInSystem);
+    }
+    
+    public void writeUsInSys(String mes, List<User> usInSys){
+        try {
+            write(mes);
+            os.writeObject(usInSys);
+            os.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void handleAddFriend(int userf_id) {
+        if(userDAO.insertFriend(user, userf_id)){
+            System.out.println(1);
+        }
+    }
 
 }

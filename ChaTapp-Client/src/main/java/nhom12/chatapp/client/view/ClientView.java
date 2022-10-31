@@ -19,7 +19,7 @@ public class ClientView extends javax.swing.JFrame {
     private WindowListener windowListener;
     private List<String> onlineUser;
     private User user;
-    private List<User> listFriend;
+    public List<User> listFriend;
 
     public ClientView() {
         initComponents();
@@ -148,6 +148,11 @@ public class ClientView extends javax.swing.JFrame {
         comboBoxGroup.setBounds(470, 40, 140, 29);
 
         comboBoxUser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        comboBoxUser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxUserActionPerformed(evt);
+            }
+        });
         jPanel2.add(comboBoxUser);
         comboBoxUser.setBounds(20, 40, 140, 29);
 
@@ -397,26 +402,29 @@ public class ClientView extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String parner = jLabel3.getText();
-        if (parner.equalsIgnoreCase("{Người nhận}")) {
-            parner = onlineUser.get(0).substring(7, onlineUser.get(0).length());
-        }
-
         String messageContent = jTextField1.getText();
         if (messageContent.isEmpty()) {
             JOptionPane.showMessageDialog(rootPane, "Bạn chưa nhập tin nhắn");
             return;
         }
-
-        try {
-            listener.send(messageContent, parner);
-            jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner + "): " + messageContent + "\n");
-            jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
-            //}
-        } catch (IOException ex) {
-            Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+        if (comboBoxUser.getSelectedIndex() == 0) {
+            try {
+                listener.send(messageContent, user.getViewName()+ "");
+                jTextArea1.setText(jTextArea1.getText() + "Bạn: " + messageContent + "\n");
+                jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(rootPane, "Có lỗi xảy ra");
+            }
+        } else {
+            try {
+                String[] parner = ((String) comboBoxUser.getSelectedItem()).split(" ");
+                listener.send(messageContent, parner[1]+ "");
+                jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner[1] + "): " + messageContent + "\n");
+                jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(rootPane, "Có lỗi xảy ra");
+            }
         }
-
         jTextField1.setText("");
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -489,6 +497,10 @@ public class ClientView extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_tblUserInSysMouseClicked
 
+    private void comboBoxUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxUserActionPerformed
+        jLabel3.setText("Đang nhắn với " + comboBoxUser.getSelectedItem());
+    }//GEN-LAST:event_comboBoxUserActionPerformed
+
     public JTextArea getTextArea1() {
         return this.jTextArea1;
     }
@@ -498,6 +510,7 @@ public class ClientView extends javax.swing.JFrame {
     }
 
     public void setUser(User user) {
+        listFriend = new ArrayList<>();
         this.user = user;
         listFriend = user.getFriends();
         this.setTitle(user.getViewName());
@@ -507,18 +520,18 @@ public class ClientView extends javax.swing.JFrame {
     public void updateCombobox(List<String> onlineList) {
         onlineUser = new ArrayList<>();
         this.onlineUser = onlineList;
-        comboBoxGroup.removeAllItems();
+        comboBoxUser.removeAllItems();
         for (String us : onlineUser) {
             System.out.println(us);
             String nickName = us.substring(7, us.length());
             System.out.println(nickName);
             for (User friend : listFriend) {
                 if (nickName.equalsIgnoreCase(friend.getViewName())) {
-                    comboBoxUser.addItem("Client "+ nickName);
+                    comboBoxUser.addItem("Client " + nickName);
                 }
             }
         }
-        setTableFriend();
+        //setTableFriend();
     }
 
     public void setTableFriend() {

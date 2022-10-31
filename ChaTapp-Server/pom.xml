@@ -19,6 +19,19 @@
 	    <artifactId>mysql-connector-j</artifactId>
 	    <version>8.0.31</version>
 	</dependency>
+	
+	<dependency>
+	    <groupId>org.projectlombok</groupId>
+	    <artifactId>lombok</artifactId>
+	    <version>1.18.24</version>
+	</dependency>
+	
+	<dependency>
+	    <groupId>org.hibernate.orm</groupId>
+	    <artifactId>hibernate-core</artifactId>
+	    <version>6.1.5.Final</version>
+	</dependency>
+	
     </dependencies>
     
 </project>

@@ -105,9 +105,13 @@ public class ServerWorker implements Runnable {
                     Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 break;
-//            case "addFriend":
-//                handleAddFriend(tokens[1]);
-//                break;
+            case "findFriend":
+                handleGetUserInSys(tokens[1]);
+                break;
+            case "addFriend":
+                int idUs = Integer.parseInt(tokens[1]);
+                System.out.println(idUs);
+                handleAddFriend(idUs);
             case "deletefriend":
                 int id_friend = Integer.parseInt(tokens[1]);
                 handleDeleteFriend(id_friend);
@@ -204,13 +208,13 @@ public class ServerWorker implements Runnable {
         }
     }
     
-    private void handleUpDateUser(){
-        System.out.println(user.getPassword());
+    public void handleUpDateUser(String nickNameF){
         User userUpdate = new User();
         userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
         System.out.println(userUpdate.getId());
+	
         try {
-            write("set-user");
+            write("notification-delete "+nickNameF+" "+userUpdate.getUsername()+" delete friend with you");
             os.writeObject(userUpdate);
             os.flush();
         } catch (IOException ex) {
@@ -221,9 +225,17 @@ public class ServerWorker implements Runnable {
     }
     
     private void handleDeleteFriend(int id_friend){
-//        if(userDAO.deleteFriend(user, id_friend)){
-//           handleUpDateUser();
-//        }
+
+        User fUser = new User();
+        for(User friend: user.getFriends()){
+            if(id_friend==friend.getId()){
+                fUser = friend;
+            }
+        }
+        if(userDAO.deleteFriend(user, id_friend)){
+            handleUpDateUser(fUser.getUsername());
+            Server.serverThreadBus.sendDeleteFriendToPersion(id_friend, fUser.getUsername());
+        }
         
     }
     
@@ -355,18 +367,40 @@ public class ServerWorker implements Runnable {
 	}
 	    
     }
-//
-//    private void handleAddFriend(String key) {
-//        List<User> userInSystem = new ArrayList<>();
-//        userInSystem = userDAO.getAllUser(key);
-//        System.out.println(userInSystem.size());
-//        try {
-//            write("User-In-System");
-//            os.writeObject(userInSystem);
-//            os.flush();
-//        } catch (IOException ex) {
-//            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
 
+    private void handleGetUserInSys(String key) {
+        List<User> userInSystem = new ArrayList<>();
+        userInSystem = userDAO.findAll();
+        System.out.println(userInSystem.size());
+        Server.serverThreadBus.sendUsInSys(user.getId(), userInSystem);
+    }
+    
+    public void writeUsInSys(String mes, List<User> usInSys){
+        try {
+            write(mes);
+            os.writeObject(usInSys);
+            os.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void handleAddFriend(int userf_id) {
+        if(userDAO.insertFriend(user, userf_id)){
+            Server.serverThreadBus.sendNotificationAddFriend(userf_id);
+        }
+    }
+
+    public void handleSendNotificationAddFriend(){
+        User userUpdate = new User();
+        userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
+        System.out.println(userUpdate.getFriends().size());
+        try {
+            write("notification-add "+user.getUsername()+" send add friend for you");
+        } catch (IOException ex) {
+            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+    }
 }

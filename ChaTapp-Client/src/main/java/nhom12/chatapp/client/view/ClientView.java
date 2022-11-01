@@ -14,13 +14,14 @@ import nhom12.chatapp.client.listener.WindowListener;
 import nhom12.chatapp.model.User;
 
 public class ClientView extends javax.swing.JFrame {
-
+    
     private MessageListener listener;
     private WindowListener windowListener;
     private List<String> onlineUser;
     private User user;
-    private List<User> listFriend;
-
+    public List<User> listFriend;
+    private List<User> usInSysList;
+    
     public ClientView() {
         initComponents();
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -30,8 +31,9 @@ public class ClientView extends javax.swing.JFrame {
         jTextArea2.setEditable(false);
         user = new User();
         listFriend = new ArrayList<>();
+        usInSysList = new ArrayList<>();
     }
-
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -76,6 +78,9 @@ public class ClientView extends javax.swing.JFrame {
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
+        jPanel7 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        tblNotification = new javax.swing.JTable();
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -148,6 +153,11 @@ public class ClientView extends javax.swing.JFrame {
         comboBoxGroup.setBounds(470, 40, 140, 29);
 
         comboBoxUser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        comboBoxUser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxUserActionPerformed(evt);
+            }
+        });
         jPanel2.add(comboBoxUser);
         comboBoxUser.setBounds(20, 40, 140, 29);
 
@@ -379,6 +389,43 @@ public class ClientView extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Create Or Join Group Chat", jPanel6);
 
+        tblNotification.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Content", "Time"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Object.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jScrollPane3.setViewportView(tblNotification);
+
+        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
+        jPanel7.setLayout(jPanel7Layout);
+        jPanel7Layout.setHorizontalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 624, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel7Layout.setVerticalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addGap(42, 42, 42)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(20, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Notification", jPanel7);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -397,28 +444,19 @@ public class ClientView extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-//        String parner = jLabel3.getText();
-//        if (parner.equalsIgnoreCase("{Người nhận}")) {
-//            parner = onlineUser.get(0).substring(7, onlineUser.get(0).length());
-//        }
-//
-//        String messageContent = jTextField1.getText();
-//        if (messageContent.isEmpty()) {
-//            JOptionPane.showMessageDialog(rootPane, "Bạn chưa nhập tin nhắn");
-//            return;
-//        }
-//
-//        try {
-//            listener.send(messageContent, parner);
-//            jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner + "): " + messageContent + "\n");
-//            jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
-//            //}
-//        } catch (IOException ex) {
-//            Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//
-//        jTextField1.setText("");
-	listener.sendMessage(txtf_chat.getText());
+
+        String messageContent = jTextField1.getText();
+        if (messageContent.isEmpty()) {
+            JOptionPane.showMessageDialog(rootPane, "Bạn chưa nhập tin nhắn");
+            return;
+        }
+
+	String[] parner = ((String) comboBoxUser.getSelectedItem()).split(" ");
+	listener.sendMessage(messageContent);
+	jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner[1] + "): " + messageContent + "\n");
+	jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
+
+        jTextField1.setText("");
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
@@ -449,6 +487,7 @@ public class ClientView extends javax.swing.JFrame {
                 try {
                     listener.sendDeleteFriend(friendDelete.getId() + "");
                     updateCombobox(onlineUser);
+                    setTableFriend();
                 } catch (IOException ex) {
                     Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -457,32 +496,38 @@ public class ClientView extends javax.swing.JFrame {
     }//GEN-LAST:event_tblMyFriendMouseClicked
 
     private void btnSearchAddFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchAddFriendActionPerformed
-        DefaultTableModel dtm = new DefaultTableModel();
-        dtm.setRowCount(0);
-        dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
-        for (String nickName : onlineUser) {
-            for (User us : listFriend) {
-                if (!us.getUsername().equalsIgnoreCase(nickName)) {
-                    dtm.addRow(new String[]{us.getUsername(), us.getFullname(), "online", "no friend"});
-                }
-            }
+
+        try {
+            //        DefaultTableModel dtm = new DefaultTableModel();
+//        dtm.setRowCount(0);
+//        dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
+//        for (String nickName : onlineUser) {
+//            for (User us : listFriend) {
+//                if (!us.getViewName().equalsIgnoreCase(nickName)) {
+//                    dtm.addRow(new String[]{us.getViewName(), us.getFullname(), "online", "no friend"});
+//                }
+//            }
+//        }
+//        tblUserInSys.setModel(dtm);
+            listener.sendFindFriend(txtKeyNickName.getText());
+        } catch (IOException ex) {
+            Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
         }
-        tblUserInSys.setModel(dtm);
     }//GEN-LAST:event_btnSearchAddFriendActionPerformed
 
     private void tblUserInSysMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblUserInSysMouseClicked
-        int column = tblMyFriend.getColumnModel().
+        int column = tblUserInSys.getColumnModel().
                 getColumnIndexAtX(evt.getX()); // get the coloum of the button
-        int row = evt.getY() / tblMyFriend.getRowHeight(); // get row 
+        int row = evt.getY() / tblUserInSys.getRowHeight(); // get row 
         // *Checking the row or column is valid or not
-        if (row < tblMyFriend.getRowCount() && row >= 0
-                && column < tblMyFriend.getColumnCount() && column >= 0) {
-            User friendDelete = listFriend.get(row);
-            int choice = JOptionPane.showConfirmDialog(this, "Do you want delete friend " + friendDelete.getUsername()+ " ?", "Ask", JOptionPane.YES_NO_OPTION);
+
+        if (row < tblUserInSys.getRowCount() && row >= 0
+                && column < tblUserInSys.getColumnCount() && column >= 0) {
+            User addFriend = usInSysList.get(row);
+            int choice = JOptionPane.showConfirmDialog(this, "Do you want add friend " + addFriend.getUsername()+ " ?", "Ask", JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
                 try {
-                    listener.sendDeleteFriend(friendDelete.getId() + "");
-                    updateCombobox(onlineUser);
+                    listener.sendAddFriend(addFriend.getId());
                 } catch (IOException ex) {
                     Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -490,10 +535,14 @@ public class ClientView extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_tblUserInSysMouseClicked
 
+    private void comboBoxUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxUserActionPerformed
+        jLabel3.setText("Đang nhắn với " + comboBoxUser.getSelectedItem());
+    }//GEN-LAST:event_comboBoxUserActionPerformed
+    
     public JTextArea getTextArea1() {
         return this.jTextArea1;
     }
-
+    
     public JTextArea getTextArea2() {
         return this.jTextArea2;
     }
@@ -504,18 +553,18 @@ public class ClientView extends javax.swing.JFrame {
     }
 
     public void setUser(User user) {
+        //listFriend = new ArrayList<>();
         this.user = user;
-//        listFriend = user.getFriends();
         this.setTitle(user.getUsername());
         setTableFriend();
     }
-
+    
     public void updateCombobox(List<String> onlineList) {
         onlineUser = new ArrayList<>();
         this.onlineUser = onlineList;
-        comboBoxGroup.removeAllItems();
+        comboBoxUser.removeAllItems();
+        System.out.println(listFriend.size());
         for (String us : onlineUser) {
-            System.out.println(us);
             String nickName = us.substring(7, us.length());
             System.out.println(nickName);
             for (User friend : listFriend) {
@@ -524,23 +573,66 @@ public class ClientView extends javax.swing.JFrame {
                 }
             }
         }
-        setTableFriend();
+        //setTableFriend();
     }
-
+    
     public void setTableFriend() {
         DefaultTableModel dtm = new DefaultTableModel();
         dtm.setRowCount(0);
         dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Date Is Friend"});
-        for (User friend : listFriend) {
-            dtm.addRow(new String[]{friend.getUsername(), friend.getFullname(), ""});
+
+        if (listFriend != null) {
+            for (User friend : listFriend) {
+                dtm.addRow(new String[]{friend.getUsername(), friend.getFullname(), ""});
+            }
         }
         tblMyFriend.setModel(dtm);
+        
     }
-
+    
+    public void setTableUserSys(List<User> usInSys) {
+        if (usInSys != null) {
+            usInSysList = usInSys;
+            
+            DefaultTableModel dtm = new DefaultTableModel();
+            dtm.setRowCount(0);
+            dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
+            if (listFriend != null) {
+                for (User us : usInSysList) {
+                    //for (User friend : listFriend) {
+                    //if(!us.getViewName().equals(friend.getViewName()))
+                    dtm.addRow(new String[]{us.getUsername(), us.getFullname(), "", ""});
+                    //}
+                }
+            }
+            tblUserInSys.setModel(dtm);
+        }
+    }
+    
+    public void setTableNotification(String notif) {
+//        if (usInSys != null) {
+//            usInSysList = usInSys;
+            
+            DefaultTableModel dtm = new DefaultTableModel();
+            dtm.setRowCount(0);
+            dtm.setColumnIdentifiers(new String[]{"Content", "Time"});
+            dtm.addRow(new String[]{notif,""});
+//            if (listFriend != null) {
+//                for (User us : usInSysList) {
+//                    //for (User friend : listFriend) {
+//                    //if(!us.getViewName().equals(friend.getViewName()))
+//                    
+//                    //}
+//                }
+//            }
+            tblNotification.setModel(dtm);
+        //}
+    }
+    
     public void setMessageListener(MessageListener listener) {
         this.listener = listener;
     }
-
+    
     public void setWindowListener(WindowListener listener) {
         this.windowListener = listener;
     }
@@ -569,8 +661,10 @@ public class ClientView extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
@@ -583,6 +677,7 @@ public class ClientView extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTable tblMyFriend;
+    private javax.swing.JTable tblNotification;
     private javax.swing.JTable tblUserInSys;
     private javax.swing.JTextField txtKey;
     private javax.swing.JTextField txtKeyNickName;

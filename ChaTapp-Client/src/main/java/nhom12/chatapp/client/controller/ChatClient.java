@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JTextArea;
 import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.view.ClientView;
@@ -78,10 +77,32 @@ public class ChatClient extends Thread implements MessageListener {
 			view.getTextArea2().setText(online);
 			view.updateCombobox(onlineList);
 			break;
-//                    case "User-In-System":
-//                        this.userInsystem = (List<User>) server.readObject();
-//                        view.setTableUserSys(userInsystem);
-//                        break;
+                    case "notification-delete":
+                        this.user = (User) server.readObject();
+                        view.setUser(user);
+                        view.updateCombobox(onlineList);
+                        String[] meString = argstr.split(" ",2);
+                        System.out.println(meString[0]);
+                        if(meString[0].equals(user.getUsername())){
+                            view.setTableNotification(meString[1]);
+                        }
+                        break;
+                    case "notification-add":
+                        this.user = (User) server.readObject();
+                        view.setUser(user);
+                        view.updateCombobox(onlineList);
+                        //String[] meString = messageSplit[1].split(" ",2);
+//                        System.out.println(meString[0]);
+//                        if(meString[0].equals(user.getViewName())){
+//                            view.setTableNotification(meString[1]);
+//                        }
+                        break;
+                    case "User-In-System":
+                        
+                        this.userInsystem = (List<User>) server.readObject();
+                        //System.out.println(userInsystem.get(0).getViewName());
+                        view.setTableUserSys(userInsystem);
+                        break;
 		    case "display":
 			String[] args = argstr.split(" ", 2);
 			view.printMessage("[" + args[0] + "]: " + args[1]);
@@ -134,8 +155,13 @@ public class ChatClient extends Thread implements MessageListener {
     }
 
     @Override
-    public void sendAddFriend(String nickName) throws IOException {
-        server.write("addFriend " + nickName);
+    public void sendFindFriend(String key) throws IOException {
+        server.write("findFriend " + key);
+    }
+
+    @Override
+    public void sendAddFriend(int idUs) throws IOException {
+        server.write("addFriend " + idUs);
     }
 
 }

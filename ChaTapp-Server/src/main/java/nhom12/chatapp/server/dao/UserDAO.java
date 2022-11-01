@@ -12,6 +12,15 @@ import nhom12.hibernate.util.JPAUtil;
 
 public class UserDAO implements DAO<User> {
 
+//    private final String CHECK_LOGIN = "SELECT * FROM tbluser WHERE viewname = ? AND password = ?";
+//    private final String INSERT_USER = "INSERT INTO tbluser(sdt, password, viewname, fullname,gender, address, dob) VALUES (?,?,?,?,?,?,?);";
+//    private final String CHECK_EXIST = "SELECT * FROM tbluser WHERE viewname = ? limit 1";
+//    private final String GET_USER_BY_PHONE = "SELECT * FROM tbluser WHERE sdt = ?";
+//    private final String GET_ALL_FRIEND = "Select distinct b.*  from tbluser a, tbluser b join tblfriend1 c on (c.user_id = ? and b.id = c.userf_id and c.status = 1) or (c.userf_id = ? and b.id = c.user_id and c.status = 1)";
+//    private final String DELETE_FRIEND = "Delete from tblfriend1 where (user_id = ? and userf_id=?) or (user_id = ? and userf_id=?)";
+//    private final String GET_ALL_USER = "Select * from tbluser where viewname like ?";
+//    private final String ADD_FRIEND = "INSERT INTO tblfriend1 (user_id, userf_id, status) values(?, ?, ?)";
+
     public UserDAO() {
     
     }
@@ -219,5 +228,24 @@ public class UserDAO implements DAO<User> {
 	}
 	
 	return true;
+    }
+
+    public boolean insertFriend(User user, int userf_id) {
+//        try {
+//            PreparedStatement ps = con.prepareStatement(ADD_FRIEND);
+//            ps.setInt(1, user.getId());
+//            ps.setInt(2, userf_id);
+//            ps.setString(3, "2");            
+//            ps.executeUpdate();
+//
+//        } catch (SQLException e) {
+//            return false;
+//        }
+	// TODO: Work this out later
+        return false;
+    }
+
+    public boolean deleteFriend(User user, int id_friend) {
+	return false;
     }
 }

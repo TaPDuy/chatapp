@@ -298,7 +298,7 @@ public class RegisterFrm extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Register failed");
                 break;
             default:
-                JOptionPane.showMessageDialog(this, "Number phone is existed");
+                JOptionPane.showMessageDialog(this, "Nick name is existed");
                 break;
         }
     }//GEN-LAST:event_btnRegisterActionPerformed

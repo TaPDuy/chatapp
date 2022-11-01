@@ -1,144 +1,97 @@
 package nhom12.chatapp.model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public class User implements Serializable{
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name="tbl_user")
+public class User implements Serializable {
     
     private static final long serialVersionUID = 1L;
+    
+    @Id
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name="id")
     private int id;
-    private String sdt;
+    
+    @Column(name="username")
+    private String username;
+    
+    @Column(name="password")
     private String password;
-    private String viewName;
+    
+    @Column(name="full_name")
     private String fullname;
+    
+    @Column(name="gender")
     private String gender;
-    private byte [] image;
-    private String imageString;
-    private String address;
+    
+    @Column(name="dob")
+    @Temporal(TemporalType.DATE)
     private Date dob;
+    
+    @Column(name="phone_number")
+    private String sdt;
+    
+    @Column(name="address")
+    private String address;
+    
+    @Column(name="status")
     private String status;
-    private List<User> friends;
+    
+    @ManyToMany(mappedBy="members")
+    private final Set<Group> joinedGroups = new HashSet<>();
 
-    public User(String sdt, String password) {
-        this.sdt = sdt;
-        this.password = password;
-        this.status = "offline";
-        friends = new ArrayList<>();
-    }
-
-    public User() {
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getSdt() {
-        return sdt;
-    }
-
-    public void setSdt(String sdt) {
-        this.sdt = sdt;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getViewName() {
-        return viewName;
-    }
-
-    public void setViewName(String viewName) {
-        this.viewName = viewName;
-    }
-
-    public String getFullname() {
-        return fullname;
-    }
-
-    public void setFullname(String fullname) {
-        this.fullname = fullname;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public byte[] getImage() {
-        return image;
-    }
-
-    public void setImage(byte[] image) {
-        this.image = image;
-    }
-
-    public String getImageString() {
-        return imageString;
-    }
-
-    public void setImageString(String imageString) {
-        this.imageString = imageString;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public Date getDob() {
-        return dob;
-    }
-
-    public void setDob(Date dob) {
-        this.dob = dob;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public List<User> getFriends() {
-        return friends;
-    }
-
-    public void setFriends(List<User> friends) {
-        this.friends = friends;
-    }
-
+    @ManyToMany
+    @JoinTable(
+	name="tbl_friendship",
+	joinColumns = @JoinColumn(name="user_id"),
+	inverseJoinColumns = @JoinColumn(name="friend_id")
+    )
+    private final Set<User> friends = new HashSet<>();
+    
+    @ManyToMany(mappedBy="friends")
+    private final Set<User> friendsOfThis = new HashSet<>();
+    
     @Override
     public String toString() {
 	return
 	    "(User) -> {\n"
-	    + "\tid: "		+ this.id		+ ",\n"
-	    + "\tviewname: '"	+ this.viewName		+ "',\n" 
-	    + "\tpassword: "	+ this.password		+ ",\n"
-	    + "\tfullname: "	+ this.fullname		+ ",\n"
-	    + "\tgender: "	+ this.gender		+ ",\n"
-	    + "\tdob: "		+ this.dob.toString()	+ ",\n"
-	    + "\tsdt: "		+ this.sdt		+ ",\n"
-	    + "\taddress: "	+ this.address		+ ",\n"
-	    + "\tstatus: "	+ this.status		+ "\n}";
+		+ "\tid: " + this.id + ",\n"
+		+ "\tviewname: '" + this.username + "',\n" 
+		+ "\tpassword: " + this.password + ",\n"
+		+ "\tfullname: " + this.fullname + ",\n"
+		+ "\tgender: "	+ this.gender + ",\n"
+		+ "\tdob: " + this.dob.toString() + ",\n"
+		+ "\tsdt: " + this.sdt + ",\n"
+		+ "\taddress: "	+ this.address + ",\n"
+		+ "\tstatus: " + this.status + ",\n"
+		+ "\tjoinedGroups: [\n"
+		+ this.joinedGroups.stream()
+		    .map(group -> "\t" + group.getName() + ",\n")
+		    .reduce("", String::concat) 
+		+ "],\n"
+	    + "\n}";
     }
 }

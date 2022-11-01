@@ -1,47 +1,36 @@
 package nhom12.chatapp.model;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Group implements Serializable {
     
     private static final long serialVersionUID = 2L;
     
     private int id;
     private String name;
-
-    public Group() {
-    
-	this(0, "");
-    }
-
-    public Group(int id, String name) {
-	this.id = id;
-	this.name = name;
-    }
-
-    public int getId() {
-	return id;
-    }
-
-    public Group setId(int id) {
-	this.id = id;
-	return this;
-    }
-
-    public String getName() {
-	return name;
-    }
-
-    public Group setName(String name) {
-	this.name = name;
-	return this;
-    }
+    private final Set<User> members = new HashSet<>();
 
     @Override
     public String toString() {
 	return 
 	    "(Group) -> {\n"
-	    + "\tid: "	    + this.id	+ ",\n"
-	    + "\tname: '"   + this.name + "'\n}";
+		+ "\tid: " + this.id + ",\n"
+		+ "\tname: '" + this.name + "',\n"
+		+ "\tmembers: [\n"	
+		+ this.members.stream()
+		    .map(mem -> "\t" + mem.getUsername() + ",\n")
+		    .reduce("", String::concat) 
+		+ "],\n"
+	    + "\n}";
     }
 }

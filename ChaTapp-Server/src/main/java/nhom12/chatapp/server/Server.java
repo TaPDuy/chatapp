@@ -8,6 +8,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import nhom12.hibernate.util.JPAUtil;
 
 public class Server {
 
@@ -16,6 +17,7 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
 	
+	JPAUtil.getEntityManagerFactory();
         ServerSocket listener = new ServerSocket(7777);
         serverThreadBus = new ServerWorkerBus();
         System.out.println("Server is waiting to accept user...");
@@ -42,6 +44,7 @@ public class Server {
         } finally {
             try {
                 listener.close();
+		JPAUtil.shutdown();
             } catch (IOException ex) {
                 Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
             }

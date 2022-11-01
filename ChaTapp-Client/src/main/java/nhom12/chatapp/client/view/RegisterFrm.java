@@ -10,13 +10,20 @@ import nhom12.chatapp.client.listener.LoginListener;
 import nhom12.chatapp.client.listener.WindowListener;
 import nhom12.chatapp.model.User;
 
-public class RegisterFrm extends javax.swing.JFrame {
+public class RegisterFrm extends javax.swing.JPanel {
 
     private WindowListener windowListener;
     private LoginListener loginListener;
 
     public RegisterFrm() {
         initComponents();
+    }
+    
+    public RegisterFrm(WindowListener windowListener, LoginListener loginListener) {
+	initComponents();
+	
+	this.windowListener = windowListener;
+	this.loginListener = loginListener;
     }
 
     @SuppressWarnings("unchecked")
@@ -52,8 +59,6 @@ public class RegisterFrm extends javax.swing.JFrame {
         rbtnMale = new javax.swing.JRadioButton();
         rbtnFemale = new javax.swing.JRadioButton();
         rbtnOrther = new javax.swing.JRadioButton();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setText("Register");
 
@@ -137,8 +142,8 @@ public class RegisterFrm extends javax.swing.JFrame {
         genderGroup.add(rbtnOrther);
         rbtnOrther.setText("Orther");
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -245,9 +250,7 @@ public class RegisterFrm extends javax.swing.JFrame {
                     .addComponent(btnBacktologin))
                 .addGap(22, 22, 22))
         );
-
-        pack();
-        setLocationRelativeTo(null);
+		
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterActionPerformed
@@ -278,34 +281,36 @@ public class RegisterFrm extends javax.swing.JFrame {
             }
         }
 	
-        User user = new User(sdt, password);
-        user.setViewName(username);
-        user.setFullname(fullname);
-        user.setGender(gender);
-        user.setAddress(address);
-        user.setDob(dobDate);
+        User user = User.builder()
+		.username(username)
+		.password(password)
+		.fullname(fullname)
+		.sdt(sdt)
+		.gender(gender)
+		.address(address)
+		.dob(dobDate)
+		.build();
 
         switch (loginListener.registerUser(user)) {
             case 1:
                 JOptionPane.showMessageDialog(this, "Register successed");
-                (new LoginFrm()).setVisible(true);
-                this.dispose();
+                windowListener.switchToView("LoginFrm");
                 break;
             case 2:
                 JOptionPane.showMessageDialog(this, "Register failed");
                 break;
             default:
-                JOptionPane.showMessageDialog(this, "Number phone is existed");
+                JOptionPane.showMessageDialog(this, "Nick name is existed");
                 break;
         }
     }//GEN-LAST:event_btnRegisterActionPerformed
 
     private void btnBacktologinActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBacktologinActionPerformed
-        windowListener.onSwitchFrame("LoginFrm");
+        windowListener.switchToView("LoginFrm");
     }//GEN-LAST:event_btnBacktologinActionPerformed
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        windowListener.onSwitchFrame("LoginFrm");
+        windowListener.switchToView("LoginFrm");
     }//GEN-LAST:event_btnBackActionPerformed
 
     private void txtMonthActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMonthActionPerformed

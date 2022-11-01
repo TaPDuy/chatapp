@@ -1,5 +1,6 @@
 package nhom12.chatapp.client.controller;
 
+import java.awt.Container;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -7,13 +8,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JTextArea;
 import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.view.ClientView;
 import nhom12.chatapp.model.User;
 
-public class ChatClient extends Thread implements MessageListener {
+public class ChatClient implements MessageListener, Runnable {
 
     private final ServerConnection server;
     
@@ -30,7 +30,7 @@ public class ChatClient extends Thread implements MessageListener {
     public ChatClient(ServerConnection server) {
 	this.server = server;
 	this.user = new User();
-	this.user.setViewName("guest");
+	this.user.setUsername("guest");
 	
 	onlineList = new ArrayList<>();
         userInsystem = new ArrayList<>();
@@ -38,8 +38,9 @@ public class ChatClient extends Thread implements MessageListener {
         id = -1;
     }
 
-    public void setView(ClientView view) {
-	this.view = view;
+    @Override
+    public void setChatView(Container view) {
+	this.view = (ClientView) view;
     }
     
     @Override
@@ -58,7 +59,7 @@ public class ChatClient extends Thread implements MessageListener {
 		
 		String[] cmdSplit = cmdLine.split(" ", 2);
 		String cmd = cmdSplit[0];
-		String argstr = cmdSplit[1];
+		String argstr = cmdSplit.length > 1 ? cmdSplit[1] : "";
 		
 		switch (cmd) {
 		    case "set-user":
@@ -71,17 +72,39 @@ public class ChatClient extends Thread implements MessageListener {
 			String online = "";
 			String[] onlineSplit = argstr.split("-");
 			for (String onlineSplit1 : onlineSplit) {
-			    if (!onlineSplit1.equals(this.user.getViewName()))
+			    if (!onlineSplit1.equals(this.user.getUsername()))
 				onlineList.add("Client " + onlineSplit1);
 			    online += "Client " + onlineSplit1 + " đang online\n";
 			}	
 			view.getTextArea2().setText(online);
 			view.updateCombobox(onlineList);
 			break;
-//                    case "User-In-System":
-//                        this.userInsystem = (List<User>) server.readObject();
-//                        view.setTableUserSys(userInsystem);
-//                        break;
+                    case "notification-delete":
+                        this.user = (User) server.readObject();
+                        view.setUser(user);
+                        view.updateCombobox(onlineList);
+                        String[] meString = argstr.split(" ",2);
+                        System.out.println(meString[0]);
+                        if(meString[0].equals(user.getUsername())){
+                            view.setTableNotification(meString[1]);
+                        }
+                        break;
+                    case "notification-add":
+                        this.user = (User) server.readObject();
+                        view.setUser(user);
+                        view.updateCombobox(onlineList);
+                        //String[] meString = messageSplit[1].split(" ",2);
+//                        System.out.println(meString[0]);
+//                        if(meString[0].equals(user.getViewName())){
+//                            view.setTableNotification(meString[1]);
+//                        }
+                        break;
+                    case "User-In-System":
+                        
+                        this.userInsystem = (List<User>) server.readObject();
+                        //System.out.println(userInsystem.get(0).getViewName());
+                        view.setTableUserSys(userInsystem);
+                        break;
 		    case "display":
 			String[] args = argstr.split(" ", 2);
 			view.printMessage("[" + args[0] + "]: " + args[1]);
@@ -134,8 +157,13 @@ public class ChatClient extends Thread implements MessageListener {
     }
 
     @Override
-    public void sendAddFriend(String nickName) throws IOException {
-        server.write("addFriend " + nickName);
+    public void sendFindFriend(String key) throws IOException {
+        server.write("findFriend " + key);
+    }
+
+    @Override
+    public void sendAddFriend(int idUs) throws IOException {
+        server.write("addFriend " + idUs);
     }
 
 }

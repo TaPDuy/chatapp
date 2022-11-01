@@ -1,29 +1,12 @@
 package nhom12.chatapp.server.dao;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 
-public class DAO {
+public interface DAO<T> {
     
-    public static Connection con;
-    
-    public DAO(){
-	
-	try {
-	    if (con == null)  
-	    {
-		String url = "jdbc:mysql://localhost:3306/app_multi_chat";
-		Class.forName("com.mysql.cj.jdbc.Driver");
-		con = DriverManager.getConnection(url, "root", "315147");
-	    }
-	} catch (SQLException ex) {
-	    Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
-	} catch (ClassNotFoundException ex) {
-	    Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
-	}
-    }
-    
+    public T findById(int id);
+    public List<T> findAll();
+    public boolean save(T t);
+    public boolean update(T t);
+    public boolean delete(int id);
 }

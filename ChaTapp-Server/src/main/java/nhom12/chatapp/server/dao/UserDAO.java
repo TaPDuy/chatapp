@@ -69,7 +69,7 @@ public class UserDAO implements DAO<User> {
 		
 		cr.select(root).where(
 		    cb.and(
-			cb.equal(root.get("viewname"), username), 
+			cb.equal(root.get("username"), username), 
 			cb.equal(root.get("password"), password)
 		    )
 		);

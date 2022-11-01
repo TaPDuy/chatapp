@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.listener.WindowListener;
 import nhom12.chatapp.model.User;
 
-public class ClientView extends javax.swing.JFrame {
+public class ClientView extends javax.swing.JPanel {
     
     private MessageListener listener;
     private WindowListener windowListener;
@@ -22,11 +21,12 @@ public class ClientView extends javax.swing.JFrame {
     public List<User> listFriend;
     private List<User> usInSysList;
     
-    public ClientView() {
+    public ClientView(WindowListener windowListener, MessageListener messageListener) {
         initComponents();
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        this.setLocationRelativeTo(null);
-        //this.setVisible(true);
+	
+	this.windowListener = windowListener;
+	this.listener = messageListener;
+	
         jTextArea1.setEditable(false);
         jTextArea2.setEditable(false);
         user = new User();
@@ -93,8 +93,6 @@ public class ClientView extends javax.swing.JFrame {
             .addGap(0, 100, Short.MAX_VALUE)
         );
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
         jTextArea2.setColumns(20);
         jTextArea2.setRows(5);
         jScrollPane2.setViewportView(jTextArea2);
@@ -122,8 +120,8 @@ public class ClientView extends javax.swing.JFrame {
 
         jPanel2.add(jScrollPane1);
         jScrollPane1.setBounds(6, 107, 610, 270);
-        jPanel2.add(jTextField1);
-        jTextField1.setBounds(10, 420, 480, 29);
+        jPanel2.add(txtf_chat);
+        txtf_chat.setBounds(10, 420, 480, 29);
 
         jButton1.setText("Gửi");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -426,8 +424,8 @@ public class ClientView extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Notification", jPanel7);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -439,15 +437,13 @@ public class ClientView extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jTabbedPane1)
         );
-
-        pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 
-        String messageContent = jTextField1.getText();
+        String messageContent = txtf_chat.getText();
         if (messageContent.isEmpty()) {
-            JOptionPane.showMessageDialog(rootPane, "Bạn chưa nhập tin nhắn");
+            JOptionPane.showMessageDialog(this, "Bạn chưa nhập tin nhắn");
             return;
         }
 
@@ -456,7 +452,7 @@ public class ClientView extends javax.swing.JFrame {
 	jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner[1] + "): " + messageContent + "\n");
 	jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
 
-        jTextField1.setText("");
+        txtf_chat.setText("");
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
@@ -555,7 +551,7 @@ public class ClientView extends javax.swing.JFrame {
     public void setUser(User user) {
         //listFriend = new ArrayList<>();
         this.user = user;
-        this.setTitle(user.getUsername());
+//        this.setTitle(user.getUsername());
         setTableFriend();
     }
     
@@ -673,7 +669,6 @@ public class ClientView extends javax.swing.JFrame {
     private javax.swing.JTable jTable2;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextArea jTextArea2;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTable tblMyFriend;

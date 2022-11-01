@@ -1,5 +1,6 @@
 package nhom12.chatapp.client.controller;
 
+import java.awt.Container;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.view.ClientView;
 import nhom12.chatapp.model.User;
 
-public class ChatClient extends Thread implements MessageListener {
+public class ChatClient implements MessageListener, Runnable {
 
     private final ServerConnection server;
     
@@ -37,8 +38,9 @@ public class ChatClient extends Thread implements MessageListener {
         id = -1;
     }
 
-    public void setView(ClientView view) {
-	this.view = view;
+    @Override
+    public void setChatView(Container view) {
+	this.view = (ClientView) view;
     }
     
     @Override
@@ -57,7 +59,7 @@ public class ChatClient extends Thread implements MessageListener {
 		
 		String[] cmdSplit = cmdLine.split(" ", 2);
 		String cmd = cmdSplit[0];
-		String argstr = cmdSplit[1];
+		String argstr = cmdSplit.length > 1 ? cmdSplit[1] : "";
 		
 		switch (cmd) {
 		    case "set-user":

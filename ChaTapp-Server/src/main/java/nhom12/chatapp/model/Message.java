@@ -2,93 +2,77 @@ package nhom12.chatapp.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name="tbl_message")
 public class Message implements Serializable {
     
     private static final long serialVersionUID = 3L;
     
+    @Id
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name="id")
     private int id;
+    
+    @Column(name="content")
     private String content;
-    private User sender, receiver;
+    
+    @ManyToOne(optional=false)
+    @JoinColumn(name="sender_id", referencedColumnName="id")
+    private User sender;
+    
+    @ManyToMany
+    @JoinTable(
+	name="tbl_recipient", 
+	joinColumns = @JoinColumn(name="message_id", referencedColumnName="id"), 
+	inverseJoinColumns = @JoinColumn(name="recipient_id", referencedColumnName="id")
+    )
+    private final Set<User> recipients = new HashSet<>();
+    
+    @ManyToOne
+    @JoinColumn(name="group_id", referencedColumnName="id")
     private Group group;
+    
+    @Column(name="time_sent")
+    @Temporal(TemporalType.DATE)
     private Date timeSent;
-
-    public Message() {
-	this(0, "", null, null, null, new Date());
-    }
-
-    public Message(int id, String content, User sender, User receiver, Group group, Date timeSent) {
-	this.id = id;
-	this.content = content;
-	this.sender = sender;
-	this.receiver = receiver;
-	this.group = group;
-	this.timeSent = timeSent;
-    }
-
-    public int getId() {
-	return id;
-    }
-
-    public Message setId(int id) {
-	this.id = id;
-	return this;
-    }
-
-    public String getContent() {
-	return content;
-    }
-
-    public Message setContent(String content) {
-	this.content = content;
-	return this;
-    }
-
-    public User getSender() {
-	return sender;
-    }
-
-    public Message setSender(User sender) {
-	this.sender = sender;
-	return this;
-    }
-
-    public User getReceiver() {
-	return receiver;
-    }
-
-    public Message setReceiver(User receiver) {
-	this.receiver = receiver;
-	return this;
-    }
-
-    public Group getGroup() {
-	return group;
-    }
-
-    public Message setGroup(Group group) {
-	this.group = group;
-	return this;
-    }
-
-    public Date getTimeSent() {
-	return timeSent;
-    }
-
-    public Message setTimeSent(Date timeSent) {
-	this.timeSent = timeSent;
-	return this;
-    }
 
     @Override
     public String toString() {
 	return 
 	    "(Message) -> {\n"
-	    + "\tid: "		+ this.id		    + ",\n"
-	    + "\tcontent: '"	+ this.content		    + "',\n" 
-	    + "\tsender: "	+ this.sender.toString()    + ",\n"
-	    + "\treceiver: "	+ this.receiver.toString()  + ",\n"
-	    + "\tgroup: "	+ this.group.toString()	    + ",\n"
-	    + "\ttimeSent: "	+ this.timeSent.toString()  + "\n}";
+		+ "\tid: " + this.id + ",\n"
+		+ "\tcontent: '" + this.content	+ "',\n" 
+		+ "\tsender: " + this.sender.toString() + ",\n"
+		+ "\treceiver: [\n"	
+		+ this.recipients.stream()
+		    .map(rec -> "\t" + rec.getUsername() + ",\n")
+		    .reduce("", String::concat) 
+		+ "],\n"
+		+ "\tgroup: " + this.group.toString() + ",\n"
+		+ "\ttimeSent: " + this.timeSent.toString()  
+	    + "\n}";
     }
 }

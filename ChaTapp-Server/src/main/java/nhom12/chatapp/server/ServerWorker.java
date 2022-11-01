@@ -207,12 +207,12 @@ public class ServerWorker implements Runnable {
         }
     }
     
-    public void handleUpDateUser(){
+    public void handleUpDateUser(String nickNameF){
         User userUpdate = new User();
         userUpdate = userDAO.checkLogin(user.getViewName(), user.getPassword());
         System.out.println(userUpdate.getFriends().size());
         try {
-            write("set-user");
+            write("notification-delete "+nickNameF+" "+userUpdate.getViewName()+" delete friend with you");
             os.writeObject(userUpdate);
             os.flush();
         } catch (IOException ex) {
@@ -223,10 +223,15 @@ public class ServerWorker implements Runnable {
     }
     
     private void handleDeleteFriend(int id_friend){
+        User fUser = new User();
+        for(User friend: user.getFriends()){
+            if(id_friend==friend.getId()){
+                fUser = friend;
+            }
+        }
         if(userDAO.deleteFriend(user, id_friend)){
-            String message = "set-user";
-            handleUpDateUser();
-            Server.serverThreadBus.sendDeleteFriendToPersion(id_friend, message);
+            handleUpDateUser(fUser.getViewName());
+            Server.serverThreadBus.sendDeleteFriendToPersion(id_friend, fUser.getViewName());
         }
         
     }
@@ -379,8 +384,20 @@ public class ServerWorker implements Runnable {
 
     private void handleAddFriend(int userf_id) {
         if(userDAO.insertFriend(user, userf_id)){
-            System.out.println(1);
+            Server.serverThreadBus.sendNotificationAddFriend(userf_id);
         }
     }
 
+    public void handleSendNotificationAddFriend(){
+        User userUpdate = new User();
+        userUpdate = userDAO.checkLogin(user.getViewName(), user.getPassword());
+        System.out.println(userUpdate.getFriends().size());
+        try {
+            write("notification-add "+user.getViewName()+" send add friend for you");
+        } catch (IOException ex) {
+            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+    }
 }

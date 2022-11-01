@@ -72,7 +72,28 @@ public class ChatClient extends Thread implements MessageListener {
 			view.getTextArea2().setText(online);
 			view.updateCombobox(onlineList);
 			break;
+                    case "notification-delete":
+                        this.user = (User) server.readObject();
+                        view.setUser(user);
+                        view.updateCombobox(onlineList);
+                        String[] meString = messageSplit[1].split(" ",2);
+                        System.out.println(meString[0]);
+                        if(meString[0].equals(user.getViewName())){
+                            view.setTableNotification(meString[1]);
+                        }
+                        break;
+                    case "notification-add":
+                        this.user = (User) server.readObject();
+                        view.setUser(user);
+                        view.updateCombobox(onlineList);
+                        //String[] meString = messageSplit[1].split(" ",2);
+//                        System.out.println(meString[0]);
+//                        if(meString[0].equals(user.getViewName())){
+//                            view.setTableNotification(meString[1]);
+//                        }
+                        break;
                     case "User-In-System":
+                        
                         this.userInsystem = (List<User>) server.readObject();
                         //System.out.println(userInsystem.get(0).getViewName());
                         view.setTableUserSys(userInsystem);

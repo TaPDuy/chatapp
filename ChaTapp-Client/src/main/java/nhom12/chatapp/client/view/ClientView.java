@@ -78,6 +78,9 @@ public class ClientView extends javax.swing.JFrame {
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
+        jPanel7 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        tblNotification = new javax.swing.JTable();
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -386,6 +389,43 @@ public class ClientView extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Create Or Join Group Chat", jPanel6);
 
+        tblNotification.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Content", "Time"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Object.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jScrollPane3.setViewportView(tblNotification);
+
+        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
+        jPanel7.setLayout(jPanel7Layout);
+        jPanel7Layout.setHorizontalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 624, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel7Layout.setVerticalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addGap(42, 42, 42)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(20, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Notification", jPanel7);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -521,7 +561,6 @@ public class ClientView extends javax.swing.JFrame {
         comboBoxUser.removeAllItems();
         System.out.println(listFriend.size());
         for (String us : onlineUser) {
-            System.out.println(us);
             String nickName = us.substring(7, us.length());
             System.out.println(nickName);
             for (User friend : listFriend) {
@@ -565,6 +604,26 @@ public class ClientView extends javax.swing.JFrame {
         }
     }
     
+    public void setTableNotification(String notif) {
+//        if (usInSys != null) {
+//            usInSysList = usInSys;
+            
+            DefaultTableModel dtm = new DefaultTableModel();
+            dtm.setRowCount(0);
+            dtm.setColumnIdentifiers(new String[]{"Content", "Time"});
+            dtm.addRow(new String[]{notif,""});
+//            if (listFriend != null) {
+//                for (User us : usInSysList) {
+//                    //for (User friend : listFriend) {
+//                    //if(!us.getViewName().equals(friend.getViewName()))
+//                    
+//                    //}
+//                }
+//            }
+            tblNotification.setModel(dtm);
+        //}
+    }
+    
     public void setMessageListener(MessageListener listener) {
         this.listener = listener;
     }
@@ -597,8 +656,10 @@ public class ClientView extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
@@ -611,6 +672,7 @@ public class ClientView extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTable tblMyFriend;
+    private javax.swing.JTable tblNotification;
     private javax.swing.JTable tblUserInSys;
     private javax.swing.JTextField txtKey;
     private javax.swing.JTextField txtKeyNickName;

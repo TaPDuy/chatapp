@@ -82,10 +82,10 @@ public class ServerWorkerBus {
 	//}
     }
     
-    public void sendDeleteFriendToPersion(int to, String message) {
+    public void sendDeleteFriendToPersion(int to, String nickNameF) {
 	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == to).findAny();
         if(receiver.isPresent()) {
-            receiver.get().handleUpDateUser(); 
+            receiver.get().handleUpDateUser(nickNameF); 
         }
     }
     
@@ -96,5 +96,12 @@ public class ServerWorkerBus {
     
     public void remove(int id) {
 	Server.serverThreadBus.getListServerThreads().removeIf(worker -> worker.getClientNumber() == id);
+    }
+
+    void sendNotificationAddFriend(int userf_id) {
+        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == userf_id).findAny();
+        if(receiver.isPresent()) {
+            receiver.get().handleSendNotificationAddFriend();
+        }
     }
 }

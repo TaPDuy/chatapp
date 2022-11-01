@@ -11,9 +11,10 @@ import java.util.logging.Logger;
 import nhom12.chatapp.model.Group;
 import nhom12.chatapp.model.User;
 import nhom12.chatapp.server.dao.GroupDAO;
-import nhom12.chatapp.server.dao.GroupUserDAO;
+//import nhom12.chatapp.server.dao.GroupUserDAO;
 import nhom12.chatapp.server.dao.UserDAO;
 import nhom12.chatapp.util.ConsoleLogger;
+import nhom12.hibernate.util.JPAUtil;
 
 public class ServerWorker implements Runnable {
     
@@ -25,7 +26,7 @@ public class ServerWorker implements Runnable {
     
     private final UserDAO userDAO;
     private final GroupDAO groupDAO;
-    private final GroupUserDAO groupUserDAO;
+//    private final GroupUserDAO groupUserDAO;
     
     private User user;
     private List<String> groupNames;
@@ -50,7 +51,7 @@ public class ServerWorker implements Runnable {
         
         this.userDAO = new UserDAO();
 	this.groupDAO = new GroupDAO();
-	this.groupUserDAO = new GroupUserDAO(this.groupDAO);
+//	this.groupUserDAO = new GroupUserDAO(this.groupDAO);
         isClosed = false;
     }
     
@@ -112,7 +113,7 @@ public class ServerWorker implements Runnable {
                 handleDeleteFriend(id_friend);
                 break;
             case "msg-global":
-                Server.serverThreadBus.boardCast(user.getViewName(), "display " + user.getViewName() + " " + args);
+                Server.serverThreadBus.boardCast(user.getUsername(), "display " + user.getUsername()+ " " + args);
                 break;
             case "msg":
                 handleMsg(args);
@@ -158,7 +159,7 @@ public class ServerWorker implements Runnable {
         String viewname = args[0];
         String password = args[1];
         
-        if ((this.user = userDAO.checkLogin(viewname, password)) != null) {
+        if ((this.user = userDAO.findByLoginInfo(viewname, password)) != null) {
             
             write("ok-login");
             
@@ -172,9 +173,9 @@ public class ServerWorker implements Runnable {
 	    Server.serverThreadBus.sendOnlineList();
 	    
 	    // TODO: Sends group list to client
-	    List<Group> groups = groupUserDAO.getGroupsByUser(this.user);
-	    groupNames = new ArrayList<>();
-	    groups.stream().map(group -> group.getName()).forEach(groupNames::add);
+//	    List<Group> groups = groupUserDAO.getGroupsByUser(this.user);
+//	    groupNames = new ArrayList<>();
+//	    groups.stream().map(group -> group.getName()).forEach(groupNames::add);
 
 	    ConsoleLogger.log("Worker initialized", "CLIENT-" + clientNumber, ConsoleLogger.INFO);
 	    
@@ -187,7 +188,7 @@ public class ServerWorker implements Runnable {
     private void handleRegister(User user) {
         try {
             if (!userDAO.checkExist(user)) {
-                if (userDAO.insertUser(user)) {
+                if (userDAO.save(user)) {
                     String msg = "register success";
                     write(msg);
                 } else {
@@ -206,7 +207,7 @@ public class ServerWorker implements Runnable {
     private void handleUpDateUser(){
         System.out.println(user.getPassword());
         User userUpdate = new User();
-        userUpdate = userDAO.checkLogin(user.getViewName(), user.getPassword());
+        userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
         System.out.println(userUpdate.getId());
         try {
             write("set-user");
@@ -220,15 +221,15 @@ public class ServerWorker implements Runnable {
     }
     
     private void handleDeleteFriend(int id_friend){
-        if(userDAO.deleteFriend(user, id_friend)){
-           handleUpDateUser();
-        }
+//        if(userDAO.deleteFriend(user, id_friend)){
+//           handleUpDateUser();
+//        }
         
     }
     
     private void handleLogoff() throws IOException {
         isClosed = true;
-        Server.serverThreadBus.boardCast(user.getViewName(), "display-server " + "User '" + user.getViewName() + "' logged off.");
+        Server.serverThreadBus.boardCast(user.getUsername(), "display-server " + "User '" + user.getUsername() + "' logged off.");
         Server.serverThreadBus.remove(clientNumber);
         Server.serverThreadBus.sendOnlineList();
         clientSocket.close();
@@ -238,18 +239,18 @@ public class ServerWorker implements Runnable {
 	String[] args = argstr.split(" ", 2);
 	
 	if (args[0].charAt(0) == '#')
-	    Server.serverThreadBus.broadCastGroup(user.getViewName(), args[0].substring(1), "display " + user.getViewName() + " " + args[1]);
+	    Server.serverThreadBus.broadCastGroup(user.getUsername(), args[0].substring(1), "display " + user.getUsername() + " " + args[1]);
 	else
-	    Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getViewName() + " " + args[1]);
+	    Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getUsername() + " " + args[1]);
     }
     
     private void handleCreateGroup(String argstr) throws IOException {
 	
-	Group group = new Group().setName(argstr);
+	Group group = new Group().builder().name(argstr).build();
 	if (groupDAO.checkExist(group)) {
 	    write("group-existed");
 	} else {
-	    if (groupDAO.insertGroup(group))
+	    if (groupDAO.save(group))
 		write("group-created");
 	    else
 		write("group-error");
@@ -258,13 +259,13 @@ public class ServerWorker implements Runnable {
     
     private void handleJoin(String argstr) throws IOException {
 	
-	Group group = new Group().setName(argstr);
+	Group group = new Group().builder().name(argstr).build();
 	if (groupDAO.checkExist(group)) {
 	    
 	    if (!groupNames.contains(argstr)) {
 		
-		if (groupUserDAO.insertGroupUser(group, this.user)) {
-		    
+//		if (groupUserDAO.insertGroupUser(group, this.user)) {
+		if(false){
 		    groupNames.add(argstr);
 		    write("join-ok");
 		    
@@ -308,13 +309,13 @@ public class ServerWorker implements Runnable {
     
     private void handleLeave(String argstr) throws IOException {
 	
-	Group group = new Group().setName(argstr);
+	Group group = new Group().builder().name(argstr).build();
 	if (groupDAO.checkExist(group)) {
 	    
 	    if (groupNames.contains(argstr)) {
 		
-		if (groupUserDAO.deleteGroupUser(group, this.user)) {
-		    
+//		if (groupUserDAO.deleteGroupUser(group, this.user)) {
+		if(false) {
 		    groupNames.remove(argstr);
 		    write("leave-ok");
 		    

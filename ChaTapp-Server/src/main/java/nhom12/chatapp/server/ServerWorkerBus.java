@@ -36,7 +36,7 @@ public class ServerWorkerBus {
     
     public void boardCast(String from, String message){
 	
-	Server.serverThreadBus.getListServerThreads().stream().filter(worker -> !worker.getUser().getViewName().equals(from)).forEach(worker -> {
+	Server.serverThreadBus.getListServerThreads().stream().filter(worker -> !worker.getUser().getUsername().equals(from)).forEach(worker -> {
 	    try {
 		worker.write(message);
 	    } catch (IOException ex) {
@@ -48,7 +48,7 @@ public class ServerWorkerBus {
     public void broadCastGroup(String from, String groupName, String msg) {
 	
 	listServerThreads.stream().filter(
-	    worker -> !worker.getUser().getViewName().equals(from) && worker.getGroupNames().contains(groupName)
+	    worker -> !worker.getUser().getUsername().equals(from) && worker.getGroupNames().contains(groupName)
 	).forEach(worker -> {
 	    try {
 		worker.write(msg);
@@ -65,13 +65,13 @@ public class ServerWorkerBus {
     public void sendOnlineList() {
 	
         String res = "";
-	res = Server.serverThreadBus.getListServerThreads().stream().map(worker -> worker.getUser().getViewName() + "-").reduce(res, String::concat);
+	res = Server.serverThreadBus.getListServerThreads().stream().map(worker -> worker.getUser().getUsername() + "-").reduce(res, String::concat);
         Server.serverThreadBus.mutilCastSend("update-online-list " + res);
     }
     
     public void sendMessageToPersion(String to, String message) {
 	
-	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getViewName().equals(to)).findAny();
+	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getUsername().equals(to)).findAny();
 	if(receiver.isPresent()) {
 	    try {
 		receiver.get().write(message);

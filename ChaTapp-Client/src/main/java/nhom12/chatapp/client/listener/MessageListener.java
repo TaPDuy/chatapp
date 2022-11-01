@@ -1,5 +1,6 @@
 package nhom12.chatapp.client.listener;
 
+import java.awt.Container;
 import java.io.IOException;
 
 public interface MessageListener {
@@ -9,4 +10,6 @@ public interface MessageListener {
     public void sendDeleteFriend(String idFriend) throws IOException;
     public void sendFindFriend(String key) throws IOException;
     public void sendAddFriend(int id) throws IOException;
+    
+    public void setChatView(Container view);
 }

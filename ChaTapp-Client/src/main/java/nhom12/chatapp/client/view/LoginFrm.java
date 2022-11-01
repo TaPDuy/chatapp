@@ -5,13 +5,20 @@ import nhom12.chatapp.client.listener.LoginListener;
 import nhom12.chatapp.client.listener.WindowListener;
 import nhom12.chatapp.model.User;
 
-public class LoginFrm extends javax.swing.JFrame {
+public class LoginFrm extends javax.swing.JPanel {
 
     private WindowListener windowListener;
     private LoginListener loginListener;
 
     public LoginFrm() {
         initComponents();
+    }
+    
+    public LoginFrm(WindowListener windowListener, LoginListener loginListener) {
+	initComponents();
+	
+	this.windowListener = windowListener;
+	this.loginListener = loginListener;
     }
 
     @SuppressWarnings("unchecked")
@@ -26,8 +33,6 @@ public class LoginFrm extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         btnRegister = new javax.swing.JButton();
         txtPassword = new javax.swing.JPasswordField();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setText("Nick Name");
 
@@ -71,8 +76,8 @@ public class LoginFrm extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -121,8 +126,6 @@ public class LoginFrm extends javax.swing.JFrame {
                 .addContainerGap(18, Short.MAX_VALUE))
         );
 
-        pack();
-        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void txtNickNameMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtNickNameMouseClicked
@@ -130,7 +133,7 @@ public class LoginFrm extends javax.swing.JFrame {
     }//GEN-LAST:event_txtNickNameMouseClicked
 
     private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterActionPerformed
-        windowListener.onSwitchFrame("RegisterFrm");
+        windowListener.switchToView("RegisterFrm");
     }//GEN-LAST:event_btnRegisterActionPerformed
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
@@ -141,7 +144,7 @@ public class LoginFrm extends javax.swing.JFrame {
 	
 	if (loginListener.checkLogin(username, password)){
 	    JOptionPane.showMessageDialog(this, "Login successed");
-	    windowListener.onSwitchFrame("ClientView");
+	    windowListener.switchToView("ClientView");
         }
         else{
 	    JOptionPane.showMessageDialog(this, "Login failed");

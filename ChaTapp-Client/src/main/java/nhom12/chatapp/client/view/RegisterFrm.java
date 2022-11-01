@@ -278,12 +278,15 @@ public class RegisterFrm extends javax.swing.JFrame {
             }
         }
 	
-        User user = new User(sdt, password);
-        user.setViewName(username);
-        user.setFullname(fullname);
-        user.setGender(gender);
-        user.setAddress(address);
-        user.setDob(dobDate);
+        User user = User.builder()
+		.username(username)
+		.password(password)
+		.fullname(fullname)
+		.sdt(sdt)
+		.gender(gender)
+		.address(address)
+		.dob(dobDate)
+		.build();
 
         switch (loginListener.registerUser(user)) {
             case 1:

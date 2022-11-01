@@ -134,11 +134,11 @@ public class LoginFrm extends javax.swing.JFrame {
     }//GEN-LAST:event_btnRegisterActionPerformed
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
-        String sdt = txtSDT.getText();
+        String username = txtSDT.getText();
         String password = new String(txtPassword.getPassword());
-        User user = new User(sdt, password);
+        User user = User.builder().username(username).password(password).build();
 	
-	if (loginListener.checkLogin(sdt, password)){
+	if (loginListener.checkLogin(username, password)){
 	    JOptionPane.showMessageDialog(this, "Login successed");
 	    windowListener.onSwitchFrame("ClientView");
         }

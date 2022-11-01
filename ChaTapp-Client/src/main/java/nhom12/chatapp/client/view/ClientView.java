@@ -425,13 +425,13 @@ public class ClientView extends javax.swing.JFrame {
         String key = txtKey.getText();
         List<User> f = new ArrayList<>();
         for (User friend : listFriend) {
-            if (friend.getViewName().contains(key)) {
+            if (friend.getUsername().contains(key)) {
                 f.add(friend);
             }
         }
         listFriend = f;
         if (key.equals("")) {
-            listFriend = user.getFriends();
+//            listFriend = user.getFriends();
         }
         setTableFriend();
     }//GEN-LAST:event_btnSearchActionPerformed
@@ -444,7 +444,7 @@ public class ClientView extends javax.swing.JFrame {
         if (row < tblMyFriend.getRowCount() && row >= 0
                 && column < tblMyFriend.getColumnCount() && column >= 0) {
             User friendDelete = listFriend.get(row);
-            int choice = JOptionPane.showConfirmDialog(this, "Do you want delete friend " + friendDelete.getViewName() + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+            int choice = JOptionPane.showConfirmDialog(this, "Do you want delete friend " + friendDelete.getUsername()+ " ?", "Ask", JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
                 try {
                     listener.sendDeleteFriend(friendDelete.getId() + "");
@@ -462,8 +462,8 @@ public class ClientView extends javax.swing.JFrame {
         dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
         for (String nickName : onlineUser) {
             for (User us : listFriend) {
-                if (!us.getViewName().equalsIgnoreCase(nickName)) {
-                    dtm.addRow(new String[]{us.getViewName(), us.getFullname(), "online", "no friend"});
+                if (!us.getUsername().equalsIgnoreCase(nickName)) {
+                    dtm.addRow(new String[]{us.getUsername(), us.getFullname(), "online", "no friend"});
                 }
             }
         }
@@ -478,7 +478,7 @@ public class ClientView extends javax.swing.JFrame {
         if (row < tblMyFriend.getRowCount() && row >= 0
                 && column < tblMyFriend.getColumnCount() && column >= 0) {
             User friendDelete = listFriend.get(row);
-            int choice = JOptionPane.showConfirmDialog(this, "Do you want delete friend " + friendDelete.getViewName() + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+            int choice = JOptionPane.showConfirmDialog(this, "Do you want delete friend " + friendDelete.getUsername()+ " ?", "Ask", JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
                 try {
                     listener.sendDeleteFriend(friendDelete.getId() + "");
@@ -505,8 +505,8 @@ public class ClientView extends javax.swing.JFrame {
 
     public void setUser(User user) {
         this.user = user;
-        listFriend = user.getFriends();
-        this.setTitle(user.getViewName());
+//        listFriend = user.getFriends();
+        this.setTitle(user.getUsername());
         setTableFriend();
     }
 
@@ -519,7 +519,7 @@ public class ClientView extends javax.swing.JFrame {
             String nickName = us.substring(7, us.length());
             System.out.println(nickName);
             for (User friend : listFriend) {
-                if (nickName.equalsIgnoreCase(friend.getViewName())) {
+                if (nickName.equalsIgnoreCase(friend.getUsername())) {
                     comboBoxUser.addItem("Client "+ nickName);
                 }
             }
@@ -532,7 +532,7 @@ public class ClientView extends javax.swing.JFrame {
         dtm.setRowCount(0);
         dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Date Is Friend"});
         for (User friend : listFriend) {
-            dtm.addRow(new String[]{friend.getViewName(), friend.getFullname(), ""});
+            dtm.addRow(new String[]{friend.getUsername(), friend.getFullname(), ""});
         }
         tblMyFriend.setModel(dtm);
     }

@@ -30,7 +30,7 @@ public class ChatClient extends Thread implements MessageListener {
     public ChatClient(ServerConnection server) {
 	this.server = server;
 	this.user = new User();
-	this.user.setViewName("guest");
+	this.user.setUsername("guest");
 	
 	onlineList = new ArrayList<>();
         userInsystem = new ArrayList<>();
@@ -71,7 +71,7 @@ public class ChatClient extends Thread implements MessageListener {
 			String online = "";
 			String[] onlineSplit = argstr.split("-");
 			for (String onlineSplit1 : onlineSplit) {
-			    if (!onlineSplit1.equals(this.user.getViewName()))
+			    if (!onlineSplit1.equals(this.user.getUsername()))
 				onlineList.add("Client " + onlineSplit1);
 			    online += "Client " + onlineSplit1 + " đang online\n";
 			}	

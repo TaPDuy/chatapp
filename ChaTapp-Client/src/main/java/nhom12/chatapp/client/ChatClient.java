@@ -86,7 +86,7 @@ public class ChatClient {
             listener.online(viewName, sdt);
             User user = new User();
             user.setSdt(sdt);
-            user.setViewName(viewName);
+            user.setUsername(viewName);
             onlineUsers.add(user);
         }
     }

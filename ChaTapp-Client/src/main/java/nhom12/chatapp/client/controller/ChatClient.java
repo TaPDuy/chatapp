@@ -10,6 +10,7 @@ import javax.swing.JTextArea;
 import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.view.ClientView;
+import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 
 public class ChatClient extends Thread implements MessageListener {
@@ -22,6 +23,7 @@ public class ChatClient extends Thread implements MessageListener {
     private List<User> userInsystem;
     
     private ClientView view;
+    private Notification notification;
 
     public ChatClient(ServerConnection server) {
 	this.server = server;
@@ -30,6 +32,7 @@ public class ChatClient extends Thread implements MessageListener {
 	
 	onlineList = new ArrayList<>();
         userInsystem = new ArrayList<>();
+        notification = new Notification();
         id = -1;
     }
 
@@ -76,21 +79,20 @@ public class ChatClient extends Thread implements MessageListener {
                         this.user = (User) server.readObject();
                         view.setUser(user);
                         view.updateCombobox(onlineList);
-                        String[] meString = messageSplit[1].split(" ",2);
-                        System.out.println(meString[0]);
+                        notification = (Notification) server.readObject();
+                        String[] meString = notification.getContent().split(" ",2);
                         if(meString[0].equals(user.getViewName())){
-                            view.setTableNotification(meString[1]);
+                            view.setTableNotification(notification);
                         }
                         break;
                     case "notification-add":
-                        this.user = (User) server.readObject();
-                        view.setUser(user);
-                        view.updateCombobox(onlineList);
-                        //String[] meString = messageSplit[1].split(" ",2);
-//                        System.out.println(meString[0]);
-//                        if(meString[0].equals(user.getViewName())){
-//                            view.setTableNotification(meString[1]);
-//                        }
+                        //String[] msStrings = messageSplit[1].split(" ",2);
+                        //System.out.println(msStrings[0]);
+                        notification = (Notification) server.readObject();
+                        String[] msStrings = notification.getContent().split(" ",2);
+                        if(notification.getUserSend().getViewName().equals(user.getViewName())){
+                            view.setTableNotification(notification);
+                        }
                         break;
                     case "User-In-System":
                         
@@ -151,8 +153,13 @@ public class ChatClient extends Thread implements MessageListener {
     }
 
     @Override
-    public void sendAddFriend(int idUs) throws IOException {
-        server.write("addFriend " + idUs);
+    public void sendAddFriend(int idUs, String time) throws IOException {
+        server.write("addFriend " + idUs + " " + time);
+    }
+
+    @Override
+    public void sendConfirmAddFriend() throws IOException {
+        
     }
 
 }

@@ -8,5 +8,6 @@ public interface MessageListener {
     public void send(String msg, String receiverID) throws IOException;
     public void sendDeleteFriend(String idFriend) throws IOException;
     public void sendFindFriend(String key) throws IOException;
-    public void sendAddFriend(int id) throws IOException;
+    public void sendAddFriend(int id, String time) throws IOException;
+    public void sendConfirmAddFriend() throws IOException;
 }

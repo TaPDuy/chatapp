@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nhom12.chatapp.model.Group;
+import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 import nhom12.chatapp.server.dao.GroupDAO;
 import nhom12.chatapp.server.dao.GroupUserDAO;
@@ -108,9 +109,11 @@ public class ServerWorker implements Runnable {
                 handleGetUserInSys(tokens[1]);
                 break;
             case "addFriend":
-                int idUs = Integer.parseInt(tokens[1]);
+                String[] msgTokens = tokens[1].split(" ");
+                int idUs = Integer.parseInt(msgTokens[0]);
+                String time = msgTokens[1];
                 System.out.println(idUs);
-                handleAddFriend(idUs);
+                handleAddFriend(idUs, time);
             case "deletefriend":
                 int id_friend = Integer.parseInt(tokens[1]);
                 handleDeleteFriend(id_friend);
@@ -382,22 +385,27 @@ public class ServerWorker implements Runnable {
         }
     }
 
-    private void handleAddFriend(int userf_id) {
+    private void handleAddFriend(int userf_id, String time) {
         if(userDAO.insertFriend(user, userf_id)){
-            Server.serverThreadBus.sendNotificationAddFriend(userf_id);
+            Server.serverThreadBus.sendNotificationAddFriend(userf_id, time);
         }
     }
 
-    public void handleSendNotificationAddFriend(){
+    public void handleSendNotificationAddFriend(String time){
         User userUpdate = new User();
         userUpdate = userDAO.checkLogin(user.getViewName(), user.getPassword());
         System.out.println(userUpdate.getFriends().size());
         try {
-            write("notification-add "+user.getViewName()+" send add friend for you");
+            write("notification-add");
+            Notification notification = new Notification();
+            notification.setUserSend(user);
+            notification.setContent(user.getViewName()+" send add friend for you");
+            notification.setTimeDate(time);
+            notification.setActive("add");
+            os.writeObject(notification);
+            os.flush();
         } catch (IOException ex) {
             Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
     }
 }

@@ -1,6 +1,8 @@
 package nhom12.chatapp.client.view;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -11,17 +13,19 @@ import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.listener.WindowListener;
+import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 
 public class ClientView extends javax.swing.JFrame {
-    
+
     private MessageListener listener;
     private WindowListener windowListener;
     private List<String> onlineUser;
     private User user;
     public List<User> listFriend;
     private List<User> usInSysList;
-    
+    private List<Notification> notifications;
+
     public ClientView() {
         initComponents();
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -32,8 +36,9 @@ public class ClientView extends javax.swing.JFrame {
         user = new User();
         listFriend = new ArrayList<>();
         usInSysList = new ArrayList<>();
+        notifications = new ArrayList<>();
     }
-    
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -405,6 +410,11 @@ public class ClientView extends javax.swing.JFrame {
                 return types [columnIndex];
             }
         });
+        tblNotification.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblNotificationMouseClicked(evt);
+            }
+        });
         jScrollPane3.setViewportView(tblNotification);
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
@@ -526,7 +536,12 @@ public class ClientView extends javax.swing.JFrame {
             int choice = JOptionPane.showConfirmDialog(this, "Do you want add friend " + addFriend.getViewName() + " ?", "Ask", JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
                 try {
-                    listener.sendAddFriend(addFriend.getId());
+                    LocalDateTime myDateObj = LocalDateTime.now();
+                    System.out.println("Before formatting: " + myDateObj);
+                    DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+                    String formattedDate = myDateObj.format(myFormatObj);
+                    listener.sendAddFriend(addFriend.getId(), formattedDate);
                 } catch (IOException ex) {
                     Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -537,15 +552,36 @@ public class ClientView extends javax.swing.JFrame {
     private void comboBoxUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxUserActionPerformed
         jLabel3.setText("Đang nhắn với " + comboBoxUser.getSelectedItem());
     }//GEN-LAST:event_comboBoxUserActionPerformed
-    
+
+    private void tblNotificationMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblNotificationMouseClicked
+        int column = tblNotification.getColumnModel().
+                getColumnIndexAtX(evt.getX()); // get the coloum of the button
+        int row = evt.getY() / tblNotification.getRowHeight(); // get row 
+        // *Checking the row or column is valid or not
+        if (row < tblNotification.getRowCount() && row >= 0
+                && column < tblNotification.getColumnCount() && column >= 0) {
+            Notification notification = notifications.get(row);
+            String[] content = notification.getContent().split(" ");
+            String nameSend = content[0];
+            int choice = JOptionPane.showConfirmDialog(this, "Do you want confirm add friend with " + nameSend + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+            if (choice == JOptionPane.YES_OPTION) {
+                try {
+                    listener.sendConfirmAddFriend();
+                } catch (IOException ex) {
+                    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }//GEN-LAST:event_tblNotificationMouseClicked
+
     public JTextArea getTextArea1() {
         return this.jTextArea1;
     }
-    
+
     public JTextArea getTextArea2() {
         return this.jTextArea2;
     }
-    
+
     public void setUser(User user) {
         //listFriend = new ArrayList<>();
         this.user = user;
@@ -554,7 +590,7 @@ public class ClientView extends javax.swing.JFrame {
         System.out.println(listFriend.size());
         setTableFriend();
     }
-    
+
     public void updateCombobox(List<String> onlineList) {
         onlineUser = new ArrayList<>();
         this.onlineUser = onlineList;
@@ -571,7 +607,7 @@ public class ClientView extends javax.swing.JFrame {
         }
         //setTableFriend();
     }
-    
+
     public void setTableFriend() {
         DefaultTableModel dtm = new DefaultTableModel();
         dtm.setRowCount(0);
@@ -582,13 +618,13 @@ public class ClientView extends javax.swing.JFrame {
             }
         }
         tblMyFriend.setModel(dtm);
-        
+
     }
-    
+
     public void setTableUserSys(List<User> usInSys) {
         if (usInSys != null) {
             usInSysList = usInSys;
-            
+
             DefaultTableModel dtm = new DefaultTableModel();
             dtm.setRowCount(0);
             dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
@@ -603,15 +639,15 @@ public class ClientView extends javax.swing.JFrame {
             tblUserInSys.setModel(dtm);
         }
     }
-    
-    public void setTableNotification(String notif) {
+
+    public void setTableNotification(Notification notification) {
 //        if (usInSys != null) {
 //            usInSysList = usInSys;
-            
-            DefaultTableModel dtm = new DefaultTableModel();
-            dtm.setRowCount(0);
-            dtm.setColumnIdentifiers(new String[]{"Content", "Time"});
-            dtm.addRow(new String[]{notif,""});
+        notifications.add(notification);
+        DefaultTableModel dtm = new DefaultTableModel();
+        dtm.setRowCount(0);
+        dtm.setColumnIdentifiers(new String[]{"Content", "Time"});
+        dtm.addRow(new String[]{notification.getContent(), notification.getTimeDate()});
 //            if (listFriend != null) {
 //                for (User us : usInSysList) {
 //                    //for (User friend : listFriend) {
@@ -620,14 +656,14 @@ public class ClientView extends javax.swing.JFrame {
 //                    //}
 //                }
 //            }
-            tblNotification.setModel(dtm);
+        tblNotification.setModel(dtm);
         //}
     }
-    
+
     public void setMessageListener(MessageListener listener) {
         this.listener = listener;
     }
-    
+
     public void setWindowListener(WindowListener listener) {
         this.windowListener = listener;
     }

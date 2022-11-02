@@ -19,6 +19,7 @@ public class UserDAO extends DAO {
     private final String DELETE_FRIEND = "Delete from tblfriend1 where (user_id = ? and userf_id=?) or (user_id = ? and userf_id=?)";
     private final String GET_ALL_USER = "Select * from tbluser where viewname like ?";
     private final String ADD_FRIEND = "INSERT INTO tblfriend1 (user_id, userf_id, status) values(?, ?, ?)";
+    private final String CONFIRM_ADD_FRIEND = "Update tblfriend1 status=1 where user_id=?";
 
     public UserDAO() {
         super();

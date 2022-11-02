@@ -98,10 +98,10 @@ public class ServerWorkerBus {
 	Server.serverThreadBus.getListServerThreads().removeIf(worker -> worker.getClientNumber() == id);
     }
 
-    void sendNotificationAddFriend(int userf_id) {
+    void sendNotificationAddFriend(int userf_id, String time) {
         Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == userf_id).findAny();
         if(receiver.isPresent()) {
-            receiver.get().handleSendNotificationAddFriend();
+            receiver.get().handleSendNotificationAddFriend(time);
         }
     }
 }

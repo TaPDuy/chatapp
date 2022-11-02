@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.view.ClientView;
@@ -126,6 +127,15 @@ public class ChatClient implements MessageListener, Runnable {
 		    case "display-server":
 			view.printMessage("[SERVER]: " + argstr);
 			break;
+		    case "group-created":
+			JOptionPane.showMessageDialog(view, "Created group '" + argstr + "' successfully!", "Group created", JOptionPane.INFORMATION_MESSAGE);
+			break;
+		    case "group-existed":
+			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' has already been created!", "Group existed", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "group-error":
+			JOptionPane.showMessageDialog(view, "Something went wrong creating group '" + argstr + "'", "Error", JOptionPane.ERROR_MESSAGE);
+			break;
 		    default:
 			break;
 		}
@@ -147,6 +157,11 @@ public class ChatClient implements MessageListener, Runnable {
         this.id = id;
     }
 
+    @Override
+    public void createGroup(String name) throws IOException {
+	server.write("create-group " + name);
+    }
+    
     @Override
     public void sendGlobal(String msg) throws IOException {
 	server.write("msg-global " + msg);

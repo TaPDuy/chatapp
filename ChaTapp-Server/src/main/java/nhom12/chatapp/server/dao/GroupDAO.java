@@ -29,7 +29,7 @@ public class GroupDAO implements DAO<Group> {
 	    CriteriaQuery<Group> cr = cb.createQuery(Group.class);
 	    Root<Group> root = cr.from(Group.class);
 
-	    cr.select(root).where(cb.and(cb.equal(root.get("id"), group.getId())
+	    cr.select(root).where(cb.and(cb.equal(root.get("name"), group.getName())
 		)
 	    );
 
@@ -42,7 +42,7 @@ public class GroupDAO implements DAO<Group> {
 
 	} catch (Exception ex) {
 	    
-	    ConsoleLogger.log("Failed trying to check if user exist: " + group.toString(), 
+	    ConsoleLogger.log("Failed trying to check if group exist: " + group.toString(), 
 		"DAO", 
 		ConsoleLogger.ERROR
 	    );

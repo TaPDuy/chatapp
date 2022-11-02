@@ -293,6 +293,11 @@ public class ClientView extends javax.swing.JPanel {
         jLabel5.setText("Name");
 
         jButton2.setText("Create");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jLabel7.setText("Name");
 
@@ -545,6 +550,17 @@ public class ClientView extends javax.swing.JPanel {
 
 	listener.setReceiverName("#" + (String) comboBoxGroup.getSelectedItem());
     }//GEN-LAST:event_comboBoxGroupActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        
+	try {
+	    String groupName = jTextField2.getText();
+	    if (!groupName.isEmpty())
+		listener.createGroup(groupName);
+	} catch (IOException ex) {
+	    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+	}
+    }//GEN-LAST:event_jButton2ActionPerformed
     
     public void setChatBoxTitle(String txt) {
 	jLabel3.setText(txt);

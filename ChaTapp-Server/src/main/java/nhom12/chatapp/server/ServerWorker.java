@@ -260,12 +260,12 @@ public class ServerWorker implements Runnable {
 	
 	Group group = new Group().builder().name(argstr).build();
 	if (groupDAO.checkExist(group)) {
-	    write("group-existed");
+	    write("group-existed " + argstr);
 	} else {
 	    if (groupDAO.save(group))
-		write("group-created");
+		write("group-created " + argstr);
 	    else
-		write("group-error");
+		write("group-error " + argstr);
 	}
     }
     

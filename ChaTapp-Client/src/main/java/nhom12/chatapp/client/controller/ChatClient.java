@@ -39,6 +39,20 @@ public class ChatClient implements MessageListener, Runnable {
     }
 
     @Override
+    public String getReceiverName() {
+	return receiverName;
+    }
+
+    @Override
+    public void setReceiverName(String name) {
+	this.receiverName = name;
+	if (receiverName != null)
+	    view.setChatBoxTitle("Đang nhắn với " + (receiverName.charAt(0) == '#' ? "nhóm " + receiverName.substring(1) : receiverName));
+	else
+	    view.setChatBoxTitle("");
+    }
+    
+    @Override
     public void setChatView(Container view) {
 	this.view = (ClientView) view;
     }

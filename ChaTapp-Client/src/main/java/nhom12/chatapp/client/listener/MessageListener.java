@@ -12,4 +12,6 @@ public interface MessageListener {
     public void sendAddFriend(int id) throws IOException;
     
     public void setChatView(Container view);
+    public String getReceiverName();
+    public void setReceiverName(String name);
 }

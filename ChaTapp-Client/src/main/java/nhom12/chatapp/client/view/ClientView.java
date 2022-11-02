@@ -147,6 +147,11 @@ public class ClientView extends javax.swing.JPanel {
         jLabel6.setBounds(520, 10, 48, 21);
 
         comboBoxGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        comboBoxGroup.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxGroupActionPerformed(evt);
+            }
+        });
         jPanel2.add(comboBoxGroup);
         comboBoxGroup.setBounds(470, 40, 140, 29);
 
@@ -425,7 +430,7 @@ public class ClientView extends javax.swing.JPanel {
         jTabbedPane1.addTab("Notification", jPanel7);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        setLayout(layout);
+        this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -447,10 +452,10 @@ public class ClientView extends javax.swing.JPanel {
             return;
         }
 
-	String[] parner = ((String) comboBoxUser.getSelectedItem()).split(" ");
+//	String[] parner = ((String) comboBoxUser.getSelectedItem()).split(" ");
 	listener.sendMessage(messageContent);
-	jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner[1] + "): " + messageContent + "\n");
-	jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
+//	jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner[1] + "): " + messageContent + "\n");
+//	jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
 
         txtf_chat.setText("");
     }//GEN-LAST:event_jButton1ActionPerformed
@@ -532,8 +537,18 @@ public class ClientView extends javax.swing.JPanel {
     }//GEN-LAST:event_tblUserInSysMouseClicked
 
     private void comboBoxUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxUserActionPerformed
-        jLabel3.setText("Đang nhắn với " + comboBoxUser.getSelectedItem());
+
+	listener.setReceiverName((String) comboBoxUser.getSelectedItem());
     }//GEN-LAST:event_comboBoxUserActionPerformed
+
+    private void comboBoxGroupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxGroupActionPerformed
+
+	listener.setReceiverName("#" + (String) comboBoxGroup.getSelectedItem());
+    }//GEN-LAST:event_comboBoxGroupActionPerformed
+    
+    public void setChatBoxTitle(String txt) {
+	jLabel3.setText(txt);
+    }
     
     public JTextArea getTextArea1() {
         return this.jTextArea1;
@@ -544,7 +559,7 @@ public class ClientView extends javax.swing.JPanel {
     }
     
     public void printMessage(String msg) {
-	jTextArea1.setText(jTextArea1.getText() + msg);
+	jTextArea1.setText(jTextArea1.getText() + msg + "\n");
 	jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
     }
 
@@ -563,11 +578,11 @@ public class ClientView extends javax.swing.JPanel {
         for (String us : onlineUser) {
             String nickName = us.substring(7, us.length());
             System.out.println(nickName);
-            for (User friend : listFriend) {
-                if (nickName.equalsIgnoreCase(friend.getUsername())) {
-                    comboBoxUser.addItem("Client "+ nickName);
-                }
-            }
+//            for (User friend : listFriend) {
+//                if (nickName.equalsIgnoreCase(friend.getUsername())) {
+                    comboBoxUser.addItem(nickName);
+//                }
+//            }
         }
         //setTableFriend();
     }

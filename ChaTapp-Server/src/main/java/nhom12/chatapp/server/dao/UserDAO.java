@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.persistence.TypedQuery;
 import nhom12.chatapp.model.User;
+import nhom12.chatapp.util.ConsoleLogger;
 import nhom12.hibernate.util.JPAUtil;
 
 public class UserDAO extends BasicDAO<User> {
@@ -27,10 +28,18 @@ public class UserDAO extends BasicDAO<User> {
     
     public User findByLoginInfo(String username, String password) {
 	
-	TypedQuery<User> query = entityManager.createQuery(GET_BY_LOGIN, User.class);
-	query.setParameter("name", username);
-	query.setParameter("pass", password);
-	return query.getSingleResult();
+	try {
+	    
+	    TypedQuery<User> query = entityManager.createQuery(GET_BY_LOGIN, User.class);
+	    query.setParameter("name", username);
+	    query.setParameter("pass", password);
+	    return query.getSingleResult();
+	    
+	} catch (RuntimeException e) {
+	    ConsoleLogger.log(e.getMessage(), "DB", ConsoleLogger.ERROR);
+	}
+	
+	return null;
     }
     
     public boolean checkExist(User user) {

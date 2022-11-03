@@ -603,6 +603,11 @@ public class ClientView extends javax.swing.JPanel {
         //setTableFriend();
     }
     
+    public void updateGroupCombobox(List<String> groupList) {
+	comboBoxGroup.removeAllItems();
+	groupList.forEach(group -> comboBoxGroup.addItem(group));
+    }
+    
     public void setTableFriend() {
         DefaultTableModel dtm = new DefaultTableModel();
         dtm.setRowCount(0);

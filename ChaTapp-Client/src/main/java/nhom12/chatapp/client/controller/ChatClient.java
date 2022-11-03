@@ -19,6 +19,7 @@ public class ChatClient implements MessageListener, Runnable {
     private final ServerConnection server;
     
     private List<String> onlineList;
+    private List<String> groupList;
     private int id;
     private User user;
     private List<User> userInsystem;
@@ -34,6 +35,7 @@ public class ChatClient implements MessageListener, Runnable {
 	this.user.setUsername("guest");
 	
 	onlineList = new ArrayList<>();
+	groupList = new ArrayList<>();
         userInsystem = new ArrayList<>();
 	loadedMessages = new HashMap<>();
         id = -1;
@@ -129,6 +131,8 @@ public class ChatClient implements MessageListener, Runnable {
 			break;
 		    case "group-created":
 			JOptionPane.showMessageDialog(view, "Created group '" + argstr + "' successfully!", "Group created", JOptionPane.INFORMATION_MESSAGE);
+			groupList.add(argstr);
+			view.updateGroupCombobox(groupList);
 			break;
 		    case "group-existed":
 			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' has already been created!", "Group existed", JOptionPane.ERROR_MESSAGE);

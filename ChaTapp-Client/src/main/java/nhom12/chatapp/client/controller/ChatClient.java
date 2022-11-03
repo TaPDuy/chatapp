@@ -4,10 +4,13 @@ import java.awt.Container;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.MessageListener;
@@ -85,7 +88,7 @@ public class ChatClient implements MessageListener, Runnable {
                         view.updateCombobox(onlineList);
 			break;
 		    case "update-online-list":
-			onlineList = new ArrayList<>();
+			onlineList.clear();
 			String online = "";
 			String[] onlineSplit = argstr.split("-");
 			for (String onlineSplit1 : onlineSplit) {
@@ -95,6 +98,15 @@ public class ChatClient implements MessageListener, Runnable {
 			}	
 			view.getTextArea2().setText(online);
 			view.updateCombobox(onlineList);
+			break;
+		    case "update-online-friends":
+			break;
+		    case "update-groups":
+			Stream<String> names = Arrays
+			    .stream(argstr.split("(?<=\")\\s(?=\")"))
+			    .map(name -> name.substring(1, name.length() - 2).replaceAll("\\\"", "\""));
+			groupList = new ArrayList<>(names.collect(Collectors.toList()));
+			view.updateGroupCombobox(groupList);
 			break;
                     case "notification-delete":
                         this.user = (User) server.readObject();

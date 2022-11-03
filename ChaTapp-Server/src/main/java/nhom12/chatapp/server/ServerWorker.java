@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nhom12.chatapp.model.Group;
@@ -173,9 +174,16 @@ public class ServerWorker implements Runnable {
 	    Server.serverThreadBus.sendOnlineList();
 	    
 	    // TODO: Sends group list to client
-//	    List<Group> groups = groupUserDAO.getGroupsByUser(this.user);
-//	    groupNames = new ArrayList<>();
-//	    groups.stream().map(group -> group.getName()).forEach(groupNames::add);
+	    Set<Group> groups = this.user.getJoinedGroups();
+	    
+	    groupNames = new ArrayList<>();
+	    groups.stream().map(group -> group.getName()).forEach(groupNames::add);
+
+	    String cmd = "update-groups ";
+	    cmd = groupNames.stream()
+		.map(name -> "\"" + name.replace("\"", "\\\"") + "\\\" ")
+		.reduce(cmd, String::concat).trim();
+	    write(cmd);
 
 	    ConsoleLogger.log("Worker initialized", "CLIENT-" + clientNumber, ConsoleLogger.INFO);
 	    

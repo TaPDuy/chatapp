@@ -1,16 +1,12 @@
 package nhom12.chatapp.server.dao;
 
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import java.util.Optional;
+import javax.persistence.TypedQuery;
 import nhom12.chatapp.model.User;
-import nhom12.chatapp.util.ConsoleLogger;
 import nhom12.hibernate.util.JPAUtil;
 
-public class UserDAO implements DAO<User> {
+public class UserDAO extends BasicDAO<User> {
 
 //    private final String CHECK_LOGIN = "SELECT * FROM tbluser WHERE viewname = ? AND password = ?";
 //    private final String INSERT_USER = "INSERT INTO tbluser(sdt, password, viewname, fullname,gender, address, dob) VALUES (?,?,?,?,?,?,?);";
@@ -21,161 +17,47 @@ public class UserDAO implements DAO<User> {
 //    private final String GET_ALL_USER = "Select * from tbluser where viewname like ?";
 //    private final String ADD_FRIEND = "INSERT INTO tblfriend1 (user_id, userf_id, status) values(?, ?, ?)";
 
+    private static final String GET_ALL = "SELECT u FROM User u";
+    private static final String GET_BY_USERNAME = "SELECT u FROM User u WHERE u.username = :name";
+    private static final String GET_BY_LOGIN = "SELECT u FROM User u WHERE u.username = :name AND u.password = :pass";
+    
     public UserDAO() {
-    
-    }
-    
-    public boolean checkExist(User user) {
-	
-	EntityManager entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
-	
-	try {
-	    
-	    entityManager.getTransaction().begin();
-	    
-	    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-	    CriteriaQuery<User> cr = cb.createQuery(User.class);
-	    Root<User> root = cr.from(User.class);
-
-	    cr.select(root).where(
-		cb.and(
-		    cb.equal(root.get("id"), user.getId())
-		)
-	    );
-
-	    Query query = entityManager.createQuery(cr);
-	    boolean result = query.getResultList().size() == 1;
-	    
-	    entityManager.getTransaction().commit();
-	    entityManager.close();
-	    return result;
-
-	} catch (Exception ex) {
-	    
-	    ConsoleLogger.log(
-		"Failed trying to check if user exist: " + user.toString(), 
-		"DAO", 
-		ConsoleLogger.ERROR
-	    );
-	    entityManager.close();
-	}
-	
-	return false;
+	entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
     }
     
     public User findByLoginInfo(String username, String password) {
 	
-	User result;
-	EntityManager entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
+	TypedQuery<User> query = entityManager.createQuery(GET_BY_LOGIN, User.class);
+	query.setParameter("name", username);
+	query.setParameter("pass", password);
+	return query.getSingleResult();
+    }
+    
+    public boolean checkExist(User user) {
 	
-	try {
-	    
-	    entityManager.getTransaction().begin(); {
-	    
-		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<User> cr = cb.createQuery(User.class);
-		Root<User> root = cr.from(User.class);
-		
-		cr.select(root).where(
-		    cb.and(
-			cb.equal(root.get("username"), username), 
-			cb.equal(root.get("password"), password)
-		    )
-		);
-
-		Query query = entityManager.createQuery(cr);
-		result = (User) query.getSingleResult();
-	    }
-	    
-	    entityManager.getTransaction().commit();
-	    entityManager.close();
-
-	} catch (Exception ex) {
-	    
-	    ConsoleLogger.log(
-		"Failed trying to get user with login info: " + username + ":" + password, 
-		"DAO", 
-		ConsoleLogger.ERROR
-	    );
-	    entityManager.close();
-	    return null;
-	}
-	
-	return result;
+	TypedQuery<User> query = entityManager.createQuery(GET_BY_USERNAME, User.class);
+	query.setParameter("name", user.getUsername());
+	return query.getResultList().size() == 1;
     }
     
     @Override
-    public User findById(int id) {
-	
-	User result;
-	EntityManager entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
-	
-	try {
-	    
-	    entityManager.getTransaction().begin();
-	    
-	    result = entityManager.getReference(User.class, id);
-	    
-	    entityManager.getTransaction().commit();
-	    entityManager.close();
-
-	} catch (Exception ex) {
-	    ConsoleLogger.log("Failed trying to get user of id: " + id, "DAO", ConsoleLogger.ERROR);
-	    entityManager.close();
-	    return null;
-	}
-	
-	return result;
-	
+    public Optional<User> findById(int id) {
+	return Optional.ofNullable(entityManager.find(User.class, id));
     }
     
     @Override
     public List<User> findAll() {
 	
-	List<User> results;
-	EntityManager entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
-	
-	try {
-	    
-	    entityManager.getTransaction().begin(); {
-
-		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<User> cr = cb.createQuery(User.class);
-		cr.select(cr.from(User.class));
-
-		Query query = entityManager.createQuery(cr);
-		results = query.getResultList();
-	    }
-	    
-	    entityManager.getTransaction().commit();
-	    entityManager.close();
-
-	} catch (Exception ex) {
-	    ConsoleLogger.log("Failed trying to get all users", "DAO", ConsoleLogger.ERROR);
-	    entityManager.close();
-	    return null;
-	}
-	
-	return results;
+	TypedQuery<User> query = entityManager.createQuery(GET_ALL, User.class);
+	return query.getResultList();
     }
 
     @Override
     public boolean save(User user) {
 	
-	EntityManager entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
-	
 	try {
-	    
-	    entityManager.getTransaction().begin();
-
-	    entityManager.persist(user);
-
-	    entityManager.getTransaction().commit();
-	    entityManager.close();
-	    
-	} catch (Exception ex) {
-	    ConsoleLogger.log("Failed to insert user: " + user.toString(), "DAO", ConsoleLogger.ERROR);
-	    entityManager.close();
+	    executeTransaction(entityManager -> entityManager.persist(user));
+	} catch (RuntimeException e) {
 	    return false;
 	}
 	
@@ -184,22 +66,10 @@ public class UserDAO implements DAO<User> {
 
     @Override
     public boolean update(User user) {
-	EntityManager entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
 	
 	try {
-	    
-	    entityManager.getTransaction().begin(); {
-
-		User updateGroup = entityManager.find(User.class, user.getId());
-//		updateGroup.setName(group.getName());
-	    }
-	    
-	    entityManager.getTransaction().commit();
-	    entityManager.close();
-
-	} catch (Exception ex) {
-	    ConsoleLogger.log("Failed to update user: " + user.toString(), "DAO", ConsoleLogger.ERROR);
-	    entityManager.close();
+	    executeTransaction(entityManager -> entityManager.merge(user));
+	} catch (RuntimeException e) {
 	    return false;
 	}
 	
@@ -207,23 +77,11 @@ public class UserDAO implements DAO<User> {
     }
 
     @Override
-    public boolean delete(int id) {
-	EntityManager entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
+    public boolean delete(User user) {
 	
 	try {
-	    
-	    entityManager.getTransaction().begin(); {
-
-		User updateGroup = entityManager.find(User.class, id);
-		entityManager.remove(updateGroup);
-	    }
-	    
-	    entityManager.getTransaction().commit();
-	    entityManager.close();
-
-	} catch (Exception ex) {
-	    ConsoleLogger.log("Failed to delete user of id: " + id, "DAO", ConsoleLogger.ERROR);
-	    entityManager.close();
+	    executeTransaction(entityManager -> entityManager.remove(user));
+	} catch (RuntimeException e) {
 	    return false;
 	}
 	

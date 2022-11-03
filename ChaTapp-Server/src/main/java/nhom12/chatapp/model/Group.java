@@ -14,10 +14,12 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -41,8 +43,14 @@ public class Group implements Serializable {
 	joinColumns = @JoinColumn(name="group_id", referencedColumnName="id"), 
 	inverseJoinColumns = @JoinColumn(name="member_id", referencedColumnName="id")
     )
-    private final Set<User> members = new HashSet<>();
+    @Builder.Default
+    private Set<User> members = new HashSet<>();
 
+    public void addMember(User user) {
+	members.add(user);
+	user.getJoinedGroups().add(this);
+    }
+    
     @Override
     public String toString() {
 	return 

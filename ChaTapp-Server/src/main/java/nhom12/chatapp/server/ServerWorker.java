@@ -11,10 +11,8 @@ import java.util.logging.Logger;
 import nhom12.chatapp.model.Group;
 import nhom12.chatapp.model.User;
 import nhom12.chatapp.server.dao.GroupDAO;
-//import nhom12.chatapp.server.dao.GroupUserDAO;
 import nhom12.chatapp.server.dao.UserDAO;
 import nhom12.chatapp.util.ConsoleLogger;
-import nhom12.hibernate.util.JPAUtil;
 
 public class ServerWorker implements Runnable {
     
@@ -26,7 +24,6 @@ public class ServerWorker implements Runnable {
     
     private final UserDAO userDAO;
     private final GroupDAO groupDAO;
-//    private final GroupUserDAO groupUserDAO;
     
     private User user;
     private List<String> groupNames;
@@ -51,7 +48,6 @@ public class ServerWorker implements Runnable {
         
         this.userDAO = new UserDAO();
 	this.groupDAO = new GroupDAO();
-//	this.groupUserDAO = new GroupUserDAO(this.groupDAO);
         isClosed = false;
     }
     
@@ -244,6 +240,10 @@ public class ServerWorker implements Runnable {
         Server.serverThreadBus.boardCast(user.getUsername(), "display-server " + "User '" + user.getUsername() + "' logged off.");
         Server.serverThreadBus.remove(clientNumber);
         Server.serverThreadBus.sendOnlineList();
+	
+	userDAO.close();
+	groupDAO.close();
+	
         clientSocket.close();
     }
     
@@ -258,7 +258,8 @@ public class ServerWorker implements Runnable {
     
     private void handleCreateGroup(String argstr) throws IOException {
 	
-	Group group = new Group().builder().name(argstr).build();
+	Group group = Group.builder().name(argstr).build();
+	group.addMember(user);
 	if (groupDAO.checkExist(group)) {
 	    write("group-existed " + argstr);
 	} else {
@@ -271,7 +272,8 @@ public class ServerWorker implements Runnable {
     
     private void handleJoin(String argstr) throws IOException {
 	
-	Group group = new Group().builder().name(argstr).build();
+	Group group = Group.builder().name(argstr).build();
+//	group.getMembers().add(user);
 	if (groupDAO.checkExist(group)) {
 	    
 	    if (!groupNames.contains(argstr)) {

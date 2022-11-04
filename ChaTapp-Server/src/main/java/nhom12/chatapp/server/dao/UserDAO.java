@@ -1,5 +1,6 @@
 package nhom12.chatapp.server.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.TypedQuery;
@@ -22,9 +23,23 @@ public class UserDAO extends BasicDAO<User> {
     private static final String GET_ALL = "SELECT u FROM User u";
     private static final String GET_BY_USERNAME = "SELECT u FROM User u WHERE u.username = :name";
     private static final String GET_BY_LOGIN = "SELECT u FROM User u WHERE u.username = :name AND u.password = :pass";
+    private static final String GET_BY_KEY = "SELECT u FROM User u WHERE u.username LIKE :key";
     
     public UserDAO() {
 	entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
+    }
+    
+    public List<User> findByKey(String key) {
+	
+	try {
+	    TypedQuery<User> query = entityManager.createQuery(GET_BY_KEY, User.class);
+	    query.setParameter("key", "%" + key + "%");
+	    return query.getResultList();
+	} catch (RuntimeException e) {
+	    ConsoleLogger.log(e.getMessage(), "DB", ConsoleLogger.ERROR);
+	}
+	
+	return new ArrayList<>();
     }
     
     public User findByLoginInfo(String username, String password) {

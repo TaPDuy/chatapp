@@ -78,7 +78,7 @@ public class User implements Serializable {
     @ManyToMany(mappedBy="friends")
     private final Set<User> friendsOfThis = new HashSet<>();
     
-    @OneToMany
+    @OneToMany(mappedBy="sender")
     private Set<Notification> notifications;
     
     @Override

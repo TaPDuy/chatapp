@@ -391,10 +391,17 @@ public class ServerWorker implements Runnable {
     }
 
     private void handleGetUserInSys(String key) {
-        List<User> userInSystem = new ArrayList<>();
-        userInSystem = userDAO.findAll();
-        System.out.println(userInSystem.size());
-        Server.serverThreadBus.sendUsInSys(user.getId(), userInSystem);
+//        List<User> userInSystem = new ArrayList<>();
+//        userInSystem = userDAO.findAll();
+//        System.out.println(userInSystem.size());
+//        Server.serverThreadBus.sendUsInSys(user.getId(), userInSystem);
+	List<User> userInSystem = userDAO.findByKey(key);
+	ConsoleLogger.log(
+	    "Found " + userInSystem.size() + " user(s) with key '" + key + "'", 
+	    "CLIENT-" + clientNumber, 
+	    ConsoleLogger.INFO
+	);
+	Server.serverThreadBus.sendUsInSys(user.getId(), userInSystem);
     }
     
     public void writeUsInSys(String mes, List<User> usInSys){

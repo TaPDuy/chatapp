@@ -72,7 +72,7 @@ public class ServerWorkerBus {
     
     public void sendMessageToPersion(String to, String message) {
 	
-	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getViewName().equals(to)).findAny();
+	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getViewName().equals(to)).findFirst();
 	//if(receiver.isPresent()) {
 	    try {
 		receiver.get().write(message);
@@ -82,15 +82,15 @@ public class ServerWorkerBus {
 	//}
     }
     
-    public void sendDeleteFriendToPersion(int to, String nickNameF) {
-	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == to).findAny();
+    public void sendDeleteFriendToPersion(User friendDel, String nickName, String timeDel) {
+	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == friendDel.getId()).findAny();
         if(receiver.isPresent()) {
-            receiver.get().handleUpDateUser(nickNameF); 
+            receiver.get().handleUpDateUser(friendDel, nickName, timeDel); 
         }
     }
     
     public void sendUsInSys(int from, List<User> usInSys){
-        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == from).findAny();
+        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == from).findFirst();
         receiver.get().writeUsInSys("User-In-System", usInSys);
     }
     
@@ -98,10 +98,17 @@ public class ServerWorkerBus {
 	Server.serverThreadBus.getListServerThreads().removeIf(worker -> worker.getClientNumber() == id);
     }
 
-    void sendNotificationAddFriend(int userf_id, String time) {
-        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == userf_id).findAny();
+    void sendNotificationAddFriend(User userReceive, User userSend, String time) {
+        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == userReceive.getId()).findFirst();
         if(receiver.isPresent()) {
-            receiver.get().handleSendNotificationAddFriend(time);
+            receiver.get().handleSendNotificationAddFriend(userSend, time);
+        }
+    }
+
+    void sendConfirmAddFriendToPersion(User userSend, String viewName, String timeCf) {
+        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == userSend.getId()).findFirst();
+        if(receiver.isPresent()) {
+            receiver.get().handleUpDateAddFUser(userSend, viewName, timeCf); 
         }
     }
 }

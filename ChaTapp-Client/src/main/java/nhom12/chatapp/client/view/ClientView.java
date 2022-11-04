@@ -496,9 +496,11 @@ public class ClientView extends javax.swing.JFrame {
             int choice = JOptionPane.showConfirmDialog(this, "Do you want delete friend " + friendDelete.getViewName() + " ?", "Ask", JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
                 try {
-                    listener.sendDeleteFriend(friendDelete.getId() + "");
-                    updateCombobox(onlineUser);
-                    setTableFriend();
+                    LocalDateTime myDateObj = LocalDateTime.now();
+                    DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+                    String formattedDate = myDateObj.format(myFormatObj);
+                    listener.sendDeleteFriend(friendDelete, formattedDate);
                 } catch (IOException ex) {
                     Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -508,17 +510,6 @@ public class ClientView extends javax.swing.JFrame {
 
     private void btnSearchAddFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchAddFriendActionPerformed
         try {
-            //        DefaultTableModel dtm = new DefaultTableModel();
-//        dtm.setRowCount(0);
-//        dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
-//        for (String nickName : onlineUser) {
-//            for (User us : listFriend) {
-//                if (!us.getViewName().equalsIgnoreCase(nickName)) {
-//                    dtm.addRow(new String[]{us.getViewName(), us.getFullname(), "online", "no friend"});
-//                }
-//            }
-//        }
-//        tblUserInSys.setModel(dtm);
             listener.sendFindFriend(txtKeyNickName.getText());
         } catch (IOException ex) {
             Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
@@ -537,11 +528,12 @@ public class ClientView extends javax.swing.JFrame {
             if (choice == JOptionPane.YES_OPTION) {
                 try {
                     LocalDateTime myDateObj = LocalDateTime.now();
-                    System.out.println("Before formatting: " + myDateObj);
                     DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
                     String formattedDate = myDateObj.format(myFormatObj);
-                    listener.sendAddFriend(addFriend.getId(), formattedDate);
+                    String[] fms = formattedDate.split(" ");
+                    String time = "Ngay " + fms[0] + " luc " + fms[1];
+                    listener.sendAddFriend(addFriend, time);
                 } catch (IOException ex) {
                     Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -562,13 +554,29 @@ public class ClientView extends javax.swing.JFrame {
                 && column < tblNotification.getColumnCount() && column >= 0) {
             Notification notification = notifications.get(row);
             String[] content = notification.getContent().split(" ");
-            String nameSend = content[0];
-            int choice = JOptionPane.showConfirmDialog(this, "Do you want confirm add friend with " + nameSend + " ?", "Ask", JOptionPane.YES_NO_OPTION);
-            if (choice == JOptionPane.YES_OPTION) {
-                try {
-                    listener.sendConfirmAddFriend();
-                } catch (IOException ex) {
-                    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+            if (notification.getActive().equalsIgnoreCase("add")) {
+                String nameSend = content[0];
+                int choice = JOptionPane.showConfirmDialog(this, "Do you want confirm add friend with " + nameSend + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+                if (choice == JOptionPane.YES_OPTION) {
+                    try {
+                        LocalDateTime myDateObj = LocalDateTime.now();
+                        DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+                        String formattedDate = myDateObj.format(myFormatObj);
+                        listener.sendConfirmAddFriend(notification.getUserSend(), formattedDate);
+                    } catch (IOException ex) {
+                        Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+            else {
+                int choice = JOptionPane.showConfirmDialog(this, "Do you want delete notification ?", "Ask", JOptionPane.YES_NO_OPTION);
+                if (choice == JOptionPane.YES_OPTION) {
+                    try {
+                        listener.sendDeleteNotification(notification);
+                    } catch (IOException ex) {
+                        Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         }
@@ -583,29 +591,25 @@ public class ClientView extends javax.swing.JFrame {
     }
 
     public void setUser(User user) {
-        //listFriend = new ArrayList<>();
+        listFriend = new ArrayList<>();
         this.user = user;
         listFriend = user.getFriends();
         this.setTitle(user.getViewName());
-        System.out.println(listFriend.size());
-        setTableFriend();
     }
 
     public void updateCombobox(List<String> onlineList) {
         onlineUser = new ArrayList<>();
         this.onlineUser = onlineList;
         comboBoxUser.removeAllItems();
-        System.out.println(listFriend.size());
         for (String us : onlineUser) {
             String nickName = us.substring(7, us.length());
-            System.out.println(nickName);
             for (User friend : listFriend) {
                 if (nickName.equalsIgnoreCase(friend.getViewName())) {
                     comboBoxUser.addItem("Client " + nickName);
                 }
             }
         }
-        //setTableFriend();
+        setTableFriend();
     }
 
     public void setTableFriend() {
@@ -624,16 +628,20 @@ public class ClientView extends javax.swing.JFrame {
     public void setTableUserSys(List<User> usInSys) {
         if (usInSys != null) {
             usInSysList = usInSys;
-
             DefaultTableModel dtm = new DefaultTableModel();
             dtm.setRowCount(0);
             dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
-            if (listFriend != null) {
-                for (User us : usInSysList) {
-                    //for (User friend : listFriend) {
-                    //if(!us.getViewName().equals(friend.getViewName()))
-                    dtm.addRow(new String[]{us.getViewName(), us.getFullname(), "", ""});
-                    //}
+ 
+            for (User us : usInSysList) {
+                if (!listFriend.isEmpty()) {
+                    for (User friend : listFriend) {
+                        if (!us.getViewName().equals(friend.getViewName()) && !us.getViewName().equalsIgnoreCase(user.getViewName())) {
+                            dtm.addRow(new String[]{us.getViewName(), us.getFullname(), "", ""});
+                        }
+                    }
+                } else {
+                    if(!us.getViewName().equalsIgnoreCase(user.getViewName()))
+                        dtm.addRow(new String[]{us.getViewName(), us.getFullname(), "", ""});
                 }
             }
             tblUserInSys.setModel(dtm);
@@ -641,23 +649,12 @@ public class ClientView extends javax.swing.JFrame {
     }
 
     public void setTableNotification(Notification notification) {
-//        if (usInSys != null) {
-//            usInSysList = usInSys;
         notifications.add(notification);
         DefaultTableModel dtm = new DefaultTableModel();
         dtm.setRowCount(0);
         dtm.setColumnIdentifiers(new String[]{"Content", "Time"});
         dtm.addRow(new String[]{notification.getContent(), notification.getTimeDate()});
-//            if (listFriend != null) {
-//                for (User us : usInSysList) {
-//                    //for (User friend : listFriend) {
-//                    //if(!us.getViewName().equals(friend.getViewName()))
-//                    
-//                    //}
-//                }
-//            }
         tblNotification.setModel(dtm);
-        //}
     }
 
     public void setMessageListener(MessageListener listener) {

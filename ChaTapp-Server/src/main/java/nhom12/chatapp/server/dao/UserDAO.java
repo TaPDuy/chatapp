@@ -14,12 +14,12 @@ public class UserDAO extends DAO {
     private final String CHECK_LOGIN = "SELECT * FROM tbluser WHERE viewname = ? AND password = ?";
     private final String INSERT_USER = "INSERT INTO tbluser(sdt, password, viewname, fullname,gender, address, dob) VALUES (?,?,?,?,?,?,?);";
     private final String CHECK_EXIST = "SELECT * FROM tbluser WHERE viewname = ? limit 1";
-    private final String GET_USER_BY_PHONE = "SELECT * FROM tbluser WHERE sdt = ?";
+    private final String GET_USER_BY_ID = "SELECT * FROM tbluser WHERE sdt = ?";
     private final String GET_ALL_FRIEND = "Select distinct b.*  from tbluser a, tbluser b join tblfriend1 c on (c.user_id = ? and b.id = c.userf_id and c.status = 1) or (c.userf_id = ? and b.id = c.user_id and c.status = 1)";
     private final String DELETE_FRIEND = "Delete from tblfriend1 where (user_id = ? and userf_id=?) or (user_id = ? and userf_id=?)";
     private final String GET_ALL_USER = "Select * from tbluser where viewname like ?";
     private final String ADD_FRIEND = "INSERT INTO tblfriend1 (user_id, userf_id, status) values(?, ?, ?)";
-    private final String CONFIRM_ADD_FRIEND = "Update tblfriend1 status=1 where user_id=?";
+    private final String CONFIRM_ADD_FRIEND = "Update tblfriend1 set status = 1 where user_id=? and userf_id=?";
 
     public UserDAO() {
         super();
@@ -62,7 +62,7 @@ public class UserDAO extends DAO {
 	    user = new User();
             if (rs.next()) {
                 user.setId(rs.getInt("id"));
-                user.setViewName(viewname);
+                user.setViewName(rs.getString("viewname"));
                 user.setSdt(rs.getString("sdt"));
                 user.setPassword(password);
                 user.setFullname(rs.getString("fullname"));
@@ -136,7 +136,7 @@ public class UserDAO extends DAO {
     public User getUserByPhone(User user){
         PreparedStatement p;
         try {
-            p = con.prepareStatement(GET_USER_BY_PHONE);
+            p = con.prepareStatement(GET_USER_BY_ID);
             p.setString(1, user.getSdt());
             ResultSet rs = p.executeQuery();
             while (rs.next()) {
@@ -155,13 +155,13 @@ public class UserDAO extends DAO {
         return null;
     }
     
-    public boolean deleteFriend(User user, int id){
+    public boolean deleteFriend(User user, User friendDel){
         PreparedStatement ps;
         try {
             ps = con.prepareStatement(DELETE_FRIEND);
             ps.setInt(1, user.getId());
-            ps.setInt(2, id);
-            ps.setInt(3, id);
+            ps.setInt(2, friendDel.getId());
+            ps.setInt(3, friendDel.getId());
             ps.setInt(4, user.getId());
             ps.executeUpdate();
             return true;
@@ -171,12 +171,25 @@ public class UserDAO extends DAO {
         return false;
     }
 
-    public boolean insertFriend(User user, int userf_id) {
+    public boolean insertAddFriend(User user, int userf_id) {
         try {
             PreparedStatement ps = con.prepareStatement(ADD_FRIEND);
             ps.setInt(1, user.getId());
             ps.setInt(2, userf_id);
             ps.setString(3, "2");            
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            return false;
+        }
+        return true;
+    }
+    
+    public boolean confirmAddFriend(User userSend, User userReceive) {
+        try {
+            PreparedStatement ps = con.prepareStatement(CONFIRM_ADD_FRIEND);
+            ps.setInt(1, userSend.getId());
+            ps.setInt(2, userReceive.getId());
             ps.executeUpdate();
 
         } catch (SQLException e) {

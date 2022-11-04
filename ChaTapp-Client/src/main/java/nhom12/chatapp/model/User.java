@@ -20,6 +20,7 @@ public class User implements Serializable{
     private Date dob;
     private String status;
     private List<User> friends;
+    private List<Notification> notifications;
 
     public User(String sdt, String password) {
         this.sdt = sdt;
@@ -125,5 +126,13 @@ public class User implements Serializable{
 
     public void setFriends(List<User> friends) {
         this.friends = friends;
+    }
+
+    public List<Notification> getNotifications() {
+        return notifications;
+    }
+
+    public void setNotifications(List<Notification> notifications) {
+        this.notifications = notifications;
     }
 }

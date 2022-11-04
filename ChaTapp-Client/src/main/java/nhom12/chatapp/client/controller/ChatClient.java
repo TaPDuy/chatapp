@@ -61,10 +61,8 @@ public class ChatClient extends Thread implements MessageListener {
 		    case "set-user":
 			this.user = (User) server.readObject();
                         view.setUser(user);
-                        view.updateCombobox(onlineList);
 			break;
 		    case "update-online-list":
-			onlineList = new ArrayList<>();
 			String online = "";
 			String[] onlineSplit = messageSplit[1].split("-");
 			for (String onlineSplit1 : onlineSplit) {
@@ -76,28 +74,40 @@ public class ChatClient extends Thread implements MessageListener {
 			view.updateCombobox(onlineList);
 			break;
                     case "notification-delete":
-                        this.user = (User) server.readObject();
+                        user = (User) server.readObject();
                         view.setUser(user);
                         view.updateCombobox(onlineList);
-                        notification = (Notification) server.readObject();
-                        String[] meString = notification.getContent().split(" ",2);
-                        if(meString[0].equals(user.getViewName())){
-                            view.setTableNotification(notification);
+                        String[] mesDel = messageSplit[1].split(" ",4);
+                        String timeDel = "Ngày " + mesDel[1] + " Lúc " + mesDel[2];
+                        Notification notiDel = new Notification();
+                        if(mesDel[0].equals(user.getViewName())){
+                            notiDel.setActive("del");
+                            notiDel.setContent(mesDel[3]);
+                            notiDel.setTimeDate(timeDel);
+                            view.setTableNotification(notiDel);
                         }
                         break;
                     case "notification-add":
-                        //String[] msStrings = messageSplit[1].split(" ",2);
-                        //System.out.println(msStrings[0]);
                         notification = (Notification) server.readObject();
-                        String[] msStrings = notification.getContent().split(" ",2);
-                        if(notification.getUserSend().getViewName().equals(user.getViewName())){
-                            view.setTableNotification(notification);
+                        view.setTableNotification(notification);
+                        break;
+
+                    case "notification-confirm":
+                        user = (User) server.readObject();
+                        view.setUser(user);
+                        view.updateCombobox(onlineList);
+                        String[] mesCf = messageSplit[1].split(" ",4);
+                        String timeCf = "Ngày " + mesCf[1] + " Lúc " + mesCf[2];
+                        Notification notiCf = new Notification();
+                        if(mesCf[0].equals(user.getViewName())){
+                            notiCf.setActive("cf");
+                            notiCf.setContent(mesCf[3]);
+                            notiCf.setTimeDate(timeCf);
+                            view.setTableNotification(notiCf);
                         }
                         break;
                     case "User-In-System":
-                        
                         this.userInsystem = (List<User>) server.readObject();
-                        //System.out.println(userInsystem.get(0).getViewName());
                         view.setTableUserSys(userInsystem);
                         break;
 		    case "display":
@@ -143,8 +153,9 @@ public class ChatClient extends Thread implements MessageListener {
     }
 
     @Override
-    public void sendDeleteFriend(String idFriend) throws IOException {
-        server.write("deletefriend " + idFriend);
+    public void sendDeleteFriend(User friendDel, String time) throws IOException {
+        server.write("deletefriend " + time);
+        server.writeObject(friendDel);
     }
 
     @Override
@@ -153,13 +164,21 @@ public class ChatClient extends Thread implements MessageListener {
     }
 
     @Override
-    public void sendAddFriend(int idUs, String time) throws IOException {
-        server.write("addFriend " + idUs + " " + time);
+    public void sendAddFriend(User userReceive, String time) throws IOException {
+        server.write("addFriend " + time);
+        server.writeObject(userReceive);
     }
 
     @Override
-    public void sendConfirmAddFriend() throws IOException {
-        
+    public void sendConfirmAddFriend(User userSend, String time) throws IOException {
+        server.write("confirmAddFriend "+time);
+        server.writeObject(userSend);
+    }
+
+    @Override
+    public void sendDeleteNotification(Notification delNotification) throws IOException {
+        server.write("deleteNotification");
+        server.writeObject(delNotification);
     }
 
 }

@@ -1,42 +1,37 @@
 package nhom12.chatapp.server.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.TypedQuery;
 import nhom12.chatapp.model.Notification;
+import nhom12.chatapp.model.User;
+import nhom12.chatapp.util.ConsoleLogger;
 import nhom12.hibernate.util.JPAUtil;
 
-/**
- *
- * @author Smile
- */
 public class NotificationDAO extends BasicDAO<Notification>{
     
+    private static final String GET_BY_RECIPIENT = "SELECT n FROM Notification n WHERE n.recipient = :user";
     private static final String GET_ALL = "SELECT not FROM Notification not";
-    private static final String GET_ALL_NOTIFICATION = "Select * from tblnotification where id_user = ?";
-    
+     
     public NotificationDAO(){
         entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
     }
     
-//    public List<Notification> getAllNotification(int id_user){
-//        PreparedStatement ps;      
-//        List<Notification> notifications = new ArrayList<>();
-//        try {
-//            ps = con.prepareStatement(GET_ALL_NOTIFICATION);
-//            ps.setInt(1, id_user);
-//            ResultSet rs = ps.executeQuery();
-//            while (rs.next()) {
-//                Notification notification = new Notification();
-//                notification.setActive(rs.getString("active"));
-//                notification.setContent(rs.getString("content"));
-//                //notification.setUserSend(rs.getString(""));
-//            }
-//        } catch (SQLException ex) {
-//            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//            return notifications;
-//    }
+    public List<Notification> findByRecipient(User user) {
+	
+	try {
+	    
+	    TypedQuery<Notification> query = entityManager.createQuery(GET_BY_RECIPIENT, Notification.class);
+	    query.setParameter("user", user);
+	    return query.getResultList();
+	    
+	} catch (RuntimeException e) {
+	    ConsoleLogger.log(e.getMessage(), "DB", ConsoleLogger.ERROR);
+	}
+	
+	return new ArrayList<>();
+    }
     
     @Override
     public Optional<Notification> findById(int id) {

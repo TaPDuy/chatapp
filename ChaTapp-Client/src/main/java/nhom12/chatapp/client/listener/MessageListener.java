@@ -15,6 +15,5 @@ public interface MessageListener {
     public void sendDeleteFriend(String friendName) throws IOException;
     public void sendFindFriend(String key) throws IOException;
     public void sendAddFriend(String receiverName) throws IOException;
-    public void sendConfirmAddFriend(int notId) throws IOException;
-    public void sendDeleteNotification(int notId) throws IOException;
+    public void processNotification(int index) throws IOException;
 }

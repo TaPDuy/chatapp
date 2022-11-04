@@ -1,6 +1,7 @@
 package nhom12.chatapp.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -77,12 +78,9 @@ public class User implements Serializable {
     @Builder.Default
     private Set<User> friends = new HashSet<>();
     
-//    @ManyToMany(mappedBy="friends")
-//    @Builder.Default
-//    private Set<User> friendsOfThis = new HashSet<>();
-    
     @OneToMany(mappedBy="recipient")
-    private List<Notification> notifications;
+    @Builder.Default
+    private List<Notification> notifications = new ArrayList<>();
     
     @Override
     public String toString() {

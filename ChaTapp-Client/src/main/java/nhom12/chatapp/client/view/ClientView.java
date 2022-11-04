@@ -25,8 +25,6 @@ public class ClientView extends javax.swing.JPanel {
     public List<User> listFriend;
     private List<User> usInSysList;
     
-    private List<Notification> notifications;
-    
     public ClientView(WindowListener windowListener, MessageListener messageListener) {
 
         initComponents();
@@ -39,7 +37,6 @@ public class ClientView extends javax.swing.JPanel {
         user = new User();
         listFriend = new ArrayList<>();
         usInSysList = new ArrayList<>();
-        notifications = new ArrayList<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -577,39 +574,22 @@ public class ClientView extends javax.swing.JPanel {
     }
     
     private void tblNotificationMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblNotificationMouseClicked
-        int column = tblNotification.getColumnModel().
-                getColumnIndexAtX(evt.getX()); // get the coloum of the button
+        
+	int column = tblNotification.getColumnModel().getColumnIndexAtX(evt.getX()); // get the coloum of the button
         int row = evt.getY() / tblNotification.getRowHeight(); // get row 
+	
         // *Checking the row or column is valid or not
-        if (row < tblNotification.getRowCount() && row >= 0
-                && column < tblNotification.getColumnCount() && column >= 0) {
-            Notification notification = notifications.get(row);
-            String[] content = notification.getContent().split(" ");
-            if (notification.getActive().equalsIgnoreCase("add")) {
-                String nameSend = content[0];
-                int choice = JOptionPane.showConfirmDialog(this, "Do you want confirm add friend with " + nameSend + " ?", "Ask", JOptionPane.YES_NO_OPTION);
-                if (choice == JOptionPane.YES_OPTION) {
-                    try {
-                        LocalDateTime myDateObj = LocalDateTime.now();
-                        DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-
-                        String formattedDate = myDateObj.format(myFormatObj);
-                        listener.sendConfirmAddFriend(notification.getId());
-                    } catch (IOException ex) {
-                        Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
-            else {
-                int choice = JOptionPane.showConfirmDialog(this, "Do you want delete notification ?", "Ask", JOptionPane.YES_NO_OPTION);
-                if (choice == JOptionPane.YES_OPTION) {
-                    try {
-                        listener.sendDeleteNotification(notification.getId());
-                    } catch (IOException ex) {
-                        Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
+        if (
+	    row < tblNotification.getRowCount() && 
+	    row >= 0 && 
+	    column < tblNotification.getColumnCount() && 
+	    column >= 0
+	) {
+	    try {
+		listener.processNotification(row);
+	    } catch (IOException ex) {
+		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+	    }
         }
     }//GEN-LAST:event_tblNotificationMouseClicked
 
@@ -681,13 +661,19 @@ public class ClientView extends javax.swing.JPanel {
         }
     }
 
-    public void setTableNotification(Notification notification) {
-        notifications.add(notification);
+    public void setTableNotification(List<Notification> nots) {
         DefaultTableModel dtm = new DefaultTableModel();
         dtm.setRowCount(0);
         dtm.setColumnIdentifiers(new String[]{"Content", "Time"});
-        dtm.addRow(new String[]{notification.getContent(), new SimpleDateFormat("dd-MM-yyyy").format(notification.getTimeDate())});
-        tblNotification.setModel(dtm);
+        
+	nots.forEach(
+	    not -> dtm.addRow(new String[] {
+		not.getContent(), 
+		new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(not.getTimeDate())
+	    })
+	);
+        
+	tblNotification.setModel(dtm);
     }
 
     public void setMessageListener(MessageListener listener) {

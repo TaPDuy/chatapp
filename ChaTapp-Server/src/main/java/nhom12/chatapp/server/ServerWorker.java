@@ -186,7 +186,8 @@ public class ServerWorker implements Runnable {
 	    os.writeObject(this.user);
 	    os.flush();
 	    
-	    loadOnlineFriendNames();
+	    loadOnlineNames();
+	    loadFriends();
 	    loadGroupNames();
 	    loadNotifications();
 
@@ -198,20 +199,25 @@ public class ServerWorker implements Runnable {
         }
     }
     
-    private void loadOnlineFriendNames() throws IOException {
-	List<String> onlines = Server.serverThreadBus.getOnlineNames();
+    private void loadFriends() throws IOException {
+	
 	Set<User> friends = this.user.getFriends();
+	
+	String cmd = "update-friends ";
+	cmd = friends.stream()
+	    .map(friend -> friend.getUsername() + " ")
+	    .reduce(cmd, String::concat)
+	    .trim();
+	write(cmd);
+    }
+    
+    private void loadOnlineNames() throws IOException {
+	
+	List<String> onlines = Server.serverThreadBus.getOnlineNames();
 	
 	String cmd = "update-online-list ";
 	cmd = onlines.stream()
 	    .map(name -> name + " ")
-	    .reduce(cmd, String::concat)
-	    .trim();
-	write(cmd);
-	
-	cmd = "update-friends ";
-	cmd = friends.stream()
-	    .map(friend -> friend.getUsername() + " ")
 	    .reduce(cmd, String::concat)
 	    .trim();
 	write(cmd);
@@ -233,6 +239,8 @@ public class ServerWorker implements Runnable {
     
     private void loadNotifications() {
 	
+	List<Notification> nots = notDAO.findByRecipient(this.user);
+	Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "update-notifications", nots);
     }
     
     private void handleRegister(User user) {

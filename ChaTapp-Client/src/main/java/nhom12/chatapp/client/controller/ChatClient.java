@@ -25,6 +25,7 @@ public class ChatClient implements MessageListener, Runnable {
     private List<String> onlineList;
     private List<String> groupList;
     private List<String> friendList;
+    private List<Notification> notiList;
     
     private int id;
     private User user;
@@ -45,6 +46,7 @@ public class ChatClient implements MessageListener, Runnable {
 	groupList = new ArrayList<>();
         userInsystem = new ArrayList<>();
 	loadedMessages = new HashMap<>();
+	notiList = new ArrayList<>();
         notification = new Notification();
         id = -1;
     }
@@ -124,10 +126,13 @@ public class ChatClient implements MessageListener, Runnable {
 			view.updateGroupCombobox(groupList);
 			break;
 		    case "update-notifications":
+			notiList = (List<Notification>) server.readObject();
+			view.setTableNotification(notiList);
 			break;
                     case "add-notification":
                         notification = (Notification) server.readObject();
-                        view.setTableNotification(notification);
+			notiList.add(notification);
+                        view.setTableNotification(notiList);
                         break;
                     case "User-In-System":
                         this.userInsystem = (List<User>) server.readObject();
@@ -173,6 +178,32 @@ public class ChatClient implements MessageListener, Runnable {
     }
 
     @Override
+    public void processNotification(int index) throws IOException {
+	
+	Notification not = notiList.get(index);
+	
+	if (not.getActive().equalsIgnoreCase("add")) {
+		
+	    String nameSend = not.getContent().split(" ")[0];
+	    int choice = JOptionPane.showConfirmDialog(view, "Do you want confirm add friend with " + nameSend + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+	    if (choice == JOptionPane.YES_OPTION) {
+		notiList.remove(not);
+		view.setTableNotification(notiList);
+		server.write("confirmAddFriend "+ not.getId());
+	    }
+	}
+	else {
+
+	    int choice = JOptionPane.showConfirmDialog(view, "Do you want delete notification ?", "Ask", JOptionPane.YES_NO_OPTION);
+	    if (choice == JOptionPane.YES_OPTION) {
+		notiList.remove(not);
+		view.setTableNotification(notiList);
+		server.write("deleteNotification " + not.getId());
+	    }
+	}
+    }
+    
+    @Override
     public void createGroup(String name) throws IOException {
 	server.write("create-group " + name);
     }
@@ -209,15 +240,4 @@ public class ChatClient implements MessageListener, Runnable {
     public void sendAddFriend(String receiverName) throws IOException {
         server.write("addFriend " + receiverName);
     }
-
-    @Override
-    public void sendConfirmAddFriend(int notId) throws IOException {
-        server.write("confirmAddFriend "+ notId);
-    }
-
-    @Override
-    public void sendDeleteNotification(int notId) throws IOException {
-        server.write("deleteNotification " + notId);
-    }
-
 }

@@ -27,7 +27,7 @@ import lombok.Setter;
 @Table(name="tbl_notification")
 public class Notification implements Serializable{
     
-    private static final long serialVersionUID = 3L;
+    private static final long serialVersionUID = 4L;
     
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -40,6 +40,10 @@ public class Notification implements Serializable{
     @ManyToOne(optional=false)
     @JoinColumn(name="sender_id", referencedColumnName="id")
     private User sender;
+    
+    @ManyToOne(optional=false)
+    @JoinColumn(name="recipient_id", referencedColumnName="id")
+    private User recipient;
     
     @Column(name="time_sent")
     @Temporal(TemporalType.DATE)

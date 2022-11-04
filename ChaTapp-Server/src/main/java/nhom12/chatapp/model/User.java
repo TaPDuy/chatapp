@@ -3,6 +3,7 @@ package nhom12.chatapp.model;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -78,8 +79,8 @@ public class User implements Serializable {
     @ManyToMany(mappedBy="friends")
     private final Set<User> friendsOfThis = new HashSet<>();
     
-    @OneToMany(mappedBy="sender")
-    private Set<Notification> notifications;
+    @OneToMany(mappedBy="recipient")
+    private List<Notification> notifications;
     
     @Override
     public String toString() {

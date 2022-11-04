@@ -3,6 +3,7 @@ package nhom12.chatapp.model;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,7 +34,7 @@ public class User implements Serializable {
     private Set<Group> joinedGroups = new HashSet<>();
     private final Set<User> friends = new HashSet<>();
     private final Set<User> friendsOfThis = new HashSet<>();
-    private Set<Notification> notifications;
+    private List<Notification> notifications;
     
     @Override
     public String toString() {

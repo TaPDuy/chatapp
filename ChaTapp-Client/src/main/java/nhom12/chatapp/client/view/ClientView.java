@@ -1,6 +1,7 @@
 package nhom12.chatapp.client.view;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -542,7 +543,7 @@ public class ClientView extends javax.swing.JPanel {
                     String formattedDate = myDateObj.format(myFormatObj);
                     String[] fms = formattedDate.split(" ");
                     String time = "Ngay " + fms[0] + " luc " + fms[1];
-                    listener.sendAddFriend(addFriend, time);
+                    listener.sendAddFriend(addFriend.getUsername());
                 } catch (IOException ex) {
                     Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -593,7 +594,7 @@ public class ClientView extends javax.swing.JPanel {
                         DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
                         String formattedDate = myDateObj.format(myFormatObj);
-                        listener.sendConfirmAddFriend(notification.getUserSend(), formattedDate);
+                        listener.sendConfirmAddFriend(notification.getSender(), formattedDate);
                     } catch (IOException ex) {
                         Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -694,7 +695,7 @@ public class ClientView extends javax.swing.JPanel {
         DefaultTableModel dtm = new DefaultTableModel();
         dtm.setRowCount(0);
         dtm.setColumnIdentifiers(new String[]{"Content", "Time"});
-        dtm.addRow(new String[]{notification.getContent(), notification.getTimeDate()});
+        dtm.addRow(new String[]{notification.getContent(), new SimpleDateFormat("dd-MM-yyyy").format(notification.getTimeDate())});
         tblNotification.setModel(dtm);
     }
 

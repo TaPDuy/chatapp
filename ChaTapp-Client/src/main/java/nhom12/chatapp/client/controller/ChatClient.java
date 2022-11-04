@@ -104,11 +104,16 @@ public class ChatClient implements MessageListener, Runnable {
 		    case "update-online-friends":
 			break;
 		    case "update-groups":
+			if (argstr.isEmpty())
+			    break;
+			
 			Stream<String> names = Arrays
 			    .stream(argstr.split("(?<=\")\\s(?=\")"))
 			    .map(name -> name.substring(1, name.length() - 2).replaceAll("\\\"", "\""));
 			groupList = new ArrayList<>(names.collect(Collectors.toList()));
 			view.updateGroupCombobox(groupList);
+			break;
+		    case "update-notifications":
 			break;
                     case "notification-delete":
                         user = (User) server.readObject();
@@ -124,7 +129,7 @@ public class ChatClient implements MessageListener, Runnable {
                             view.setTableNotification(notiDel);
                         }
                         break;
-                    case "notification-add":
+                    case "add-notification":
                         notification = (Notification) server.readObject();
                         view.setTableNotification(notification);
                         break;
@@ -221,9 +226,8 @@ public class ChatClient implements MessageListener, Runnable {
     }
 
     @Override
-    public void sendAddFriend(User userReceive, String time) throws IOException {
-        server.write("addFriend " + time);
-        server.writeObject(userReceive);
+    public void sendAddFriend(String receiverName) throws IOException {
+        server.write("addFriend " + receiverName);
     }
 
     @Override

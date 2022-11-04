@@ -70,16 +70,27 @@ public class ServerWorkerBus {
         Server.serverThreadBus.mutilCastSend("update-online-list " + res);
     }
     
-    public void sendMessageToPersion(String to, String message) {
-	
+    public void sendMessageToPersion(String to, String msg, Object obj) {
 	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getUsername().equals(to)).findFirst();
 	if(receiver.isPresent()) {
+	    ServerWorker worker = receiver.get();
 	    try {
-		receiver.get().write(message);
+		if(msg != null)
+		    worker.write(msg);
+		if(obj != null)
+		    worker.writeObject(obj);
 	    } catch (IOException ex) {
 		Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
 	    }
 	}
+    }
+    
+    public void sendMessageToPersion(String to, String msg) {
+	sendMessageToPersion(to, msg, null);
+    }
+    
+    public void sendMessageToPersion(String to, Object obj) {
+	sendMessageToPersion(to, null, obj);
     }
     
     public void sendDeleteFriendToPersion(User friendDel, String nickName, String timeDel) {

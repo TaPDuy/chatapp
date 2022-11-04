@@ -42,6 +42,19 @@ public class UserDAO extends BasicDAO<User> {
 	return new ArrayList<>();
     }
     
+    public User findByUsername(String username) {
+	
+	try {
+	    TypedQuery<User> query = entityManager.createQuery(GET_BY_USERNAME, User.class);
+	    query.setParameter("name", username);
+	    return query.getSingleResult();
+	} catch (RuntimeException e) {
+	    ConsoleLogger.log(e.getMessage(), "DB", ConsoleLogger.ERROR);
+	}
+	
+	return null;
+    }
+    
     public User findByLoginInfo(String username, String password) {
 	
 	try {

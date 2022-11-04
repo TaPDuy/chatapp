@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -13,6 +14,7 @@ import nhom12.chatapp.model.Group;
 import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 import nhom12.chatapp.server.dao.GroupDAO;
+import nhom12.chatapp.server.dao.NotificationDAO;
 import nhom12.chatapp.server.dao.UserDAO;
 import nhom12.chatapp.util.ConsoleLogger;
 
@@ -26,6 +28,7 @@ public class ServerWorker implements Runnable {
     
     private final UserDAO userDAO;
     private final GroupDAO groupDAO;
+    private final NotificationDAO notDAO;
     
     private User user;
     private List<String> groupNames;
@@ -50,6 +53,8 @@ public class ServerWorker implements Runnable {
         
         this.userDAO = new UserDAO();
 	this.groupDAO = new GroupDAO();
+	this.notDAO = new NotificationDAO();
+	
         isClosed = false;
     }
     
@@ -84,6 +89,11 @@ public class ServerWorker implements Runnable {
         os.writeUTF(message);
         os.flush();
     }
+    
+    public void writeObject(Object obj) throws IOException {
+	os.writeObject(obj);
+	os.flush();
+    }
 
     private void handleClientCmd(String clientCmd) throws IOException {
         String[] tokens = clientCmd.split(" ", 2);
@@ -108,12 +118,12 @@ public class ServerWorker implements Runnable {
                 break;
             case "addFriend":
                 String timeSend = tokens[1];
-                try {
-                    User userReceive = (User) is.readObject();
-                    handleAddFriend(userReceive, timeSend);
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-                }
+//                try {
+//                    User userReceive = (User) is.readObject();
+                    handleAddFriend(args);
+//                } catch (ClassNotFoundException ex) {
+//                    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+//                }
                 break;
             case "deletefriend":
                 String timeDel = tokens[1];
@@ -242,6 +252,7 @@ public class ServerWorker implements Runnable {
 	
 	userDAO.close();
 	groupDAO.close();
+	notDAO.close();
 	
         clientSocket.close();
     }
@@ -414,10 +425,22 @@ public class ServerWorker implements Runnable {
         }
     }
 
-    private void handleAddFriend(User userReceive, String time) {
-        if(userDAO.insertAddFriend(user, userReceive.getId())){
-            Server.serverThreadBus.sendNotificationAddFriend(userReceive, user, time);
-        }
+    private void handleAddFriend(String receiverName) {
+	
+	Notification not = Notification.builder()
+		.content(this.user.getUsername() + " sent you a friend request")
+		.sender(this.user)
+		.recipient(userDAO.findByUsername(receiverName))
+		.timeDate(new Date())
+		.active("add")
+		.build();
+	
+	if (notDAO.save(not))
+	    Server.serverThreadBus.sendMessageToPersion(receiverName, "add-notification", not);
+	// TODO: add an else
+//        if(userDAO.insertAddFriend(user, userReceive.getId())){
+//            Server.serverThreadBus.sendNotificationAddFriend(userReceive, user, time);
+//        }
     }
 
     public void handleSendNotificationAddFriend(User userSend, String time){

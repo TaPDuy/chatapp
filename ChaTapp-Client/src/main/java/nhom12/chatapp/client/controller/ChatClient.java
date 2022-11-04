@@ -186,9 +186,8 @@ public class ChatClient implements MessageListener, Runnable {
     }
 
     @Override
-    public void sendDeleteFriend(User friendDel, String time) throws IOException {
-        server.write("deletefriend " + time);
-        server.writeObject(friendDel);
+    public void sendDeleteFriend(String friendName) throws IOException {
+        server.write("deletefriend " + friendName);
     }
 
     @Override

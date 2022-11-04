@@ -93,13 +93,6 @@ public class ServerWorkerBus {
 	sendMessageToPersion(to, null, obj);
     }
     
-    public void sendDeleteFriendToPersion(User friendDel, String nickName, String timeDel) {
-	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == friendDel.getId()).findAny();
-        if(receiver.isPresent()) {
-            receiver.get().handleUpDateUser(friendDel, nickName, timeDel); 
-        }
-    }
-    
     public void sendUsInSys(int from, List<User> usInSys){
         Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == from).findFirst();
         receiver.get().writeUsInSys("User-In-System", usInSys);

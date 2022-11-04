@@ -508,7 +508,7 @@ public class ClientView extends javax.swing.JPanel {
                     DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
                     String formattedDate = myDateObj.format(myFormatObj);
-                    listener.sendDeleteFriend(friendDelete, formattedDate);
+                    listener.sendDeleteFriend(friendDelete.getUsername());
                 } catch (IOException ex) {
                     Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                 }

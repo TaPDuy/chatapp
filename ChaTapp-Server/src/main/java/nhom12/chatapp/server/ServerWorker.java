@@ -122,13 +122,7 @@ public class ServerWorker implements Runnable {
                 handleAddFriend(args);
                 break;
             case "deletefriend":
-                String timeDel = tokens[1];
-                try {
-                    User friendDel = (User) is.readObject();
-                    handleDeleteFriend(friendDel, timeDel);
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                handleDeleteFriend(args);
                 break;
             case "confirmAddFriend":
                 handleConfirmAddFriend(Integer.parseInt(args));
@@ -255,22 +249,33 @@ public class ServerWorker implements Runnable {
 	    Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getUsername() + " " + args[1]);
     }
     
-    public void handleUpDateUser(User friendDel, String nickName, String timeDel){
-        User userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
-        try {
-            write("notification-delete "+friendDel.getUsername()+ " " + timeDel + " "+nickName+" delete friend with you ");
-            os.writeObject(userUpdate);
-            os.flush();
-        } catch (IOException ex) {
-            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    private void handleDeleteFriend(User friendDel, String timeDel){
-        if(userDAO.deleteFriend(user, friendDel)){
-            handleUpDateUser(friendDel, "", timeDel);
-            Server.serverThreadBus.sendDeleteFriendToPersion(friendDel, user.getUsername(), timeDel);
-        }
+    private void handleDeleteFriend(String argstr){
+        
+	User deleteUser = userDAO.findByUsername(argstr);
+	if(user != null){
+	    this.user.getFriends().remove(deleteUser);
+	    
+	    Notification notSen = Notification.builder()
+		.content(deleteUser.getUsername() + " is no longer your friend")
+		.sender(deleteUser)
+		.recipient(this.user)
+		.timeDate(new Date())
+		.active("cf")
+		.build();
+		    
+	    Notification notRec = Notification.builder()
+		.content(this.user.getUsername() + " is no longer your friend")
+		.sender(this.user)
+		.recipient(deleteUser)
+		.timeDate(new Date())
+		.active("cf")
+		.build();
+	    
+	    if(notDAO.save(Arrays.asList(notSen, notRec))) {
+		Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "add-notification", notSen);
+		Server.serverThreadBus.sendMessageToPersion(deleteUser.getUsername(), "add-notification", notRec);
+	    }
+	}
     }
     
     private void handleCreateGroup(String argstr) throws IOException {

@@ -151,7 +151,6 @@ public class ClientView extends javax.swing.JPanel {
         jPanel2.add(jLabel6);
         jLabel6.setBounds(520, 10, 48, 21);
 
-        comboBoxGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         comboBoxGroup.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboBoxGroupActionPerformed(evt);
@@ -160,7 +159,7 @@ public class ClientView extends javax.swing.JPanel {
         jPanel2.add(comboBoxGroup);
         comboBoxGroup.setBounds(470, 40, 140, 29);
 
-        comboBoxUser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        comboBoxUser.setToolTipText("");
         comboBoxUser.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboBoxUserActionPerformed(evt);

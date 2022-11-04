@@ -109,20 +109,19 @@ public class ChatClient implements MessageListener, Runnable {
 			view.getTextArea2().setText(online);
 			break;
 		    case "update-friends":
-			if (argstr.isEmpty())
-			    break;
-			
-			friendList = Arrays.asList(argstr.split(" "));
+			if (!argstr.isEmpty()) {
+			    friendList = Arrays.asList(argstr.split(" "));
+			}
 			view.updateCombobox(friendList);
 			break;
 		    case "update-groups":
-			if (argstr.isEmpty())
-			    break;
+			if (!argstr.isEmpty()) {
 			
-			Stream<String> names = Arrays
-			    .stream(argstr.split("(?<=\")\\s(?=\")"))
-			    .map(name -> name.substring(1, name.length() - 2).replaceAll("\\\"", "\""));
-			groupList = names.collect(Collectors.toList());
+			    Stream<String> names = Arrays
+				.stream(argstr.split("(?<=\")\\s(?=\")"))
+				.map(name -> name.substring(1, name.length() - 2).replaceAll("\\\"", "\""));
+			    groupList = names.collect(Collectors.toList());
+			}
 			view.updateGroupCombobox(groupList);
 			break;
 		    case "update-notifications":

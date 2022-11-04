@@ -199,9 +199,9 @@ public class ServerWorker implements Runnable {
         }
     }
     
-    private void loadFriends() throws IOException {
+    public void loadFriends() throws IOException {
 	
-	Set<User> friends = this.user.getFriends();
+	List<User> friends = userDAO.findFriends(this.user);
 	
 	String cmd = "update-friends ";
 	cmd = friends.stream()
@@ -477,7 +477,7 @@ public class ServerWorker implements Runnable {
         }
     }
     
-    private void handleConfirmAddFriend(int notId) {
+    private void handleConfirmAddFriend(int notId) throws IOException {
 	Optional<Notification> not = notDAO.findById(notId);
 	if(not.isPresent()) {
 	    User sender = not.get().getSender();
@@ -505,6 +505,9 @@ public class ServerWorker implements Runnable {
 		notDAO.delete(not.get());
 		Server.serverThreadBus.sendMessageToPersion(sender.getUsername(), "add-notification", notSen);
 		Server.serverThreadBus.sendMessageToPersion(recipient.getUsername(), "add-notification", notRec);
+		
+		loadFriends();
+		Server.serverThreadBus.sendLoadFriend(sender.getUsername());
 	    }
 	}
     }

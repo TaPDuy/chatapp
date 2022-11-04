@@ -24,6 +24,7 @@ public class UserDAO extends BasicDAO<User> {
     private static final String GET_BY_USERNAME = "SELECT u FROM User u WHERE u.username = :name";
     private static final String GET_BY_LOGIN = "SELECT u FROM User u WHERE u.username = :name AND u.password = :pass";
     private static final String GET_BY_KEY = "SELECT u FROM User u WHERE u.username LIKE :key";
+    private static final String GET_FRIENDS = "SELECT u FROM User u JOIN u.friends f WHERE f = :user";
     
     public UserDAO() {
 	entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
@@ -112,6 +113,19 @@ public class UserDAO extends BasicDAO<User> {
 	TypedQuery<User> query = entityManager.createQuery(GET_BY_USERNAME, User.class);
 	query.setParameter("name", user.getUsername());
 	return query.getResultList().size() == 1;
+    }
+    
+    public List<User> findFriends(User user) {
+	
+	try {
+	    TypedQuery<User> query = entityManager.createQuery(GET_FRIENDS, User.class);
+	    query.setParameter("user", user);
+	    return query.getResultList();
+	} catch (RuntimeException e) {
+	    ConsoleLogger.log(e.getMessage(), "DB", ConsoleLogger.ERROR);
+	}
+	
+	return null;
     }
     
     @Override

@@ -72,8 +72,18 @@ public class ServerWorkerBus {
         Server.serverThreadBus.mutilCastSend("update-online-list " + res);
     }
     
+    public void sendLoadFriend(String to) throws IOException {
+	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getUsername().equals(to)).findFirst();
+	if(receiver.isPresent())
+	    receiver.get().loadFriends();
+    }
+    
     public List<String> getOnlineNames() {
 	return listServerThreads.stream().map(worker -> worker.getUser().getUsername()).collect(Collectors.toList());
+    }
+    
+    public boolean isOnline(String username) {
+	return listServerThreads.stream().anyMatch(worker -> username.equals(worker.getUser().getUsername()));
     }
     
     public void sendMessageToPersion(String to, String msg, Object obj) {

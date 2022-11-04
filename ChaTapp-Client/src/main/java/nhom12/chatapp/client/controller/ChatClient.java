@@ -87,7 +87,6 @@ public class ChatClient implements MessageListener, Runnable {
 		String[] cmdSplit = cmdLine.split(" ", 2);
 		String cmd = cmdSplit[0];
 		String argstr = cmdSplit.length > 1 ? cmdSplit[1] : "";
-		System.out.println(argstr);
 		
 		switch (cmd) {
 		    case "set-user":

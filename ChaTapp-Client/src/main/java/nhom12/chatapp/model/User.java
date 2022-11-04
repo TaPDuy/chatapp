@@ -33,7 +33,7 @@ public class User implements Serializable {
     @Builder.Default
     private Set<Group> joinedGroups = new HashSet<>();
     private final Set<User> friends = new HashSet<>();
-    private final Set<User> friendsOfThis = new HashSet<>();
+//    private final Set<User> friendsOfThis = new HashSet<>();
     private List<Notification> notifications;
     
     @Override

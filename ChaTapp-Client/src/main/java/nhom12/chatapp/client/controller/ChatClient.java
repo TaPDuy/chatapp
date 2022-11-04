@@ -133,21 +133,6 @@ public class ChatClient implements MessageListener, Runnable {
                         notification = (Notification) server.readObject();
                         view.setTableNotification(notification);
                         break;
-
-                    case "notification-confirm":
-                        user = (User) server.readObject();
-                        view.setUser(user);
-                        view.updateCombobox(onlineList);
-                        String[] mesCf = cmdSplit[1].split(" ",4);
-                        String timeCf = "Ngày " + mesCf[1] + " Lúc " + mesCf[2];
-                        Notification notiCf = new Notification();
-                        if(mesCf[0].equals(user.getUsername())){
-                            notiCf.setActive("cf");
-                            notiCf.setContent(mesCf[3]);
-                            notiCf.setTimeDate(timeCf);
-                            view.setTableNotification(notiCf);
-                        }
-                        break;
                     case "User-In-System":
                         this.userInsystem = (List<User>) server.readObject();
                         view.setTableUserSys(userInsystem);
@@ -231,9 +216,8 @@ public class ChatClient implements MessageListener, Runnable {
     }
 
     @Override
-    public void sendConfirmAddFriend(User userSend, String time) throws IOException {
-        server.write("confirmAddFriend "+time);
-        server.writeObject(userSend);
+    public void sendConfirmAddFriend(int notId) throws IOException {
+        server.write("confirmAddFriend "+ notId);
     }
 
     @Override

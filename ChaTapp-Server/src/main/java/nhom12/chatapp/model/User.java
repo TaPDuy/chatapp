@@ -74,10 +74,12 @@ public class User implements Serializable {
 	joinColumns = @JoinColumn(name="user_id"),
 	inverseJoinColumns = @JoinColumn(name="friend_id")
     )
-    private final Set<User> friends = new HashSet<>();
+    @Builder.Default
+    private Set<User> friends = new HashSet<>();
     
-    @ManyToMany(mappedBy="friends")
-    private final Set<User> friendsOfThis = new HashSet<>();
+//    @ManyToMany(mappedBy="friends")
+//    @Builder.Default
+//    private Set<User> friendsOfThis = new HashSet<>();
     
     @OneToMany(mappedBy="recipient")
     private List<Notification> notifications;

@@ -594,7 +594,7 @@ public class ClientView extends javax.swing.JPanel {
                         DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
                         String formattedDate = myDateObj.format(myFormatObj);
-                        listener.sendConfirmAddFriend(notification.getSender(), formattedDate);
+                        listener.sendConfirmAddFriend(notification.getId());
                     } catch (IOException ex) {
                         Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                     }

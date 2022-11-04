@@ -5,8 +5,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -135,14 +137,14 @@ public class ServerWorker implements Runnable {
                 }
                 break;
             case "confirmAddFriend":
-                String timeCF = tokens[1];
-                try {
-                    User userSend = (User) is.readObject();
-                    System.out.println(userSend.getId()+" "+user.getId());
-                    handleConfirmAddFriend(userSend, timeCF);
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-                }
+//                String timeCF = tokens[1];
+//                try {
+//                    User userSend = (User) is.readObject();
+//                    System.out.println(userSend.getId()+" "+user.getId());
+                    handleConfirmAddFriend(Integer.parseInt(args));
+//                } catch (ClassNotFoundException ex) {
+//                    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+//                }
                 break;
 
             case "msg-global":
@@ -469,10 +471,39 @@ public class ServerWorker implements Runnable {
         }
     }
     
-    private void handleConfirmAddFriend(User userSend, String timeCf){
-        if(userDAO.confirmAddFriend(userSend, user)){
-            handleUpDateAddFUser(user, "", timeCf);
-            Server.serverThreadBus.sendConfirmAddFriendToPersion(userSend, user.getUsername(), timeCf);
-        }
+    private void handleConfirmAddFriend(int notId) {
+	Optional<Notification> not = notDAO.findById(notId);
+	if(not.isPresent()) {
+	    User sender = not.get().getSender();
+	    User recipient = not.get().getRecipient();
+	    sender.getFriends().add(recipient);
+	    recipient.getFriends().add(sender);
+	    
+	    Notification notSen = Notification.builder()
+		.content(recipient.getUsername() + " is now your friend")
+		.sender(recipient)
+		.recipient(sender)
+		.timeDate(new Date())
+		.active("cf")
+		.build();
+		    
+	    Notification notRec = Notification.builder()
+		.content(sender.getUsername() + " is now your friend")
+		.sender(sender)
+		.recipient(recipient)
+		.timeDate(new Date())
+		.active("cf")
+		.build();
+	    
+	    if(notDAO.save(Arrays.asList(notSen, notRec))) {
+		notDAO.delete(not.get());
+		Server.serverThreadBus.sendMessageToPersion(sender.getUsername(), "add-notification", notSen);
+		Server.serverThreadBus.sendMessageToPersion(recipient.getUsername(), "add-notification", notRec);
+	    }
+	}
+//        if(userDAO.confirmAddFriend(userSend, user)){
+//            handleUpDateAddFUser(user, "", timeCf);
+//            Server.serverThreadBus.sendConfirmAddFriendToPersion(userSend, user.getUsername(), timeCf);
+//        }
     }
 }

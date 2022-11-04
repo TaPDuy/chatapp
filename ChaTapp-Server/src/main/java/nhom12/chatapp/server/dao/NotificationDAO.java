@@ -61,6 +61,17 @@ public class NotificationDAO extends BasicDAO<Notification>{
 	
 	return true;
     }
+    
+    public boolean save(List<Notification> nots) {
+	
+	try {
+	    executeTransaction(entityManager -> nots.forEach(not -> entityManager.persist(not)));
+	} catch (RuntimeException e) {
+	    return false;
+	}
+	
+	return true;
+    }
 
     @Override
     public boolean update(Notification not) {

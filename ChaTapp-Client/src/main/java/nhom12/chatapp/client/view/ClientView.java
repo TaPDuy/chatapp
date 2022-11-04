@@ -634,17 +634,8 @@ public class ClientView extends javax.swing.JPanel {
     }
 
     public void updateCombobox(List<String> onlineList) {
-        onlineUser = new ArrayList<>();
-        this.onlineUser = onlineList;
         comboBoxUser.removeAllItems();
-        for (String us : onlineUser) {
-            String nickName = us.substring(7, us.length());
-            for (User friend : listFriend) {
-                if (nickName.equalsIgnoreCase(friend.getUsername())) {
-                    comboBoxUser.addItem(nickName);
-                }
-            }
-        }
+	onlineList.forEach(group -> comboBoxUser.addItem(group));
         setTableFriend();
     }
     

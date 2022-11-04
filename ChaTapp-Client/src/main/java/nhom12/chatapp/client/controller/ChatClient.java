@@ -24,6 +24,8 @@ public class ChatClient implements MessageListener, Runnable {
     
     private List<String> onlineList;
     private List<String> groupList;
+    private List<String> friendList;
+    
     private int id;
     private User user;
     private List<User> userInsystem;
@@ -83,6 +85,7 @@ public class ChatClient implements MessageListener, Runnable {
 		String[] cmdSplit = cmdLine.split(" ", 2);
 		String cmd = cmdSplit[0];
 		String argstr = cmdSplit.length > 1 ? cmdSplit[1] : "";
+		System.out.println(argstr);
 		
 		switch (cmd) {
 		    case "set-user":
@@ -90,18 +93,25 @@ public class ChatClient implements MessageListener, Runnable {
                         view.setUser(user);
 			break;
 		    case "update-online-list":
+			if (argstr.isEmpty())
+			    break;
+			
 			onlineList.clear();
 			String online = "";
-			String[] onlineSplit = argstr.split("-");
+			String[] onlineSplit = argstr.split(" ");
 			for (String onlineSplit1 : onlineSplit) {
 			    if (!onlineSplit1.equals(this.user.getUsername()))
-				onlineList.add("Client " + onlineSplit1);
-			    online += "Client " + onlineSplit1 + " đang online\n";
-			}	
+				onlineList.add(onlineSplit1);
+			    online += "Client " + onlineSplit1 + " is online\n";
+			}
 			view.getTextArea2().setText(online);
-			view.updateCombobox(onlineList);
 			break;
-		    case "update-online-friends":
+		    case "update-friends":
+			if (argstr.isEmpty())
+			    break;
+			
+			friendList = Arrays.asList(argstr.split(" "));
+			view.updateCombobox(friendList);
 			break;
 		    case "update-groups":
 			if (argstr.isEmpty())
@@ -110,7 +120,7 @@ public class ChatClient implements MessageListener, Runnable {
 			Stream<String> names = Arrays
 			    .stream(argstr.split("(?<=\")\\s(?=\")"))
 			    .map(name -> name.substring(1, name.length() - 2).replaceAll("\\\"", "\""));
-			groupList = new ArrayList<>(names.collect(Collectors.toList()));
+			groupList = names.collect(Collectors.toList());
 			view.updateGroupCombobox(groupList);
 			break;
 		    case "update-notifications":

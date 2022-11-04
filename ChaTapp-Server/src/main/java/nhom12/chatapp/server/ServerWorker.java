@@ -186,19 +186,9 @@ public class ServerWorker implements Runnable {
 	    os.writeObject(this.user);
 	    os.flush();
 	    
-	    Server.serverThreadBus.sendOnlineList();
-	    
-	    // Sends group list to client
-	    Set<Group> groups = this.user.getJoinedGroups();
-	    
-	    groupNames = new ArrayList<>();
-	    groups.stream().map(group -> group.getName()).forEach(groupNames::add);
-
-	    String cmd = "update-groups ";
-	    cmd = groupNames.stream()
-		.map(name -> "\"" + name.replace("\"", "\\\"") + "\\\" ")
-		.reduce(cmd, String::concat).trim();
-	    write(cmd);
+	    loadOnlineFriendNames();
+	    loadGroupNames();
+	    loadNotifications();
 
 	    ConsoleLogger.log("Worker initialized", "CLIENT-" + clientNumber, ConsoleLogger.INFO);
 	    
@@ -206,6 +196,43 @@ public class ServerWorker implements Runnable {
             write("error-login");
 	    ConsoleLogger.log("Login failed with username: " + viewname, "CLIENT-" + clientNumber, ConsoleLogger.ERROR);
         }
+    }
+    
+    private void loadOnlineFriendNames() throws IOException {
+	List<String> onlines = Server.serverThreadBus.getOnlineNames();
+	Set<User> friends = this.user.getFriends();
+	
+	String cmd = "update-online-list ";
+	cmd = onlines.stream()
+	    .map(name -> name + " ")
+	    .reduce(cmd, String::concat)
+	    .trim();
+	write(cmd);
+	
+	cmd = "update-friends ";
+	cmd = friends.stream()
+	    .map(friend -> friend.getUsername() + " ")
+	    .reduce(cmd, String::concat)
+	    .trim();
+	write(cmd);
+    }
+    
+    private void loadGroupNames() throws IOException {
+	    
+	groupNames = new ArrayList<>();
+	this.user.getJoinedGroups().stream()
+	    .map(group -> group.getName())
+	    .forEach(groupNames::add);
+
+	String cmd = "update-groups ";
+	cmd = groupNames.stream()
+	    .map(name -> "\"" + name.replace("\"", "\\\"") + "\\\" ")
+	    .reduce(cmd, String::concat).trim();
+	write(cmd);
+    }
+    
+    private void loadNotifications() {
+	
     }
     
     private void handleRegister(User user) {

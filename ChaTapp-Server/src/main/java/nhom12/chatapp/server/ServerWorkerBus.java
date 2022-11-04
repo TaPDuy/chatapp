@@ -2,10 +2,12 @@ package nhom12.chatapp.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import nhom12.chatapp.model.User;
 
 public class ServerWorkerBus {
@@ -68,6 +70,10 @@ public class ServerWorkerBus {
         String res = "";
 	res = Server.serverThreadBus.getListServerThreads().stream().map(worker -> worker.getUser().getUsername() + "-").reduce(res, String::concat);
         Server.serverThreadBus.mutilCastSend("update-online-list " + res);
+    }
+    
+    public List<String> getOnlineNames() {
+	return listServerThreads.stream().map(worker -> worker.getUser().getUsername()).collect(Collectors.toList());
     }
     
     public void sendMessageToPersion(String to, String msg, Object obj) {

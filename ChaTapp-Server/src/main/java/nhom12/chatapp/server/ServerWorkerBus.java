@@ -79,7 +79,10 @@ public class ServerWorkerBus {
     }
     
     public List<String> getOnlineNames() {
-	return listServerThreads.stream().map(worker -> worker.getUser().getUsername()).collect(Collectors.toList());
+	return listServerThreads.stream()
+	    .map(worker -> worker.getUser().getUsername())
+	    .filter(name -> !name.isEmpty())
+	    .collect(Collectors.toList());
     }
     
     public boolean isOnline(String username) {

@@ -57,6 +57,8 @@ public class ServerWorker implements Runnable {
 	this.groupDAO = new GroupDAO();
 	this.notDAO = new NotificationDAO();
 	
+	this.user = User.builder().username("").build();
+	
         isClosed = false;
     }
     

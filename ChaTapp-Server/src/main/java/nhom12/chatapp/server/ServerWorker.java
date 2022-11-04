@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nhom12.chatapp.model.Group;
+import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 import nhom12.chatapp.server.dao.GroupDAO;
 import nhom12.chatapp.server.dao.UserDAO;
@@ -106,13 +107,34 @@ public class ServerWorker implements Runnable {
                 handleGetUserInSys(tokens[1]);
                 break;
             case "addFriend":
-                int idUs = Integer.parseInt(tokens[1]);
-                System.out.println(idUs);
-                handleAddFriend(idUs);
-            case "deletefriend":
-                int id_friend = Integer.parseInt(tokens[1]);
-                handleDeleteFriend(id_friend);
+                String timeSend = tokens[1];
+                try {
+                    User userReceive = (User) is.readObject();
+                    handleAddFriend(userReceive, timeSend);
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 break;
+            case "deletefriend":
+                String timeDel = tokens[1];
+                try {
+                    User friendDel = (User) is.readObject();
+                    handleDeleteFriend(friendDel, timeDel);
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                break;
+            case "confirmAddFriend":
+                String timeCF = tokens[1];
+                try {
+                    User userSend = (User) is.readObject();
+                    System.out.println(userSend.getId()+" "+user.getId());
+                    handleConfirmAddFriend(userSend, timeCF);
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                break;
+
             case "msg-global":
                 Server.serverThreadBus.boardCast(user.getUsername(), "display " + user.getUsername()+ " " + args);
                 break;
@@ -211,38 +233,7 @@ public class ServerWorker implements Runnable {
             ex.printStackTrace();
         }
     }
-    
-    public void handleUpDateUser(String nickNameF){
-        User userUpdate = new User();
-        userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
-        System.out.println(userUpdate.getId());
-	
-        try {
-            write("notification-delete "+nickNameF+" "+userUpdate.getUsername()+" delete friend with you");
-            os.writeObject(userUpdate);
-            os.flush();
-        } catch (IOException ex) {
-            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        
-    }
-    
-    private void handleDeleteFriend(int id_friend){
 
-        User fUser = new User();
-        for(User friend: user.getFriends()){
-            if(id_friend==friend.getId()){
-                fUser = friend;
-            }
-        }
-        if(userDAO.deleteFriend(user, id_friend)){
-            handleUpDateUser(fUser.getUsername());
-            Server.serverThreadBus.sendDeleteFriendToPersion(id_friend, fUser.getUsername());
-        }
-        
-    }
-    
     private void handleLogoff() throws IOException {
         isClosed = true;
         Server.serverThreadBus.boardCast(user.getUsername(), "display-server " + "User '" + user.getUsername() + "' logged off.");
@@ -263,6 +254,27 @@ public class ServerWorker implements Runnable {
 	else
 	    Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getUsername() + " " + args[1]);
     }
+    
+    public void handleUpDateUser(User friendDel, String nickName, String timeDel){
+        User userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
+        try {
+            write("notification-delete "+friendDel.getUsername()+ " " + timeDel + " "+nickName+" delete friend with you ");
+            os.writeObject(userUpdate);
+            os.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void handleDeleteFriend(User friendDel, String timeDel){
+        if(userDAO.deleteFriend(user, friendDel)){
+            handleUpDateUser(friendDel, "", timeDel);
+            Server.serverThreadBus.sendDeleteFriendToPersion(friendDel, user.getUsername(), timeDel);
+        }
+        
+    }
+    
+    
     
     private void handleCreateGroup(String argstr) throws IOException {
 	
@@ -395,22 +407,42 @@ public class ServerWorker implements Runnable {
         }
     }
 
-    private void handleAddFriend(int userf_id) {
-        if(userDAO.insertFriend(user, userf_id)){
-            Server.serverThreadBus.sendNotificationAddFriend(userf_id);
+    private void handleAddFriend(User userReceive, String time) {
+        if(userDAO.insertAddFriend(user, userReceive.getId())){
+            Server.serverThreadBus.sendNotificationAddFriend(userReceive, user, time);
         }
     }
 
-    public void handleSendNotificationAddFriend(){
-        User userUpdate = new User();
-        userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
-        System.out.println(userUpdate.getFriends().size());
+    public void handleSendNotificationAddFriend(User userSend, String time){
         try {
-            write("notification-add "+user.getUsername()+" send add friend for you");
+            write("notification-add");
+            Notification notification = new Notification();
+            notification.setUserSend(userSend);
+            notification.setContent(userSend.getUsername()+" send add friend for you");
+            notification.setTimeDate(time);
+            notification.setActive("add");
+            os.writeObject(notification);
+            os.flush();
         } catch (IOException ex) {
             Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
+    }
+
+    public void handleUpDateAddFUser(User userSend, String nickName, String timeCf){
+        User userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
+        try {
+            write("notification-confirm "+userSend.getUsername()+ " " + timeCf + " "+nickName+" accept your friend request");
+            os.writeObject(userUpdate);
+            os.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void handleConfirmAddFriend(User userSend, String timeCf){
+        if(userDAO.confirmAddFriend(userSend, user)){
+            handleUpDateAddFUser(user, "", timeCf);
+            Server.serverThreadBus.sendConfirmAddFriendToPersion(userSend, user.getUsername(), timeCf);
+        }
     }
 }

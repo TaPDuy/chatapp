@@ -15,6 +15,7 @@ import javax.swing.JOptionPane;
 import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.view.ClientView;
+import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 
 public class ChatClient implements MessageListener, Runnable {
@@ -31,6 +32,7 @@ public class ChatClient implements MessageListener, Runnable {
     private HashMap<String, List<String>> loadedMessages;
     
     private ClientView view;
+    private Notification notification;
 
     public ChatClient(ServerConnection server) {
 	this.server = server;
@@ -41,6 +43,7 @@ public class ChatClient implements MessageListener, Runnable {
 	groupList = new ArrayList<>();
         userInsystem = new ArrayList<>();
 	loadedMessages = new HashMap<>();
+        notification = new Notification();
         id = -1;
     }
 
@@ -85,7 +88,6 @@ public class ChatClient implements MessageListener, Runnable {
 		    case "set-user":
 			this.user = (User) server.readObject();
                         view.setUser(user);
-                        view.updateCombobox(onlineList);
 			break;
 		    case "update-online-list":
 			onlineList.clear();
@@ -109,29 +111,40 @@ public class ChatClient implements MessageListener, Runnable {
 			view.updateGroupCombobox(groupList);
 			break;
                     case "notification-delete":
-                        this.user = (User) server.readObject();
+                        user = (User) server.readObject();
                         view.setUser(user);
                         view.updateCombobox(onlineList);
-                        String[] meString = argstr.split(" ",2);
-                        System.out.println(meString[0]);
-                        if(meString[0].equals(user.getUsername())){
-                            view.setTableNotification(meString[1]);
+                        String[] mesDel = cmdSplit[1].split(" ",4);
+                        String timeDel = "Ngày " + mesDel[1] + " Lúc " + mesDel[2];
+                        Notification notiDel = new Notification();
+                        if(mesDel[0].equals(user.getUsername())){
+                            notiDel.setActive("del");
+                            notiDel.setContent(mesDel[3]);
+                            notiDel.setTimeDate(timeDel);
+                            view.setTableNotification(notiDel);
                         }
                         break;
                     case "notification-add":
-                        this.user = (User) server.readObject();
+                        notification = (Notification) server.readObject();
+                        view.setTableNotification(notification);
+                        break;
+
+                    case "notification-confirm":
+                        user = (User) server.readObject();
                         view.setUser(user);
                         view.updateCombobox(onlineList);
-                        //String[] meString = messageSplit[1].split(" ",2);
-//                        System.out.println(meString[0]);
-//                        if(meString[0].equals(user.getViewName())){
-//                            view.setTableNotification(meString[1]);
-//                        }
+                        String[] mesCf = cmdSplit[1].split(" ",4);
+                        String timeCf = "Ngày " + mesCf[1] + " Lúc " + mesCf[2];
+                        Notification notiCf = new Notification();
+                        if(mesCf[0].equals(user.getUsername())){
+                            notiCf.setActive("cf");
+                            notiCf.setContent(mesCf[3]);
+                            notiCf.setTimeDate(timeCf);
+                            view.setTableNotification(notiCf);
+                        }
                         break;
                     case "User-In-System":
-                        
                         this.userInsystem = (List<User>) server.readObject();
-                        //System.out.println(userInsystem.get(0).getViewName());
                         view.setTableUserSys(userInsystem);
                         break;
 		    case "display":
@@ -197,8 +210,9 @@ public class ChatClient implements MessageListener, Runnable {
     }
 
     @Override
-    public void sendDeleteFriend(String idFriend) throws IOException {
-        server.write("deletefriend " + idFriend);
+    public void sendDeleteFriend(User friendDel, String time) throws IOException {
+        server.write("deletefriend " + time);
+        server.writeObject(friendDel);
     }
 
     @Override
@@ -207,8 +221,21 @@ public class ChatClient implements MessageListener, Runnable {
     }
 
     @Override
-    public void sendAddFriend(int idUs) throws IOException {
-        server.write("addFriend " + idUs);
+    public void sendAddFriend(User userReceive, String time) throws IOException {
+        server.write("addFriend " + time);
+        server.writeObject(userReceive);
+    }
+
+    @Override
+    public void sendConfirmAddFriend(User userSend, String time) throws IOException {
+        server.write("confirmAddFriend "+time);
+        server.writeObject(userSend);
+    }
+
+    @Override
+    public void sendDeleteNotification(Notification delNotification) throws IOException {
+        server.write("deleteNotification");
+        server.writeObject(delNotification);
     }
 
 }

@@ -49,7 +49,8 @@ public class Message implements Serializable {
 	joinColumns = @JoinColumn(name="message_id", referencedColumnName="id"), 
 	inverseJoinColumns = @JoinColumn(name="recipient_id", referencedColumnName="id")
     )
-    private final Set<User> recipients = new HashSet<>();
+    @Builder.Default
+    private Set<User> recipients = new HashSet<>();
     
     @ManyToOne
     @JoinColumn(name="group_id", referencedColumnName="id")

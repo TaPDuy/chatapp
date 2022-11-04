@@ -33,6 +33,7 @@ public class User implements Serializable {
     private Set<Group> joinedGroups = new HashSet<>();
     private final Set<User> friends = new HashSet<>();
     private final Set<User> friendsOfThis = new HashSet<>();
+    private Set<Notification> notifications;
     
     @Override
     public String toString() {

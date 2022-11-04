@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -76,6 +77,9 @@ public class User implements Serializable {
     
     @ManyToMany(mappedBy="friends")
     private final Set<User> friendsOfThis = new HashSet<>();
+    
+    @OneToMany
+    private Set<Notification> notifications;
     
     @Override
     public String toString() {

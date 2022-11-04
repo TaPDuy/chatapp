@@ -109,13 +109,6 @@ public class ServerWorkerBus {
 	Server.serverThreadBus.getListServerThreads().removeIf(worker -> worker.getClientNumber() == id);
     }
 
-    void sendNotificationAddFriend(User userReceive, User userSend, String time) {
-        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == userReceive.getId()).findFirst();
-        if(receiver.isPresent()) {
-            receiver.get().handleSendNotificationAddFriend(userSend, time);
-        }
-    }
-
     void sendConfirmAddFriendToPersion(User userSend, String viewName, String timeCf) {
         Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == userSend.getId()).findFirst();
         if(receiver.isPresent()) {

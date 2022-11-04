@@ -115,20 +115,6 @@ public class ChatClient implements MessageListener, Runnable {
 			break;
 		    case "update-notifications":
 			break;
-                    case "notification-delete":
-                        user = (User) server.readObject();
-                        view.setUser(user);
-                        view.updateCombobox(onlineList);
-                        String[] mesDel = cmdSplit[1].split(" ",4);
-                        String timeDel = "Ngày " + mesDel[1] + " Lúc " + mesDel[2];
-                        Notification notiDel = new Notification();
-                        if(mesDel[0].equals(user.getUsername())){
-                            notiDel.setActive("del");
-                            notiDel.setContent(mesDel[3]);
-                            notiDel.setTimeDate(timeDel);
-                            view.setTableNotification(notiDel);
-                        }
-                        break;
                     case "add-notification":
                         notification = (Notification) server.readObject();
                         view.setTableNotification(notification);
@@ -221,9 +207,8 @@ public class ChatClient implements MessageListener, Runnable {
     }
 
     @Override
-    public void sendDeleteNotification(Notification delNotification) throws IOException {
-        server.write("deleteNotification");
-        server.writeObject(delNotification);
+    public void sendDeleteNotification(int notId) throws IOException {
+        server.write("deleteNotification " + notId);
     }
 
 }

@@ -119,13 +119,7 @@ public class ServerWorker implements Runnable {
                 handleGetUserInSys(tokens[1]);
                 break;
             case "addFriend":
-                String timeSend = tokens[1];
-//                try {
-//                    User userReceive = (User) is.readObject();
-                    handleAddFriend(args);
-//                } catch (ClassNotFoundException ex) {
-//                    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-//                }
+                handleAddFriend(args);
                 break;
             case "deletefriend":
                 String timeDel = tokens[1];
@@ -137,16 +131,8 @@ public class ServerWorker implements Runnable {
                 }
                 break;
             case "confirmAddFriend":
-//                String timeCF = tokens[1];
-//                try {
-//                    User userSend = (User) is.readObject();
-//                    System.out.println(userSend.getId()+" "+user.getId());
-                    handleConfirmAddFriend(Integer.parseInt(args));
-//                } catch (ClassNotFoundException ex) {
-//                    Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-//                }
+                handleConfirmAddFriend(Integer.parseInt(args));
                 break;
-
             case "msg-global":
                 Server.serverThreadBus.boardCast(user.getUsername(), "display " + user.getUsername()+ " " + args);
                 break;
@@ -180,7 +166,8 @@ public class ServerWorker implements Runnable {
                 break;
             case "invite-response":
                 break;
-            case "notifications":
+            case "deleteNotification":
+		handleDeleteNotification(Integer.parseInt(args));
                 break;
             default:
                 // Unknown command
@@ -207,7 +194,7 @@ public class ServerWorker implements Runnable {
 	    
 	    Server.serverThreadBus.sendOnlineList();
 	    
-	    // TODO: Sends group list to client
+	    // Sends group list to client
 	    Set<Group> groups = this.user.getJoinedGroups();
 	    
 	    groupNames = new ArrayList<>();
@@ -284,10 +271,7 @@ public class ServerWorker implements Runnable {
             handleUpDateUser(friendDel, "", timeDel);
             Server.serverThreadBus.sendDeleteFriendToPersion(friendDel, user.getUsername(), timeDel);
         }
-        
     }
-    
-    
     
     private void handleCreateGroup(String argstr) throws IOException {
 	
@@ -440,24 +424,6 @@ public class ServerWorker implements Runnable {
 	if (notDAO.save(not))
 	    Server.serverThreadBus.sendMessageToPersion(receiverName, "add-notification", not);
 	// TODO: add an else
-//        if(userDAO.insertAddFriend(user, userReceive.getId())){
-//            Server.serverThreadBus.sendNotificationAddFriend(userReceive, user, time);
-//        }
-    }
-
-    public void handleSendNotificationAddFriend(User userSend, String time){
-        try {
-            write("notification-add");
-            Notification notification = new Notification();
-            notification.setUserSend(userSend);
-            notification.setContent(userSend.getUsername()+" send add friend for you");
-            notification.setTimeDate(time);
-            notification.setActive("add");
-            os.writeObject(notification);
-            os.flush();
-        } catch (IOException ex) {
-            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     public void handleUpDateAddFUser(User userSend, String nickName, String timeCf){
@@ -501,9 +467,12 @@ public class ServerWorker implements Runnable {
 		Server.serverThreadBus.sendMessageToPersion(recipient.getUsername(), "add-notification", notRec);
 	    }
 	}
-//        if(userDAO.confirmAddFriend(userSend, user)){
-//            handleUpDateAddFUser(user, "", timeCf);
-//            Server.serverThreadBus.sendConfirmAddFriendToPersion(userSend, user.getUsername(), timeCf);
-//        }
+    }
+
+    private void handleDeleteNotification(int notId) {
+	Optional<Notification> not = notDAO.findById(notId);
+	if(not.isPresent()) {
+	    notDAO.delete(not.get());
+	}
     }
 }

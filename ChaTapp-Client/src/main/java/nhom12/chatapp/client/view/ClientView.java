@@ -604,7 +604,7 @@ public class ClientView extends javax.swing.JPanel {
                 int choice = JOptionPane.showConfirmDialog(this, "Do you want delete notification ?", "Ask", JOptionPane.YES_NO_OPTION);
                 if (choice == JOptionPane.YES_OPTION) {
                     try {
-                        listener.sendDeleteNotification(notification);
+                        listener.sendDeleteNotification(notification.getId());
                     } catch (IOException ex) {
                         Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                     }

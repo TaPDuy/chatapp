@@ -164,6 +164,11 @@ public class ServerWorker implements Runnable {
 	    case "get-friends":
 		loadFriends();
 		break;
+	    case "view-profile":
+		User u = userDAO.findByUsername(args);
+		if (u != null)
+		    Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "view-profile", u);
+		break;
             case "groups":
                 break;
             case "online-users":
@@ -361,11 +366,9 @@ public class ServerWorker implements Runnable {
 	    
 	    if(!groupNames.contains(groupName)) {
 		
-		try {
+		if (groupDAO.addMember(group.get(), this.user)) {
 		    
-		    group.get().addMember(this.user);
 		    groupNames.add(groupName);
-
 		    write("join-ok " + groupName);
 
 		    ConsoleLogger.log(
@@ -374,7 +377,7 @@ public class ServerWorker implements Runnable {
 			ConsoleLogger.INFO
 		    );
 		    
-		} catch (RuntimeException e) {
+		} else {
 		    
 		    ConsoleLogger.log(
 			"Something went wrong trying to join group: '" + groupName + "'", 
@@ -403,70 +406,22 @@ public class ServerWorker implements Runnable {
 	    );
 	    write("join-not-exist " + groupName);
 	}
-	
-//	Group group = Group.builder().name(groupName).build();
-////	group.getMembers().add(user);
-//	if (groupDAO.checkExist(group)) {
-//	    
-//	    if (!groupNames.contains(groupName)) {
-//		
-////		if (groupUserDAO.insertGroupUser(group, this.user)) {
-//		if(false){
-//		    groupNames.add(groupName);
-//		    write("join-ok");
-//		    
-//		    ConsoleLogger.log(
-//			"Joined group: '" + groupName + "'", 
-//			"CLIENT-" + clientNumber, 
-//			ConsoleLogger.INFO
-//		    );
-//		    
-//		} else {
-//		    
-//		    ConsoleLogger.log(
-//			"Something went wrong trying to join group: '" + groupName + "'", 
-//			"CLIENT-" + clientNumber, 
-//			ConsoleLogger.ERROR
-//		    );
-//		    write("join-error");
-//		}
-//	    }
-//	    else {
-//		
-//		ConsoleLogger.log(
-//		    "Tried to join a group they already joined: '" + groupName + "'", 
-//		    "CLIENT-" + clientNumber, 
-//		    ConsoleLogger.ERROR
-//		);
-//		write("join-already");	
-//	    }
-//	    
-//	} else {
-//	    
-//	    ConsoleLogger.log(
-//		"Tried to join a non-existing group: '" + groupName + "'", 
-//		"CLIENT-" + clientNumber, 
-//		ConsoleLogger.ERROR
-//	    );
-//	    write("join-not-exist");
-//	}
-	    
     }
     
-    private void handleLeave(String argstr) throws IOException {
+    private void handleLeave(String groupName) throws IOException {
 	
-	Group group = new Group().builder().name(argstr).build();
-	if (groupDAO.checkExist(group)) {
+	Optional<Group> group = groupDAO.findByName(groupName);
+	if(group.isPresent()) {
 	    
-	    if (groupNames.contains(argstr)) {
+	    if(groupNames.contains(groupName)) {
 		
-//		if (groupUserDAO.deleteGroupUser(group, this.user)) {
-		if(false) {
-		    groupNames.remove(argstr);
-		    write("leave-ok");
+		if (groupDAO.deleteMember(group.get(), this.user)) {
 		    
+		    groupNames.remove(groupName);
+		    write("leave-ok " + groupName);
+
 		    ConsoleLogger.log(
-			"Left group: '" + argstr + "'", 
+			"Left group: '" + groupName + "'", 
 			"CLIENT-" + clientNumber, 
 			ConsoleLogger.INFO
 		    );
@@ -474,32 +429,32 @@ public class ServerWorker implements Runnable {
 		} else {
 		    
 		    ConsoleLogger.log(
-			"Something went wrong trying to leave group: '" + argstr + "'", 
+			"Something went wrong trying to leave group: '" + groupName + "'", 
 			"CLIENT-" + clientNumber, 
 			ConsoleLogger.ERROR
 		    );
-		    write("leave-error");
+		    write("leave-error " + groupName);
 		}
+		
 	    } else {
 		
 		ConsoleLogger.log(
-		    "Tried to leave a group they haven't joined: '" + argstr + "'", 
+		    "Tried to leave a group they're not a member of: '" + groupName + "'", 
 		    "CLIENT-" + clientNumber, 
 		    ConsoleLogger.ERROR
 		);
-		write("leave-not-join");	
+		write("leave-already " + groupName);	
 	    }
 	    
 	} else {
 	    
 	    ConsoleLogger.log(
-		"Tried to leave a non-existing group: '" + argstr + "'", 
+		"Tried to leave a non-existing group: '" + groupName + "'", 
 		"CLIENT-" + clientNumber, 
 		ConsoleLogger.ERROR
 	    );
-	    write("leave-not-exist");
+	    write("leave-not-exist " + groupName);
 	}
-	    
     }
 
     private void handleGetUserInSys(String key) {

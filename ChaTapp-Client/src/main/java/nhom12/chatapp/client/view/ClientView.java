@@ -82,6 +82,11 @@ public class ClientView extends javax.swing.JPanel {
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
+        jPanel8 = new javax.swing.JPanel();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        tbl_groups = new javax.swing.JTable();
+        btn_viewMembers = new javax.swing.JButton();
+        btn_leave = new javax.swing.JButton();
         jPanel7 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         tbl_notification = new javax.swing.JTable();
@@ -408,6 +413,51 @@ public class ClientView extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("Create Or Join Group Chat", jPanel6);
 
+        jPanel8.setLayout(null);
+
+        tbl_groups.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Name"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane7.setViewportView(tbl_groups);
+
+        jPanel8.add(jScrollPane7);
+        jScrollPane7.setBounds(20, 51, 600, 395);
+
+        btn_viewMembers.setText("View Members");
+        jPanel8.add(btn_viewMembers);
+        btn_viewMembers.setBounds(180, 10, 140, 29);
+
+        btn_leave.setText("Leave");
+        btn_leave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_leaveActionPerformed(evt);
+            }
+        });
+        jPanel8.add(btn_leave);
+        btn_leave.setBounds(350, 10, 94, 29);
+
+        jTabbedPane1.addTab("My Groups", jPanel8);
+
         tbl_notification.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -562,7 +612,14 @@ public class ClientView extends javax.swing.JPanel {
     }//GEN-LAST:event_tbl_notificationMouseClicked
 
     private void btn_profileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_profileActionPerformed
-        // TODO add your handling code here:
+        int row = tbl_friends.getSelectedRow();
+        if (row != -1) {
+	    try {
+		listener.processViewProfile(row);
+	    } catch (IOException ex) {
+		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	}
     }//GEN-LAST:event_btn_profileActionPerformed
 
     private void btn_unfriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_unfriendActionPerformed
@@ -595,6 +652,17 @@ public class ClientView extends javax.swing.JPanel {
 	    }
 	}
     }//GEN-LAST:event_tbl_groupResultMouseClicked
+
+    private void btn_leaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_leaveActionPerformed
+        int row = tbl_groups.getSelectedRow();
+        if (row != -1) {
+	    try {
+		listener.processLeaveGroup((String) tbl_groups.getModel().getValueAt(row, 0));
+	    } catch (IOException ex) {
+		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	}
+    }//GEN-LAST:event_btn_leaveActionPerformed
 
     public JTextArea getTextArea1() {
         return this.jTextArea1;
@@ -655,6 +723,16 @@ public class ClientView extends javax.swing.JPanel {
 	dtm.addRow(new String[] {name, memberCnt});
     }
     
+    public void clearGroupList() {
+	DefaultTableModel dtm = (DefaultTableModel) tbl_groups.getModel();
+	dtm.setRowCount(0);
+    }
+    
+    public void addGroupRow(String name) {
+	DefaultTableModel dtm = (DefaultTableModel) tbl_groups.getModel();
+	dtm.addRow(new String[] {name});
+    }
+    
     public void clearNotificationList() {
 	DefaultTableModel dtm = (DefaultTableModel) tbl_notification.getModel();
 	dtm.setRowCount(0);
@@ -698,9 +776,11 @@ public class ClientView extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSearchAddFriend;
+    private javax.swing.JButton btn_leave;
     private javax.swing.JButton btn_profile;
     private javax.swing.JButton btn_searchGroup;
     private javax.swing.JButton btn_unfriend;
+    private javax.swing.JButton btn_viewMembers;
     private javax.swing.JComboBox<String> comboBoxGroup;
     private javax.swing.JComboBox<String> comboBoxUser;
     private javax.swing.JButton jButton1;
@@ -721,12 +801,14 @@ public class ClientView extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextArea jTextArea1;
@@ -735,6 +817,7 @@ public class ClientView extends javax.swing.JPanel {
     private javax.swing.JTable tblUserInSys;
     private javax.swing.JTable tbl_friends;
     private javax.swing.JTable tbl_groupResult;
+    private javax.swing.JTable tbl_groups;
     private javax.swing.JTable tbl_notification;
     private javax.swing.JTextField txtKeyNickName;
     private javax.swing.JTextField txtf_chat;

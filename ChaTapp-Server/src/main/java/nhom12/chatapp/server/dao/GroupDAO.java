@@ -62,6 +62,36 @@ public class GroupDAO extends BasicDAO<Group> {
 	return new ArrayList<>();
     }
     
+    public boolean addMember(Group group, User member) {
+	
+	try {
+	    executeTransaction(entityManager -> {
+		Group g = entityManager.getReference(Group.class, group.getId());
+		User m = entityManager.getReference(User.class, member.getId());
+		g.addMember(m);
+	    });
+	} catch (RuntimeException e) {
+	    return false;
+	}
+	
+	return true;
+    }
+    
+    public boolean deleteMember(Group group, User member) {
+	
+	try {
+	    executeTransaction(entityManager -> {
+		Group g = entityManager.getReference(Group.class, group.getId());
+		User m = entityManager.getReference(User.class, member.getId());
+		g.removeMember(m);
+	    });
+	} catch (RuntimeException e) {
+	    return false;
+	}
+	
+	return true;
+    }
+    
     @Override
     public Optional<Group> findById(int id) {
 	return Optional.ofNullable(entityManager.find(Group.class, id));

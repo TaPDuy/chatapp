@@ -29,6 +29,11 @@ public class Group implements Serializable {
 	user.getJoinedGroups().add(this);
     }
     
+    public void removeMember(User user) {
+	members.remove(user);
+	user.getJoinedGroups().remove(this);
+    }
+    
     @Override
     public String toString() {
 	return 

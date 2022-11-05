@@ -91,4 +91,15 @@ public class NotificationDAO extends BasicDAO<Notification>{
 	
 	return true;
     }
+    
+    public boolean refresh(Notification not) {
+	
+	try {
+	    executeTransaction(entityManager -> entityManager.refresh(not));
+	} catch (RuntimeException e) {
+	    return false;
+	}
+	
+	return true;
+    }
 }

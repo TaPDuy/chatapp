@@ -3,6 +3,7 @@ package nhom12.chatapp.client.controller;
 import java.awt.Container;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -123,10 +124,7 @@ public class ChatClient implements MessageListener, Runnable {
 			updateFriendList();
 			break;
 		    case "update-friends":
-			if (!argstr.isEmpty()) {
-			    friendList = Arrays.asList(argstr.split(" "));
-			}
-			
+			friendList = argstr.isEmpty() ? new ArrayList<>() : Arrays.asList(argstr.split(" "));
 			view.updateCombobox(friendList);
 			updateFriendList();
 			break;
@@ -142,7 +140,7 @@ public class ChatClient implements MessageListener, Runnable {
 			break;
 		    case "update-notifications":
 			notiList = (List<Notification>) server.readObject();
-			view.setTableNotification(notiList);
+			updateNotificationList();
 			break;
 		    case "update-messages":
 			List<Message> msgs = (List<Message>) server.readObject();
@@ -160,7 +158,7 @@ public class ChatClient implements MessageListener, Runnable {
                     case "add-notification":
                         notification = (Notification) server.readObject();
 			notiList.add(notification);
-                        view.setTableNotification(notiList);
+                        updateNotificationList();
                         break;
                     case "User-In-System":
                         this.userInsystem = (List<User>) server.readObject();
@@ -221,8 +219,15 @@ public class ChatClient implements MessageListener, Runnable {
 	});
     }
     
-    private void setID(int id){
-        this.id = id;
+    private void updateNotificationList() {
+	view.clearNotificationList();
+	
+	notiList.forEach(not -> {
+	    view.addNotificationRow(
+		not.getContent(), 
+		new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(not.getTimeDate())
+	    );
+	});
     }
 
     @Override
@@ -236,7 +241,7 @@ public class ChatClient implements MessageListener, Runnable {
 	    int choice = JOptionPane.showConfirmDialog(view, "Do you want confirm add friend with " + nameSend + " ?", "Ask", JOptionPane.YES_NO_OPTION);
 	    if (choice == JOptionPane.YES_OPTION) {
 		notiList.remove(not);
-		view.setTableNotification(notiList);
+		updateNotificationList();
 		server.write("confirmAddFriend "+ not.getId());
 	    }
 	}
@@ -245,8 +250,22 @@ public class ChatClient implements MessageListener, Runnable {
 	    int choice = JOptionPane.showConfirmDialog(view, "Do you want delete notification ?", "Ask", JOptionPane.YES_NO_OPTION);
 	    if (choice == JOptionPane.YES_OPTION) {
 		notiList.remove(not);
-		view.setTableNotification(notiList);
+		updateNotificationList();
 		server.write("deleteNotification " + not.getId());
+	    }
+	}
+    }
+
+    @Override
+    public void processUnfriend(int index) throws IOException {
+	
+	String name = friendList.get(index);
+	int choice = JOptionPane.showConfirmDialog(view, "Do you want delete friend " + name + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+	if (choice == JOptionPane.YES_OPTION) {
+	    try {
+		server.write("deletefriend " + name);
+	    } catch (IOException ex) {
+		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
 	    }
 	}
     }
@@ -273,11 +292,6 @@ public class ChatClient implements MessageListener, Runnable {
 	} catch (IOException ex) {
 	    Logger.getLogger(ChatClient.class.getName()).log(Level.SEVERE, null, ex);
 	}
-    }
-
-    @Override
-    public void sendDeleteFriend(String friendName) throws IOException {
-        server.write("deletefriend " + friendName);
     }
 
     @Override

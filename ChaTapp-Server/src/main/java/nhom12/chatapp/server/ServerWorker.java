@@ -329,33 +329,6 @@ public class ServerWorker implements Runnable {
 	}
     }
     
-    private void handleDeleteFriend(String argstr){
-        
-	User deleteUser = userDAO.findByUsername(argstr);
-	if(user != null){
-	    this.user.getFriends().remove(deleteUser);
-	    
-	    Notification notSen = Notification.builder()
-		.content(deleteUser.getUsername() + " is no longer your friend")
-		.sender(deleteUser)
-		.recipient(this.user)
-		.active("cf")
-		.build();
-		    
-	    Notification notRec = Notification.builder()
-		.content(this.user.getUsername() + " is no longer your friend")
-		.sender(this.user)
-		.recipient(deleteUser)
-		.active("cf")
-		.build();
-	    
-	    if(notDAO.save(Arrays.asList(notSen, notRec))) {
-		Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "add-notification", notSen);
-		Server.serverThreadBus.sendMessageToPersion(deleteUser.getUsername(), "add-notification", notRec);
-	    }
-	}
-    }
-    
     private void handleCreateGroup(String argstr) throws IOException {
 	
 	Group group = Group.builder().name(argstr).build();
@@ -503,8 +476,10 @@ public class ServerWorker implements Runnable {
 		.active("add")
 		.build();
 	
-	if (notDAO.save(not))
+	if (notDAO.save(not)) {
+	    notDAO.refresh(not);
 	    Server.serverThreadBus.sendMessageToPersion(receiverName, "add-notification", not);
+	}
 	// TODO: add an else
     }
 
@@ -543,11 +518,47 @@ public class ServerWorker implements Runnable {
 	    
 	    if(notDAO.save(Arrays.asList(notSen, notRec))) {
 		notDAO.delete(not.get());
+		
+		notDAO.refresh(notRec);
+		notDAO.refresh(notSen);
 		Server.serverThreadBus.sendMessageToPersion(sender.getUsername(), "add-notification", notSen);
 		Server.serverThreadBus.sendMessageToPersion(recipient.getUsername(), "add-notification", notRec);
 		
 		loadFriends();
 		Server.serverThreadBus.sendLoadFriend(sender.getUsername());
+	    }
+	}
+    }
+    
+    private void handleDeleteFriend(String argstr) throws IOException {
+        
+	User deleteUser = userDAO.findByUsername(argstr);
+	if(user != null){
+	    
+	    userDAO.deleteFriend(deleteUser, this.user);
+	    
+	    Notification notSen = Notification.builder()
+		.content(deleteUser.getUsername() + " is no longer your friend")
+		.sender(deleteUser)
+		.recipient(this.user)
+		.active("cf")
+		.build();
+		    
+	    Notification notRec = Notification.builder()
+		.content(this.user.getUsername() + " is no longer your friend")
+		.sender(this.user)
+		.recipient(deleteUser)
+		.active("cf")
+		.build();
+	    
+	    if(notDAO.save(Arrays.asList(notSen, notRec))) {
+		notDAO.refresh(notRec);
+		notDAO.refresh(notSen);
+		Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "add-notification", notSen);
+		Server.serverThreadBus.sendMessageToPersion(deleteUser.getUsername(), "add-notification", notRec);
+		
+		loadFriends();
+		Server.serverThreadBus.sendLoadFriend(deleteUser.getUsername());
 	    }
 	}
     }

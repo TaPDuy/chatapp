@@ -25,7 +25,7 @@ public class UserDAO extends BasicDAO<User> {
     private static final String GET_BY_LOGIN = "SELECT u FROM User u WHERE u.username = :name AND u.password = :pass";
     private static final String GET_BY_KEY = "SELECT u FROM User u WHERE u.username LIKE :key";
     private static final String GET_FRIENDS = "SELECT u FROM User u JOIN u.friends f WHERE f = :user";
-    
+
     public UserDAO() {
 	entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
     }
@@ -169,6 +169,21 @@ public class UserDAO extends BasicDAO<User> {
 	
 	try {
 	    executeTransaction(entityManager -> entityManager.remove(user));
+	} catch (RuntimeException e) {
+	    return false;
+	}
+	
+	return true;
+    }
+    
+    public boolean deleteFriend(User user, User friend) {
+	
+	try {
+	    executeTransaction(entityManager -> {
+		User u = entityManager.getReference(User.class, user.getId());
+		User f = entityManager.getReference(User.class, friend.getId());
+		u.removeFriend(f);
+	    });
 	} catch (RuntimeException e) {
 	    return false;
 	}

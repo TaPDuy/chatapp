@@ -72,8 +72,8 @@ public class User implements Serializable {
     @ManyToMany
     @JoinTable(
 	name="tbl_friendship",
-	joinColumns = @JoinColumn(name="user_id"),
-	inverseJoinColumns = @JoinColumn(name="friend_id")
+	joinColumns = @JoinColumn(name="user_id", referencedColumnName="id"),
+	inverseJoinColumns = @JoinColumn(name="friend_id", referencedColumnName="id")
     )
     @Builder.Default
     private Set<User> friends = new HashSet<>();
@@ -81,6 +81,11 @@ public class User implements Serializable {
     @OneToMany(mappedBy="recipient")
     @Builder.Default
     private List<Notification> notifications = new ArrayList<>();
+    
+    public void removeFriend(User friend) {
+	friends.remove(friend);
+	friend.getFriends().remove(this);
+    }
     
     @Override
     public String toString() {

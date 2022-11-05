@@ -84,7 +84,7 @@ public class ClientView extends javax.swing.JPanel {
         jSeparator1 = new javax.swing.JSeparator();
         jPanel7 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        tblNotification = new javax.swing.JTable();
+        tbl_notification = new javax.swing.JTable();
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -272,11 +272,6 @@ public class ClientView extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
-        tbl_friends.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tbl_friendsMouseClicked(evt);
-            }
-        });
         jScrollPane5.setViewportView(tbl_friends);
         if (tbl_friends.getColumnModel().getColumnCount() > 0) {
             tbl_friends.getColumnModel().getColumn(0).setResizable(false);
@@ -403,7 +398,7 @@ public class ClientView extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("Create Or Join Group Chat", jPanel6);
 
-        tblNotification.setModel(new javax.swing.table.DefaultTableModel(
+        tbl_notification.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -419,12 +414,12 @@ public class ClientView extends javax.swing.JPanel {
                 return types [columnIndex];
             }
         });
-        tblNotification.addMouseListener(new java.awt.event.MouseAdapter() {
+        tbl_notification.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tblNotificationMouseClicked(evt);
+                tbl_notificationMouseClicked(evt);
             }
         });
-        jScrollPane3.setViewportView(tblNotification);
+        jScrollPane3.setViewportView(tbl_notification);
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -475,29 +470,6 @@ public class ClientView extends javax.swing.JPanel {
 
         txtf_chat.setText("");
     }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void tbl_friendsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_friendsMouseClicked
-        int column = tbl_friends.getColumnModel().
-                getColumnIndexAtX(evt.getX()); // get the coloum of the button
-        int row = evt.getY() / tbl_friends.getRowHeight(); // get row 
-        // *Checking the row or column is valid or not
-        if (row < tbl_friends.getRowCount() && row >= 0
-                && column < tbl_friends.getColumnCount() && column >= 0) {
-            User friendDelete = listFriend.get(row);
-            int choice = JOptionPane.showConfirmDialog(this, "Do you want delete friend " + friendDelete.getUsername()+ " ?", "Ask", JOptionPane.YES_NO_OPTION);
-            if (choice == JOptionPane.YES_OPTION) {
-                try {
-                    LocalDateTime myDateObj = LocalDateTime.now();
-                    DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-
-                    String formattedDate = myDateObj.format(myFormatObj);
-                    listener.sendDeleteFriend(friendDelete.getUsername());
-                } catch (IOException ex) {
-                    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-    }//GEN-LAST:event_tbl_friendsMouseClicked
 
     private void btnSearchAddFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchAddFriendActionPerformed
 
@@ -559,16 +531,16 @@ public class ClientView extends javax.swing.JPanel {
 	jLabel3.setText(txt);
     }
     
-    private void tblNotificationMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblNotificationMouseClicked
+    private void tbl_notificationMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_notificationMouseClicked
         
-	int column = tblNotification.getColumnModel().getColumnIndexAtX(evt.getX()); // get the coloum of the button
-        int row = evt.getY() / tblNotification.getRowHeight(); // get row 
+	int column = tbl_notification.getColumnModel().getColumnIndexAtX(evt.getX()); // get the coloum of the button
+        int row = evt.getY() / tbl_notification.getRowHeight(); // get row 
 	
         // *Checking the row or column is valid or not
         if (
-	    row < tblNotification.getRowCount() && 
+	    row < tbl_notification.getRowCount() && 
 	    row >= 0 && 
-	    column < tblNotification.getColumnCount() && 
+	    column < tbl_notification.getColumnCount() && 
 	    column >= 0
 	) {
 	    try {
@@ -577,14 +549,22 @@ public class ClientView extends javax.swing.JPanel {
 		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
 	    }
         }
-    }//GEN-LAST:event_tblNotificationMouseClicked
+    }//GEN-LAST:event_tbl_notificationMouseClicked
 
     private void btn_profileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_profileActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btn_profileActionPerformed
 
     private void btn_unfriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_unfriendActionPerformed
-        // TODO add your handling code here:
+
+	int row = tbl_friends.getSelectedRow();
+        if (row != -1) {
+	    try {
+		listener.processUnfriend(row);
+	    } catch (IOException ex) {
+		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	}
     }//GEN-LAST:event_btn_unfriendActionPerformed
 
     public JTextArea getTextArea1() {
@@ -635,6 +615,16 @@ public class ClientView extends javax.swing.JPanel {
 	DefaultTableModel dtm = (DefaultTableModel) tbl_friends.getModel();
 	dtm.addRow(new String[] {username, status});
     }
+    
+    public void clearNotificationList() {
+	DefaultTableModel dtm = (DefaultTableModel) tbl_notification.getModel();
+	dtm.setRowCount(0);
+    }
+    
+    public void addNotificationRow(String content, String time) {
+	DefaultTableModel dtm = (DefaultTableModel) tbl_notification.getModel();
+	dtm.addRow(new String[] {content, time});
+    }
 
     public void setTableUserSys(List<User> usInSys) {
         if (usInSys != null) {
@@ -657,21 +647,6 @@ public class ClientView extends javax.swing.JPanel {
             }
             tblUserInSys.setModel(dtm);
         }
-    }
-
-    public void setTableNotification(List<Notification> nots) {
-        DefaultTableModel dtm = new DefaultTableModel();
-        dtm.setRowCount(0);
-        dtm.setColumnIdentifiers(new String[]{"Content", "Time"});
-        
-	nots.forEach(
-	    not -> dtm.addRow(new String[] {
-		not.getContent(), 
-		new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(not.getTimeDate())
-	    })
-	);
-        
-	tblNotification.setModel(dtm);
     }
 
     public void setMessageListener(MessageListener listener) {
@@ -720,9 +695,9 @@ public class ClientView extends javax.swing.JPanel {
     private javax.swing.JTextArea jTextArea2;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
-    private javax.swing.JTable tblNotification;
     private javax.swing.JTable tblUserInSys;
     private javax.swing.JTable tbl_friends;
+    private javax.swing.JTable tbl_notification;
     private javax.swing.JTextField txtKeyNickName;
     private javax.swing.JTextField txtf_chat;
     // End of variables declaration//GEN-END:variables

@@ -12,10 +12,11 @@ public interface MessageListener {
     public void setChatView(Container view);
     public String getReceiverName();
     public void setReceiverName(String name);
-    public void sendDeleteFriend(String friendName) throws IOException;
     public void sendFindFriend(String key) throws IOException;
     public void sendAddFriend(String receiverName) throws IOException;
+    
     public void processNotification(int index) throws IOException;
-
+    public void processUnfriend(int index) throws IOException;
+    
     public void updateFriends() throws IOException;
 }

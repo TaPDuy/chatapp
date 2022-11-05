@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import nhom12.chatapp.model.Group;
 import nhom12.chatapp.model.Message;
 import nhom12.chatapp.model.Notification;
@@ -122,6 +123,9 @@ public class ServerWorker implements Runnable {
             case "findFriend":
                 handleGetUserInSys(tokens[1]);
                 break;
+	    case "findGroup":
+		handleFindGroup(args);
+		break;
             case "addFriend":
                 handleAddFriend(args);
                 break;
@@ -444,10 +448,7 @@ public class ServerWorker implements Runnable {
     }
 
     private void handleGetUserInSys(String key) {
-//        List<User> userInSystem = new ArrayList<>();
-//        userInSystem = userDAO.findAll();
-//        System.out.println(userInSystem.size());
-//        Server.serverThreadBus.sendUsInSys(user.getId(), userInSystem);
+	
 	List<User> userInSystem = userDAO.findByKey(key);
 	ConsoleLogger.log(
 	    "Found " + userInSystem.size() + " user(s) with key '" + key + "'", 
@@ -455,6 +456,21 @@ public class ServerWorker implements Runnable {
 	    ConsoleLogger.INFO
 	);
 	Server.serverThreadBus.sendUsInSys(user.getId(), userInSystem);
+    }
+    
+    private void handleFindGroup(String key) {
+	
+	List<Group> results = groupDAO.findByKey(key);
+	ConsoleLogger.log(
+	    "Found " + results.size() + " user(s) with key '" + key + "'", 
+	    "CLIENT-" + clientNumber, 
+	    ConsoleLogger.INFO
+	);
+	
+	List<String> data = results.stream()
+	    .map(group -> group.getName() + " " + group.getMembers().size())
+	    .collect(Collectors.toList());
+	Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "group-in-system", data);
     }
     
     public void writeUsInSys(String mes, List<User> usInSys){

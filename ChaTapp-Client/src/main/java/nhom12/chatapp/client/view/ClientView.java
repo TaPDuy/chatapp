@@ -75,10 +75,10 @@ public class ClientView extends javax.swing.JPanel {
         jTextField2 = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
-        jButton3 = new javax.swing.JButton();
+        txtf_groupKey = new javax.swing.JTextField();
+        btn_searchGroup = new javax.swing.JButton();
         jScrollPane6 = new javax.swing.JScrollPane();
-        jTable2 = new javax.swing.JTable();
+        tbl_groupResult = new javax.swing.JTable();
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
@@ -302,9 +302,14 @@ public class ClientView extends javax.swing.JPanel {
 
         jLabel7.setText("Name");
 
-        jButton3.setText("Search");
+        btn_searchGroup.setText("Search");
+        btn_searchGroup.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_searchGroupActionPerformed(evt);
+            }
+        });
 
-        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+        tbl_groupResult.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -327,10 +332,10 @@ public class ClientView extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane6.setViewportView(jTable2);
-        if (jTable2.getColumnModel().getColumnCount() > 0) {
-            jTable2.getColumnModel().getColumn(0).setResizable(false);
-            jTable2.getColumnModel().getColumn(1).setResizable(false);
+        jScrollPane6.setViewportView(tbl_groupResult);
+        if (tbl_groupResult.getColumnModel().getColumnCount() > 0) {
+            tbl_groupResult.getColumnModel().getColumn(0).setResizable(false);
+            tbl_groupResult.getColumnModel().getColumn(1).setResizable(false);
         }
 
         jLabel8.setText("Create Group");
@@ -359,14 +364,14 @@ public class ClientView extends javax.swing.JPanel {
                                 .addGap(82, 82, 82)
                                 .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(txtf_groupKey, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel6Layout.createSequentialGroup()
                                 .addGap(32, 32, 32)
                                 .addComponent(jButton2))
                             .addGroup(jPanel6Layout.createSequentialGroup()
                                 .addGap(29, 29, 29)
-                                .addComponent(jButton3))))
+                                .addComponent(btn_searchGroup))))
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addGap(37, 37, 37)
                         .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 548, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -389,8 +394,8 @@ public class ClientView extends javax.swing.JPanel {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton3))
+                    .addComponent(txtf_groupKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_searchGroup))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(22, 22, 22))
@@ -567,6 +572,14 @@ public class ClientView extends javax.swing.JPanel {
 	}
     }//GEN-LAST:event_btn_unfriendActionPerformed
 
+    private void btn_searchGroupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_searchGroupActionPerformed
+        try {
+            listener.sendFindGroup(txtf_groupKey.getText());
+        } catch (IOException ex) {
+            Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_btn_searchGroupActionPerformed
+
     public JTextArea getTextArea1() {
         return this.jTextArea1;
     }
@@ -616,6 +629,16 @@ public class ClientView extends javax.swing.JPanel {
 	dtm.addRow(new String[] {username, status});
     }
     
+    public void clearGroupResultList() {
+	DefaultTableModel dtm = (DefaultTableModel) tbl_groupResult.getModel();
+	dtm.setRowCount(0);
+    }
+    
+    public void addGroupResultRow(String name, String memberCnt) {
+	DefaultTableModel dtm = (DefaultTableModel) tbl_groupResult.getModel();
+	dtm.addRow(new String[] {name, memberCnt});
+    }
+    
     public void clearNotificationList() {
 	DefaultTableModel dtm = (DefaultTableModel) tbl_notification.getModel();
 	dtm.setRowCount(0);
@@ -660,12 +683,12 @@ public class ClientView extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSearchAddFriend;
     private javax.swing.JButton btn_profile;
+    private javax.swing.JButton btn_searchGroup;
     private javax.swing.JButton btn_unfriend;
     private javax.swing.JComboBox<String> comboBoxGroup;
     private javax.swing.JComboBox<String> comboBoxUser;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -690,15 +713,15 @@ public class ClientView extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTable jTable2;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextArea jTextArea2;
     private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
     private javax.swing.JTable tblUserInSys;
     private javax.swing.JTable tbl_friends;
+    private javax.swing.JTable tbl_groupResult;
     private javax.swing.JTable tbl_notification;
     private javax.swing.JTextField txtKeyNickName;
     private javax.swing.JTextField txtf_chat;
+    private javax.swing.JTextField txtf_groupKey;
     // End of variables declaration//GEN-END:variables
 }

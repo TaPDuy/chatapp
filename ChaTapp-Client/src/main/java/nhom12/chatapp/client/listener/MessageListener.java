@@ -13,10 +13,12 @@ public interface MessageListener {
     public String getReceiverName();
     public void setReceiverName(String name);
     public void sendFindFriend(String key) throws IOException;
+    public void sendFindGroup(String key) throws IOException;
     public void sendAddFriend(String receiverName) throws IOException;
     
     public void processNotification(int index) throws IOException;
     public void processUnfriend(int index) throws IOException;
     
     public void updateFriends() throws IOException;
+
 }

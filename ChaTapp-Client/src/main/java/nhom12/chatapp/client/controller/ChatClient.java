@@ -164,6 +164,10 @@ public class ChatClient implements MessageListener, Runnable {
                         this.userInsystem = (List<User>) server.readObject();
                         view.setTableUserSys(userInsystem);
                         break;
+		    case "group-in-system":
+			List<String> results = (List<String>) server.readObject();
+			updateGroupResultList(results);
+			break;
 		    case "display":
 			String[] args = argstr.split(" ", 2);
 			String receiver = args[0];
@@ -227,6 +231,15 @@ public class ChatClient implements MessageListener, Runnable {
 		not.getContent(), 
 		new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(not.getTimeDate())
 	    );
+	});
+    }
+    
+    private void updateGroupResultList(List<String> results) {
+	view.clearGroupResultList();
+	
+	results.forEach(result -> {
+	    String[] resSplit = result.split(" ");
+	    view.addGroupResultRow(resSplit[0], resSplit[1]);
 	});
     }
 
@@ -297,6 +310,11 @@ public class ChatClient implements MessageListener, Runnable {
     @Override
     public void sendFindFriend(String key) throws IOException {
         server.write("findFriend " + key);
+    }
+
+    @Override
+    public void sendFindGroup(String key) throws IOException {
+	server.write("findGroup " + key);
     }
 
     @Override

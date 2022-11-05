@@ -1,5 +1,6 @@
 package nhom12.chatapp.server.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.TypedQuery;
@@ -12,6 +13,7 @@ public class GroupDAO extends BasicDAO<Group> {
 
     private static final String GET_ALL = "SELECT g FROM Group g";
     private static final String GET_BY_NAME = "SELECT g FROM Group g WHERE g.name = :name";
+    private static final String GET_BY_KEY = "SELECT g FROM Group g WHERE g.name LIKE :key";
     
     public GroupDAO() {
 	entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
@@ -35,6 +37,19 @@ public class GroupDAO extends BasicDAO<Group> {
 	}
 	
 	return null;
+    }
+    
+    public List<Group> findByKey(String key) {
+	
+	try {
+	    TypedQuery<Group> query = entityManager.createQuery(GET_BY_KEY, Group.class);
+	    query.setParameter("key", "%" + key + "%");
+	    return query.getResultList();
+	} catch (RuntimeException e) {
+	    ConsoleLogger.log(e.getMessage(), "DB", ConsoleLogger.ERROR);
+	}
+	
+	return new ArrayList<>();
     }
     
     @Override

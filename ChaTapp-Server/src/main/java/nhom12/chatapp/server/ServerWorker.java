@@ -182,7 +182,10 @@ public class ServerWorker implements Runnable {
         String viewname = args[0];
         String password = args[1];
         
-        if ((this.user = userDAO.findByLoginInfo(viewname, password)) != null) {
+        if (
+	    !Server.serverThreadBus.isOnline(viewname) && 
+	    (this.user = userDAO.findByLoginInfo(viewname, password)) != null
+	) {
             
             write("ok-login");
             

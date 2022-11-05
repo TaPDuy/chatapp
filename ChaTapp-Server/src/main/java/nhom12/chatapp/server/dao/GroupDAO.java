@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.persistence.TypedQuery;
 import nhom12.chatapp.model.Group;
+import nhom12.chatapp.model.User;
 import nhom12.chatapp.util.ConsoleLogger;
 import nhom12.hibernate.util.JPAUtil;
 
@@ -14,6 +15,7 @@ public class GroupDAO extends BasicDAO<Group> {
     private static final String GET_ALL = "SELECT g FROM Group g";
     private static final String GET_BY_NAME = "SELECT g FROM Group g WHERE g.name = :name";
     private static final String GET_BY_KEY = "SELECT g FROM Group g WHERE g.name LIKE :key";
+    private static final String GET_BY_MEMBER = "SELECT u FROM Group g JOIN g.members u WHERE g.id = :group AND u.id = :user";
     
     public GroupDAO() {
 	entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
@@ -26,17 +28,25 @@ public class GroupDAO extends BasicDAO<Group> {
 	return query.getResultList().size() == 1;
     }
     
-    public Group findByName(String name) {
+    public boolean isMember(Group group, User user) {
+	
+	TypedQuery<User> query = entityManager.createQuery(GET_BY_MEMBER, User.class);
+	query.setParameter("group", group.getId());
+	query.setParameter("user", user.getId());
+	return query.getResultList().size() == 1;
+    }
+    
+    public Optional<Group> findByName(String name) {
 	
 	try {
 	    TypedQuery<Group> query = entityManager.createQuery(GET_BY_NAME, Group.class);
 	    query.setParameter("name", name);
-	    return query.getSingleResult();
+	    return Optional.of(query.getSingleResult());
 	} catch (RuntimeException e) {
 	    ConsoleLogger.log(e.getMessage(), "DB", ConsoleLogger.ERROR);
 	}
 	
-	return null;
+	return Optional.empty();
     }
     
     public List<Group> findByKey(String key) {

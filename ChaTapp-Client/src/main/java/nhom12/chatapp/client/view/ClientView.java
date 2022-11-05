@@ -332,6 +332,11 @@ public class ClientView extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
+        tbl_groupResult.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tbl_groupResultMouseClicked(evt);
+            }
+        });
         jScrollPane6.setViewportView(tbl_groupResult);
         if (tbl_groupResult.getColumnModel().getColumnCount() > 0) {
             tbl_groupResult.getColumnModel().getColumn(0).setResizable(false);
@@ -579,6 +584,17 @@ public class ClientView extends javax.swing.JPanel {
             Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_btn_searchGroupActionPerformed
+
+    private void tbl_groupResultMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_groupResultMouseClicked
+        int row = tbl_groupResult.getSelectedRow();
+        if (row != -1) {
+	    try {
+		listener.processJoinGroup((String) tbl_groupResult.getModel().getValueAt(row, 0));
+	    } catch (IOException ex) {
+		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	}
+    }//GEN-LAST:event_tbl_groupResultMouseClicked
 
     public JTextArea getTextArea1() {
         return this.jTextArea1;

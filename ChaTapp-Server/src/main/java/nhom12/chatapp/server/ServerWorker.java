@@ -264,7 +264,11 @@ public class ServerWorker implements Runnable {
 	
 	List<Message> msgs = new ArrayList<>();
 	if (argstr.charAt(0) == '#') {
-	    msgs.addAll(msgDAO.findByGroup(groupDAO.findByName(argstr.substring(1))));
+	    
+	    Optional<Group> group = groupDAO.findByName(argstr.substring(1));
+	    if(group.isPresent())
+		msgs.addAll(msgDAO.findByGroup(group.get()));
+	    
 	} else {
 	    User receiver = userDAO.findByUsername(argstr);
 	    msgs.addAll(msgDAO.findByUser(this.user, receiver));
@@ -317,12 +321,15 @@ public class ServerWorker implements Runnable {
 	
 	if (args[0].charAt(0) == '#') {
 	    
-	    Group group = groupDAO.findByName(args[0].substring(1));
-	    msg.setGroup(group);
-	    group.getMembers().forEach(msg.getRecipients()::add);
-	    
-	    if (msgDAO.save(msg))
-		Server.serverThreadBus.broadCastGroup(user.getUsername(), args[0].substring(1), "display " + args[0] + " " + user.getUsername() + " " + args[1]);
+	    Optional<Group> group = groupDAO.findByName(args[0].substring(1));
+	    if (group.isPresent()) {
+		
+		msg.setGroup(group.get());
+		group.get().getMembers().forEach(msg.getRecipients()::add);
+
+		if (msgDAO.save(msg))
+		    Server.serverThreadBus.broadCastGroup(user.getUsername(), args[0].substring(1), "display " + args[0] + " " + user.getUsername() + " " + args[1]);
+	    }
 	}
 	else {
 	    
@@ -347,54 +354,102 @@ public class ServerWorker implements Runnable {
 	}
     }
     
-    private void handleJoin(String argstr) throws IOException {
+    private void handleJoin(String groupName) throws IOException {
 	
-	Group group = Group.builder().name(argstr).build();
-//	group.getMembers().add(user);
-	if (groupDAO.checkExist(group)) {
+	Optional<Group> group = groupDAO.findByName(groupName);
+	if(group.isPresent()) {
 	    
-	    if (!groupNames.contains(argstr)) {
+	    if(!groupNames.contains(groupName)) {
 		
-//		if (groupUserDAO.insertGroupUser(group, this.user)) {
-		if(false){
-		    groupNames.add(argstr);
-		    write("join-ok");
+		try {
 		    
+		    group.get().addMember(this.user);
+		    groupNames.add(groupName);
+
+		    write("join-ok " + groupName);
+
 		    ConsoleLogger.log(
-			"Joined group: '" + argstr + "'", 
+			"Joined group: '" + groupName + "'", 
 			"CLIENT-" + clientNumber, 
 			ConsoleLogger.INFO
 		    );
 		    
-		} else {
+		} catch (RuntimeException e) {
 		    
 		    ConsoleLogger.log(
-			"Something went wrong trying to join group: '" + argstr + "'", 
+			"Something went wrong trying to join group: '" + groupName + "'", 
 			"CLIENT-" + clientNumber, 
 			ConsoleLogger.ERROR
 		    );
-		    write("join-error");
+		    write("join-error " + groupName);
 		}
-	    }
-	    else {
+		
+	    } else {
 		
 		ConsoleLogger.log(
-		    "Tried to join a group they already joined: '" + argstr + "'", 
+		    "Tried to join a group they already joined: '" + groupName + "'", 
 		    "CLIENT-" + clientNumber, 
 		    ConsoleLogger.ERROR
 		);
-		write("join-already");	
+		write("join-already " + groupName);	
 	    }
 	    
 	} else {
 	    
 	    ConsoleLogger.log(
-		"Tried to join a non-existing group: '" + argstr + "'", 
+		"Tried to join a non-existing group: '" + groupName + "'", 
 		"CLIENT-" + clientNumber, 
 		ConsoleLogger.ERROR
 	    );
-	    write("join-not-exist");
+	    write("join-not-exist " + groupName);
 	}
+	
+//	Group group = Group.builder().name(groupName).build();
+////	group.getMembers().add(user);
+//	if (groupDAO.checkExist(group)) {
+//	    
+//	    if (!groupNames.contains(groupName)) {
+//		
+////		if (groupUserDAO.insertGroupUser(group, this.user)) {
+//		if(false){
+//		    groupNames.add(groupName);
+//		    write("join-ok");
+//		    
+//		    ConsoleLogger.log(
+//			"Joined group: '" + groupName + "'", 
+//			"CLIENT-" + clientNumber, 
+//			ConsoleLogger.INFO
+//		    );
+//		    
+//		} else {
+//		    
+//		    ConsoleLogger.log(
+//			"Something went wrong trying to join group: '" + groupName + "'", 
+//			"CLIENT-" + clientNumber, 
+//			ConsoleLogger.ERROR
+//		    );
+//		    write("join-error");
+//		}
+//	    }
+//	    else {
+//		
+//		ConsoleLogger.log(
+//		    "Tried to join a group they already joined: '" + groupName + "'", 
+//		    "CLIENT-" + clientNumber, 
+//		    ConsoleLogger.ERROR
+//		);
+//		write("join-already");	
+//	    }
+//	    
+//	} else {
+//	    
+//	    ConsoleLogger.log(
+//		"Tried to join a non-existing group: '" + groupName + "'", 
+//		"CLIENT-" + clientNumber, 
+//		ConsoleLogger.ERROR
+//	    );
+//	    write("join-not-exist");
+//	}
 	    
     }
     

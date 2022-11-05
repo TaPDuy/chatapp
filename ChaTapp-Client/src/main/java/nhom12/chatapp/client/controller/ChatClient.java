@@ -198,6 +198,19 @@ public class ChatClient implements MessageListener, Runnable {
 		    case "group-error":
 			JOptionPane.showMessageDialog(view, "Something went wrong creating group '" + argstr + "'", "Error", JOptionPane.ERROR_MESSAGE);
 			break;
+		    case "join-ok":
+			groupList.add(argstr);
+			view.updateGroupCombobox(groupList);
+			break;
+		    case "join-error":
+			JOptionPane.showMessageDialog(view, "Something went wrong joining group '" + argstr + "'", "Error", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "join-already":
+			JOptionPane.showMessageDialog(view, "You're already a member of group '" + argstr + "'", "Already in group", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "join-not-exist":
+			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' doesn't exist", "Group not found", JOptionPane.ERROR_MESSAGE);
+			break;
 		    default:
 			break;
 		}
@@ -275,11 +288,16 @@ public class ChatClient implements MessageListener, Runnable {
 	String name = friendList.get(index);
 	int choice = JOptionPane.showConfirmDialog(view, "Do you want delete friend " + name + " ?", "Ask", JOptionPane.YES_NO_OPTION);
 	if (choice == JOptionPane.YES_OPTION) {
-	    try {
-		server.write("deletefriend " + name);
-	    } catch (IOException ex) {
-		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
-	    }
+	    server.write("deletefriend " + name);
+	}
+    }
+
+    @Override
+    public void processJoinGroup(String groupName) throws IOException {
+	
+	int choice = JOptionPane.showConfirmDialog(view, "Do you want join group " + groupName + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+	if (choice == JOptionPane.YES_OPTION) {
+	    server.write("join " + groupName);
 	}
     }
     

@@ -1,8 +1,10 @@
 package nhom12.chatapp.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,15 +14,18 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -61,18 +66,26 @@ public class User implements Serializable {
     private String status;
     
     @ManyToMany(mappedBy="members")
-    private final Set<Group> joinedGroups = new HashSet<>();
+    @Builder.Default
+    private Set<Group> joinedGroups = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
 	name="tbl_friendship",
-	joinColumns = @JoinColumn(name="user_id"),
-	inverseJoinColumns = @JoinColumn(name="friend_id")
+	joinColumns = @JoinColumn(name="user_id", referencedColumnName="id"),
+	inverseJoinColumns = @JoinColumn(name="friend_id", referencedColumnName="id")
     )
-    private final Set<User> friends = new HashSet<>();
+    @Builder.Default
+    private Set<User> friends = new HashSet<>();
     
-    @ManyToMany(mappedBy="friends")
-    private final Set<User> friendsOfThis = new HashSet<>();
+    @OneToMany(mappedBy="recipient")
+    @Builder.Default
+    private List<Notification> notifications = new ArrayList<>();
+    
+    public void removeFriend(User friend) {
+	friends.remove(friend);
+	friend.getFriends().remove(this);
+    }
     
     @Override
     public String toString() {

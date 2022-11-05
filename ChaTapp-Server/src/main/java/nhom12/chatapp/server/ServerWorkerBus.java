@@ -2,10 +2,12 @@ package nhom12.chatapp.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import nhom12.chatapp.model.User;
 
 public class ServerWorkerBus {
@@ -26,13 +28,15 @@ public class ServerWorkerBus {
     
     public void mutilCastSend(String message) { 
 
-	Server.serverThreadBus.getListServerThreads().forEach(serverThread -> {
-	    try {
-		serverThread.write(message);
-	    } catch (IOException ex) {
-		Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
-	    }
-	});
+	listServerThreads.stream()
+	    .filter(worker -> !worker.getUser().getUsername().isEmpty())
+	    .forEach(worker -> {
+		try {
+		    worker.write(message);
+		} catch (IOException ex) {
+		    Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	    });
     }
     
     public void boardCast(String from, String message){
@@ -63,34 +67,50 @@ public class ServerWorkerBus {
         return listServerThreads.size();
     }
     
-    public void sendOnlineList() {
-	
-        String res = "";
-	res = Server.serverThreadBus.getListServerThreads().stream().map(worker -> worker.getUser().getUsername() + "-").reduce(res, String::concat);
-        Server.serverThreadBus.mutilCastSend("update-online-list " + res);
+    public void sendLoadFriend(String to) throws IOException {
+	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getUsername().equals(to)).findFirst();
+	if(receiver.isPresent())
+	    receiver.get().loadFriends();
     }
     
-    public void sendMessageToPersion(String to, String message) {
-	
-	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getUsername().equals(to)).findAny();
+    public List<String> getOnlineNames() {
+	return listServerThreads.stream()
+	    .map(worker -> worker.getUser().getUsername())
+	    .filter(name -> !name.isEmpty())
+	    .collect(Collectors.toList());
+    }
+    
+    public boolean isOnline(String username) {
+	if (!listServerThreads.isEmpty())
+	    return listServerThreads.stream().anyMatch(worker -> username.equals(worker.getUser().getUsername()));
+	return false;
+    }
+    
+    public void sendMessageToPersion(String to, String msg, Object obj) {
+	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getUsername().equals(to)).findFirst();
 	if(receiver.isPresent()) {
+	    ServerWorker worker = receiver.get();
 	    try {
-		receiver.get().write(message);
+		if(msg != null)
+		    worker.write(msg);
+		if(obj != null)
+		    worker.writeObject(obj);
 	    } catch (IOException ex) {
 		Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
 	    }
 	}
     }
     
-    public void sendDeleteFriendToPersion(int to, String nickNameF) {
-	Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == to).findAny();
-        if(receiver.isPresent()) {
-            receiver.get().handleUpDateUser(nickNameF); 
-        }
+    public void sendMessageToPersion(String to, String msg) {
+	sendMessageToPersion(to, msg, null);
+    }
+    
+    public void sendMessageToPersion(String to, Object obj) {
+	sendMessageToPersion(to, null, obj);
     }
     
     public void sendUsInSys(int from, List<User> usInSys){
-        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == from).findAny();
+        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == from).findFirst();
         receiver.get().writeUsInSys("User-In-System", usInSys);
     }
     
@@ -98,10 +118,10 @@ public class ServerWorkerBus {
 	Server.serverThreadBus.getListServerThreads().removeIf(worker -> worker.getClientNumber() == id);
     }
 
-    void sendNotificationAddFriend(int userf_id) {
-        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == userf_id).findAny();
+    void sendConfirmAddFriendToPersion(User userSend, String viewName, String timeCf) {
+        Optional<ServerWorker> receiver = Server.serverThreadBus.getListServerThreads().stream().filter(worker -> worker.getUser().getId() == userSend.getId()).findFirst();
         if(receiver.isPresent()) {
-            receiver.get().handleSendNotificationAddFriend();
+            receiver.get().handleUpDateAddFUser(userSend, viewName, timeCf); 
         }
     }
 }

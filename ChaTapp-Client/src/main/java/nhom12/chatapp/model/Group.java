@@ -5,10 +5,12 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,8 +20,15 @@ public class Group implements Serializable {
     
     private int id;
     private String name;
-    private final Set<User> members = new HashSet<>();
+    
+    @Builder.Default
+    private Set<User> members = new HashSet<>();
 
+    public void addMember(User user) {
+	members.add(user);
+	user.getJoinedGroups().add(this);
+    }
+    
     @Override
     public String toString() {
 	return 

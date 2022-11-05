@@ -3,14 +3,21 @@ package nhom12.chatapp.client.controller;
 import java.awt.Container;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.swing.JOptionPane;
 import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.view.ClientView;
+import nhom12.chatapp.model.Message;
+import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 
 public class ChatClient implements MessageListener, Runnable {
@@ -18,14 +25,19 @@ public class ChatClient implements MessageListener, Runnable {
     private final ServerConnection server;
     
     private List<String> onlineList;
+    private List<String> groupList;
+    private List<String> friendList;
+    private List<Notification> notiList;
+    
     private int id;
     private User user;
     private List<User> userInsystem;
     private String receiverName;
     
-    private HashMap<String, List<String>> loadedMessages;
+    private final HashMap<String, List<String>> loadedMessages;
     
     private ClientView view;
+    private Notification notification;
 
     public ChatClient(ServerConnection server) {
 	this.server = server;
@@ -33,11 +45,41 @@ public class ChatClient implements MessageListener, Runnable {
 	this.user.setUsername("guest");
 	
 	onlineList = new ArrayList<>();
+	friendList = new ArrayList<>();
+	groupList = new ArrayList<>();
         userInsystem = new ArrayList<>();
 	loadedMessages = new HashMap<>();
+	notiList = new ArrayList<>();
+        notification = new Notification();
         id = -1;
     }
 
+    @Override
+    public String getReceiverName() {
+	return receiverName;
+    }
+
+    @Override
+    public void setReceiverName(String name) {
+	this.receiverName = name;
+	if (receiverName != null) {
+	    view.setChatBoxTitle("Đang nhắn với " + (receiverName.charAt(0) == '#' ? "nhóm " + receiverName.substring(1) : receiverName));
+	    
+	    // Load messages
+	    if (loadedMessages.containsKey(this.receiverName)) {
+		view.clearChatbox();
+		view.printMessages(loadedMessages.get(this.receiverName));
+	    } else {
+		try {
+		    server.write("load-messages " + this.receiverName);
+		} catch (IOException ex) {
+		    Logger.getLogger(ChatClient.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	    }
+	} else
+	    view.setChatBoxTitle("");
+    }
+    
     @Override
     public void setChatView(Container view) {
 	this.view = (ClientView) view;
@@ -65,52 +107,109 @@ public class ChatClient implements MessageListener, Runnable {
 		    case "set-user":
 			this.user = (User) server.readObject();
                         view.setUser(user);
-                        view.updateCombobox(onlineList);
 			break;
 		    case "update-online-list":
-			onlineList = new ArrayList<>();
+			if (argstr.isEmpty())
+			    break;
+			
+			onlineList.clear();
 			String online = "";
-			String[] onlineSplit = argstr.split("-");
+			String[] onlineSplit = argstr.split(" ");
 			for (String onlineSplit1 : onlineSplit) {
-			    if (!onlineSplit1.equals(this.user.getUsername()))
-				onlineList.add("Client " + onlineSplit1);
-			    online += "Client " + onlineSplit1 + " đang online\n";
-			}	
+			    onlineList.add(onlineSplit1);
+			    online += "Client " + onlineSplit1 + " is online\n";
+			}
 			view.getTextArea2().setText(online);
-			view.updateCombobox(onlineList);
+			
+			updateFriendList();
 			break;
-                    case "notification-delete":
-                        this.user = (User) server.readObject();
-                        view.setUser(user);
-                        view.updateCombobox(onlineList);
-                        String[] meString = argstr.split(" ",2);
-                        System.out.println(meString[0]);
-                        if(meString[0].equals(user.getUsername())){
-                            view.setTableNotification(meString[1]);
-                        }
-                        break;
-                    case "notification-add":
-                        this.user = (User) server.readObject();
-                        view.setUser(user);
-                        view.updateCombobox(onlineList);
-                        //String[] meString = messageSplit[1].split(" ",2);
-//                        System.out.println(meString[0]);
-//                        if(meString[0].equals(user.getViewName())){
-//                            view.setTableNotification(meString[1]);
-//                        }
+		    case "update-friends":
+			friendList = argstr.isEmpty() ? new ArrayList<>() : Arrays.asList(argstr.split(" "));
+			view.updateCombobox(friendList);
+			updateFriendList();
+			break;
+		    case "update-groups":
+			if (!argstr.isEmpty()) {
+			
+			    Stream<String> names = Arrays
+				.stream(argstr.split("(?<=\")\\s(?=\")"))
+				.map(name -> name.substring(1, name.length() - 2).replaceAll("\\\"", "\""));
+			    groupList = names.collect(Collectors.toList());
+			}
+			view.updateGroupCombobox(groupList);
+			break;
+		    case "update-notifications":
+			notiList = (List<Notification>) server.readObject();
+			updateNotificationList();
+			break;
+		    case "update-messages":
+			List<Message> msgs = (List<Message>) server.readObject();
+			
+			List<String> msgStr = new ArrayList<>();
+			msgs.forEach(msg -> {
+			    String sender = msg.getSender().getUsername();
+			    msgStr.add("[" + (sender.equals(this.user.getUsername()) ? "You" : sender) + "]: " + msg.getContent());
+			});
+			
+			loadedMessages.put(argstr, msgStr);
+			view.clearChatbox();
+			view.printMessages(loadedMessages.get(argstr));
+			break;
+                    case "add-notification":
+                        notification = (Notification) server.readObject();
+			notiList.add(notification);
+                        updateNotificationList();
                         break;
                     case "User-In-System":
-                        
                         this.userInsystem = (List<User>) server.readObject();
-                        //System.out.println(userInsystem.get(0).getViewName());
                         view.setTableUserSys(userInsystem);
                         break;
+		    case "group-in-system":
+			List<String> results = (List<String>) server.readObject();
+			updateGroupResultList(results);
+			break;
 		    case "display":
 			String[] args = argstr.split(" ", 2);
-			view.printMessage("[" + args[0] + "]: " + args[1]);
+			String receiver = args[0];
+			if (loadedMessages.containsKey(receiver)) {
+			    if (receiver.charAt(0) == '#') {
+				args = args[1].split(" ", 2);
+				loadedMessages.get(receiver).add("[" + args[0] + "]: " + args[1]);
+			    } else
+				loadedMessages.get(receiver).add("[" + receiver + "]: " + args[1]);
+			    
+			    if (receiver.equals(this.receiverName)) {
+				view.clearChatbox();
+				view.printMessages(loadedMessages.get(receiver));
+			    }
+			}
 			break;
 		    case "display-server":
 			view.printMessage("[SERVER]: " + argstr);
+			break;
+		    case "group-created":
+			JOptionPane.showMessageDialog(view, "Created group '" + argstr + "' successfully!", "Group created", JOptionPane.INFORMATION_MESSAGE);
+			groupList.add(argstr);
+			view.updateGroupCombobox(groupList);
+			break;
+		    case "group-existed":
+			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' has already been created!", "Group existed", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "group-error":
+			JOptionPane.showMessageDialog(view, "Something went wrong creating group '" + argstr + "'", "Error", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "join-ok":
+			groupList.add(argstr);
+			view.updateGroupCombobox(groupList);
+			break;
+		    case "join-error":
+			JOptionPane.showMessageDialog(view, "Something went wrong joining group '" + argstr + "'", "Error", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "join-already":
+			JOptionPane.showMessageDialog(view, "You're already a member of group '" + argstr + "'", "Already in group", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "join-not-exist":
+			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' doesn't exist", "Group not found", JOptionPane.ERROR_MESSAGE);
 			break;
 		    default:
 			break;
@@ -129,10 +228,84 @@ public class ChatClient implements MessageListener, Runnable {
 
     }
     
-    private void setID(int id){
-        this.id = id;
+    private void updateFriendList() {
+	view.clearFriendList();
+	
+	friendList.forEach(friend -> {
+	    view.addFriendRow(friend, onlineList.contains(friend) ? "online" : "offline");
+	});
+    }
+    
+    private void updateNotificationList() {
+	view.clearNotificationList();
+	
+	notiList.forEach(not -> {
+	    view.addNotificationRow(
+		not.getContent(), 
+		new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(not.getTimeDate())
+	    );
+	});
+    }
+    
+    private void updateGroupResultList(List<String> results) {
+	view.clearGroupResultList();
+	
+	results.forEach(result -> {
+	    String[] resSplit = result.split(" ");
+	    view.addGroupResultRow(resSplit[0], resSplit[1]);
+	});
     }
 
+    @Override
+    public void processNotification(int index) throws IOException {
+	
+	Notification not = notiList.get(index);
+	
+	if (not.getActive().equalsIgnoreCase("add")) {
+		
+	    String nameSend = not.getContent().split(" ")[0];
+	    int choice = JOptionPane.showConfirmDialog(view, "Do you want confirm add friend with " + nameSend + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+	    if (choice == JOptionPane.YES_OPTION) {
+		notiList.remove(not);
+		updateNotificationList();
+		server.write("confirmAddFriend "+ not.getId());
+	    }
+	}
+	else {
+
+	    int choice = JOptionPane.showConfirmDialog(view, "Do you want delete notification ?", "Ask", JOptionPane.YES_NO_OPTION);
+	    if (choice == JOptionPane.YES_OPTION) {
+		notiList.remove(not);
+		updateNotificationList();
+		server.write("deleteNotification " + not.getId());
+	    }
+	}
+    }
+
+    @Override
+    public void processUnfriend(int index) throws IOException {
+	
+	String name = friendList.get(index);
+	int choice = JOptionPane.showConfirmDialog(view, "Do you want delete friend " + name + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+	if (choice == JOptionPane.YES_OPTION) {
+	    server.write("deletefriend " + name);
+	}
+    }
+
+    @Override
+    public void processJoinGroup(String groupName) throws IOException {
+	
+	int choice = JOptionPane.showConfirmDialog(view, "Do you want join group " + groupName + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+	if (choice == JOptionPane.YES_OPTION) {
+	    server.write("join " + groupName);
+	}
+    }
+    
+    @Override
+    public void createGroup(String name) throws IOException {
+	server.write("create-group " + name);
+    }
+    
     @Override
     public void sendGlobal(String msg) throws IOException {
 	server.write("msg-global " + msg);
@@ -143,6 +316,7 @@ public class ChatClient implements MessageListener, Runnable {
 	try {
 	    
 	    if(receiverName != null) {
+		loadedMessages.get(this.receiverName).add("[You]: " + msg);
 		view.printMessage("[You]: " + msg);
 		server.write("msg " + receiverName + " " + msg);
 	    }
@@ -152,18 +326,22 @@ public class ChatClient implements MessageListener, Runnable {
     }
 
     @Override
-    public void sendDeleteFriend(String idFriend) throws IOException {
-        server.write("deletefriend " + idFriend);
-    }
-
-    @Override
     public void sendFindFriend(String key) throws IOException {
         server.write("findFriend " + key);
     }
 
     @Override
-    public void sendAddFriend(int idUs) throws IOException {
-        server.write("addFriend " + idUs);
+    public void sendFindGroup(String key) throws IOException {
+	server.write("findGroup " + key);
     }
 
+    @Override
+    public void sendAddFriend(String receiverName) throws IOException {
+        server.write("addFriend " + receiverName);
+    }
+
+    @Override
+    public void updateFriends() throws IOException {
+	server.write("get-friends");
+    }
 }

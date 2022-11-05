@@ -49,14 +49,20 @@ public class Message implements Serializable {
 	joinColumns = @JoinColumn(name="message_id", referencedColumnName="id"), 
 	inverseJoinColumns = @JoinColumn(name="recipient_id", referencedColumnName="id")
     )
-    private final Set<User> recipients = new HashSet<>();
+    @Builder.Default
+    private Set<User> recipients = new HashSet<>();
     
     @ManyToOne
     @JoinColumn(name="group_id", referencedColumnName="id")
     private Group group;
     
-    @Column(name="time_sent")
-    @Temporal(TemporalType.DATE)
+    @Column(
+	name="time_sent", 
+	nullable=false,
+	updatable=false,
+	insertable=false,
+	columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date timeSent;
 
     @Override

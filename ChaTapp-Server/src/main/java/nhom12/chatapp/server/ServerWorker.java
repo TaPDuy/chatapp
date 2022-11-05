@@ -5,16 +5,21 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import nhom12.chatapp.model.Group;
+import nhom12.chatapp.model.Message;
+import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 import nhom12.chatapp.server.dao.GroupDAO;
-//import nhom12.chatapp.server.dao.GroupUserDAO;
+import nhom12.chatapp.server.dao.MessageDAO;
+import nhom12.chatapp.server.dao.NotificationDAO;
 import nhom12.chatapp.server.dao.UserDAO;
 import nhom12.chatapp.util.ConsoleLogger;
-import nhom12.hibernate.util.JPAUtil;
 
 public class ServerWorker implements Runnable {
     
@@ -26,7 +31,8 @@ public class ServerWorker implements Runnable {
     
     private final UserDAO userDAO;
     private final GroupDAO groupDAO;
-//    private final GroupUserDAO groupUserDAO;
+    private final NotificationDAO notDAO;
+    private final MessageDAO msgDAO;
     
     private User user;
     private List<String> groupNames;
@@ -51,7 +57,11 @@ public class ServerWorker implements Runnable {
         
         this.userDAO = new UserDAO();
 	this.groupDAO = new GroupDAO();
-//	this.groupUserDAO = new GroupUserDAO(this.groupDAO);
+	this.notDAO = new NotificationDAO();
+	this.msgDAO = new MessageDAO();
+	
+	this.user = User.builder().username("").build();
+	
         isClosed = false;
     }
     
@@ -86,6 +96,11 @@ public class ServerWorker implements Runnable {
         os.writeUTF(message);
         os.flush();
     }
+    
+    public void writeObject(Object obj) throws IOException {
+	os.writeObject(obj);
+	os.flush();
+    }
 
     private void handleClientCmd(String clientCmd) throws IOException {
         String[] tokens = clientCmd.split(" ", 2);
@@ -108,13 +123,17 @@ public class ServerWorker implements Runnable {
             case "findFriend":
                 handleGetUserInSys(tokens[1]);
                 break;
+	    case "findGroup":
+		handleFindGroup(args);
+		break;
             case "addFriend":
-                int idUs = Integer.parseInt(tokens[1]);
-                System.out.println(idUs);
-                handleAddFriend(idUs);
+                handleAddFriend(args);
+                break;
             case "deletefriend":
-                int id_friend = Integer.parseInt(tokens[1]);
-                handleDeleteFriend(id_friend);
+                handleDeleteFriend(args);
+                break;
+            case "confirmAddFriend":
+                handleConfirmAddFriend(Integer.parseInt(args));
                 break;
             case "msg-global":
                 Server.serverThreadBus.boardCast(user.getUsername(), "display " + user.getUsername()+ " " + args);
@@ -139,6 +158,12 @@ public class ServerWorker implements Runnable {
 	    case "create-group":
 		handleCreateGroup(args);
 		break;
+	    case "load-messages":
+		loadMessages(args);
+		break;
+	    case "get-friends":
+		loadFriends();
+		break;
             case "groups":
                 break;
             case "online-users":
@@ -149,7 +174,8 @@ public class ServerWorker implements Runnable {
                 break;
             case "invite-response":
                 break;
-            case "notifications":
+            case "deleteNotification":
+		handleDeleteNotification(Integer.parseInt(args));
                 break;
             default:
                 // Unknown command
@@ -163,7 +189,10 @@ public class ServerWorker implements Runnable {
         String viewname = args[0];
         String password = args[1];
         
-        if ((this.user = userDAO.findByLoginInfo(viewname, password)) != null) {
+        if (
+	    !Server.serverThreadBus.isOnline(viewname) && 
+	    (this.user = userDAO.findByLoginInfo(viewname, password)) != null
+	) {
             
             write("ok-login");
             
@@ -174,12 +203,10 @@ public class ServerWorker implements Runnable {
 	    os.writeObject(this.user);
 	    os.flush();
 	    
-	    Server.serverThreadBus.sendOnlineList();
-	    
-	    // TODO: Sends group list to client
-//	    List<Group> groups = groupUserDAO.getGroupsByUser(this.user);
-//	    groupNames = new ArrayList<>();
-//	    groups.stream().map(group -> group.getName()).forEach(groupNames::add);
+	    loadOnlineNames();
+	    loadFriends();
+	    loadGroupNames();
+	    loadNotifications();
 
 	    ConsoleLogger.log("Worker initialized", "CLIENT-" + clientNumber, ConsoleLogger.INFO);
 	    
@@ -187,6 +214,67 @@ public class ServerWorker implements Runnable {
             write("error-login");
 	    ConsoleLogger.log("Login failed with username: " + viewname, "CLIENT-" + clientNumber, ConsoleLogger.ERROR);
         }
+    }
+    
+    public void loadFriends() throws IOException {
+	
+	List<User> friends = userDAO.findFriends(this.user);
+	
+	String cmd = "update-friends ";
+	cmd = friends.stream()
+	    .map(friend -> friend.getUsername() + " ")
+	    .reduce(cmd, String::concat)
+	    .trim();
+	write(cmd);
+    }
+    
+    public void loadOnlineNames() throws IOException {
+	
+	List<String> onlines = Server.serverThreadBus.getOnlineNames();
+	
+	String cmd = "update-online-list ";
+	cmd = onlines.stream()
+	    .map(name -> name + " ")
+	    .reduce(cmd, String::concat)
+	    .trim();
+	Server.serverThreadBus.mutilCastSend(cmd);
+    }
+    
+    private void loadGroupNames() throws IOException {
+	    
+	groupNames = new ArrayList<>();
+	this.user.getJoinedGroups().stream()
+	    .map(group -> group.getName())
+	    .forEach(groupNames::add);
+
+	String cmd = "update-groups ";
+	cmd = groupNames.stream()
+	    .map(name -> "\"" + name.replace("\"", "\\\"") + "\\\" ")
+	    .reduce(cmd, String::concat).trim();
+	write(cmd);
+    }
+    
+    private void loadNotifications() {
+	
+	List<Notification> nots = notDAO.findByRecipient(this.user);
+	Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "update-notifications", nots);
+    }
+    
+    private void loadMessages(String argstr) {
+	
+	List<Message> msgs = new ArrayList<>();
+	if (argstr.charAt(0) == '#') {
+	    
+	    Optional<Group> group = groupDAO.findByName(argstr.substring(1));
+	    if(group.isPresent())
+		msgs.addAll(msgDAO.findByGroup(group.get()));
+	    
+	} else {
+	    User receiver = userDAO.findByUsername(argstr);
+	    msgs.addAll(msgDAO.findByUser(this.user, receiver));
+	}
+	
+	Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "update-messages " + argstr, msgs);
     }
     
     private void handleRegister(User user) {
@@ -207,115 +295,161 @@ public class ServerWorker implements Runnable {
             ex.printStackTrace();
         }
     }
-    
-    public void handleUpDateUser(String nickNameF){
-        User userUpdate = new User();
-        userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
-        System.out.println(userUpdate.getId());
-	
-        try {
-            write("notification-delete "+nickNameF+" "+userUpdate.getUsername()+" delete friend with you");
-            os.writeObject(userUpdate);
-            os.flush();
-        } catch (IOException ex) {
-            Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        
-    }
-    
-    private void handleDeleteFriend(int id_friend){
 
-        User fUser = new User();
-        for(User friend: user.getFriends()){
-            if(id_friend==friend.getId()){
-                fUser = friend;
-            }
-        }
-        if(userDAO.deleteFriend(user, id_friend)){
-            handleUpDateUser(fUser.getUsername());
-            Server.serverThreadBus.sendDeleteFriendToPersion(id_friend, fUser.getUsername());
-        }
-        
-    }
-    
     private void handleLogoff() throws IOException {
         isClosed = true;
         Server.serverThreadBus.boardCast(user.getUsername(), "display-server " + "User '" + user.getUsername() + "' logged off.");
         Server.serverThreadBus.remove(clientNumber);
-        Server.serverThreadBus.sendOnlineList();
+        loadOnlineNames();
+	
+	userDAO.close();
+	groupDAO.close();
+	notDAO.close();
+	msgDAO.close();
+	
         clientSocket.close();
     }
     
     private void handleMsg(String argstr) {
-	String[] args = argstr.split(" ", 2);
 	
-	if (args[0].charAt(0) == '#')
-	    Server.serverThreadBus.broadCastGroup(user.getUsername(), args[0].substring(1), "display " + user.getUsername() + " " + args[1]);
-	else
-	    Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getUsername() + " " + args[1]);
+	String[] args = argstr.split(" ", 2);
+	Message msg = Message.builder()
+		.content(args[1])
+		.group(null)
+		.sender(this.user)
+		.build();
+	
+	if (args[0].charAt(0) == '#') {
+	    
+	    Optional<Group> group = groupDAO.findByName(args[0].substring(1));
+	    if (group.isPresent()) {
+		
+		msg.setGroup(group.get());
+		group.get().getMembers().forEach(msg.getRecipients()::add);
+
+		if (msgDAO.save(msg))
+		    Server.serverThreadBus.broadCastGroup(user.getUsername(), args[0].substring(1), "display " + args[0] + " " + user.getUsername() + " " + args[1]);
+	    }
+	}
+	else {
+	    
+	    msg.getRecipients().add(userDAO.findByUsername(args[0]));
+	    
+	    if (msgDAO.save(msg))
+		Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getUsername() + " " + args[1]);
+	}
     }
     
     private void handleCreateGroup(String argstr) throws IOException {
 	
-	Group group = new Group().builder().name(argstr).build();
+	Group group = Group.builder().name(argstr).build();
+	group.addMember(user);
 	if (groupDAO.checkExist(group)) {
-	    write("group-existed");
+	    write("group-existed " + argstr);
 	} else {
 	    if (groupDAO.save(group))
-		write("group-created");
+		write("group-created " + argstr);
 	    else
-		write("group-error");
+		write("group-error " + argstr);
 	}
     }
     
-    private void handleJoin(String argstr) throws IOException {
+    private void handleJoin(String groupName) throws IOException {
 	
-	Group group = new Group().builder().name(argstr).build();
-	if (groupDAO.checkExist(group)) {
+	Optional<Group> group = groupDAO.findByName(groupName);
+	if(group.isPresent()) {
 	    
-	    if (!groupNames.contains(argstr)) {
+	    if(!groupNames.contains(groupName)) {
 		
-//		if (groupUserDAO.insertGroupUser(group, this.user)) {
-		if(false){
-		    groupNames.add(argstr);
-		    write("join-ok");
+		try {
 		    
+		    group.get().addMember(this.user);
+		    groupNames.add(groupName);
+
+		    write("join-ok " + groupName);
+
 		    ConsoleLogger.log(
-			"Joined group: '" + argstr + "'", 
+			"Joined group: '" + groupName + "'", 
 			"CLIENT-" + clientNumber, 
 			ConsoleLogger.INFO
 		    );
 		    
-		} else {
+		} catch (RuntimeException e) {
 		    
 		    ConsoleLogger.log(
-			"Something went wrong trying to join group: '" + argstr + "'", 
+			"Something went wrong trying to join group: '" + groupName + "'", 
 			"CLIENT-" + clientNumber, 
 			ConsoleLogger.ERROR
 		    );
-		    write("join-error");
+		    write("join-error " + groupName);
 		}
-	    }
-	    else {
+		
+	    } else {
 		
 		ConsoleLogger.log(
-		    "Tried to join a group they already joined: '" + argstr + "'", 
+		    "Tried to join a group they already joined: '" + groupName + "'", 
 		    "CLIENT-" + clientNumber, 
 		    ConsoleLogger.ERROR
 		);
-		write("join-already");	
+		write("join-already " + groupName);	
 	    }
 	    
 	} else {
 	    
 	    ConsoleLogger.log(
-		"Tried to join a non-existing group: '" + argstr + "'", 
+		"Tried to join a non-existing group: '" + groupName + "'", 
 		"CLIENT-" + clientNumber, 
 		ConsoleLogger.ERROR
 	    );
-	    write("join-not-exist");
+	    write("join-not-exist " + groupName);
 	}
+	
+//	Group group = Group.builder().name(groupName).build();
+////	group.getMembers().add(user);
+//	if (groupDAO.checkExist(group)) {
+//	    
+//	    if (!groupNames.contains(groupName)) {
+//		
+////		if (groupUserDAO.insertGroupUser(group, this.user)) {
+//		if(false){
+//		    groupNames.add(groupName);
+//		    write("join-ok");
+//		    
+//		    ConsoleLogger.log(
+//			"Joined group: '" + groupName + "'", 
+//			"CLIENT-" + clientNumber, 
+//			ConsoleLogger.INFO
+//		    );
+//		    
+//		} else {
+//		    
+//		    ConsoleLogger.log(
+//			"Something went wrong trying to join group: '" + groupName + "'", 
+//			"CLIENT-" + clientNumber, 
+//			ConsoleLogger.ERROR
+//		    );
+//		    write("join-error");
+//		}
+//	    }
+//	    else {
+//		
+//		ConsoleLogger.log(
+//		    "Tried to join a group they already joined: '" + groupName + "'", 
+//		    "CLIENT-" + clientNumber, 
+//		    ConsoleLogger.ERROR
+//		);
+//		write("join-already");	
+//	    }
+//	    
+//	} else {
+//	    
+//	    ConsoleLogger.log(
+//		"Tried to join a non-existing group: '" + groupName + "'", 
+//		"CLIENT-" + clientNumber, 
+//		ConsoleLogger.ERROR
+//	    );
+//	    write("join-not-exist");
+//	}
 	    
     }
     
@@ -369,10 +503,29 @@ public class ServerWorker implements Runnable {
     }
 
     private void handleGetUserInSys(String key) {
-        List<User> userInSystem = new ArrayList<>();
-        userInSystem = userDAO.findAll();
-        System.out.println(userInSystem.size());
-        Server.serverThreadBus.sendUsInSys(user.getId(), userInSystem);
+	
+	List<User> userInSystem = userDAO.findByKey(key);
+	ConsoleLogger.log(
+	    "Found " + userInSystem.size() + " user(s) with key '" + key + "'", 
+	    "CLIENT-" + clientNumber, 
+	    ConsoleLogger.INFO
+	);
+	Server.serverThreadBus.sendUsInSys(user.getId(), userInSystem);
+    }
+    
+    private void handleFindGroup(String key) {
+	
+	List<Group> results = groupDAO.findByKey(key);
+	ConsoleLogger.log(
+	    "Found " + results.size() + " user(s) with key '" + key + "'", 
+	    "CLIENT-" + clientNumber, 
+	    ConsoleLogger.INFO
+	);
+	
+	List<String> data = results.stream()
+	    .map(group -> group.getName() + " " + group.getMembers().size())
+	    .collect(Collectors.toList());
+	Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "group-in-system", data);
     }
     
     public void writeUsInSys(String mes, List<User> usInSys){
@@ -385,22 +538,106 @@ public class ServerWorker implements Runnable {
         }
     }
 
-    private void handleAddFriend(int userf_id) {
-        if(userDAO.insertFriend(user, userf_id)){
-            Server.serverThreadBus.sendNotificationAddFriend(userf_id);
-        }
+    private void handleAddFriend(String receiverName) {
+	
+	Notification not = Notification.builder()
+		.content(this.user.getUsername() + " sent you a friend request")
+		.sender(this.user)
+		.recipient(userDAO.findByUsername(receiverName))
+		.active("add")
+		.build();
+	
+	if (notDAO.save(not)) {
+	    notDAO.refresh(not);
+	    Server.serverThreadBus.sendMessageToPersion(receiverName, "add-notification", not);
+	}
+	// TODO: add an else
     }
 
-    public void handleSendNotificationAddFriend(){
-        User userUpdate = new User();
-        userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
-        System.out.println(userUpdate.getFriends().size());
+    public void handleUpDateAddFUser(User userSend, String nickName, String timeCf){
+        User userUpdate = userDAO.findByLoginInfo(user.getUsername(), user.getPassword());
         try {
-            write("notification-add "+user.getUsername()+" send add friend for you");
+            write("notification-confirm "+userSend.getUsername()+ " " + timeCf + " "+nickName+" accept your friend request");
+            os.writeObject(userUpdate);
+            os.flush();
         } catch (IOException ex) {
             Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    private void handleConfirmAddFriend(int notId) throws IOException {
+	Optional<Notification> not = notDAO.findById(notId);
+	if(not.isPresent()) {
+	    User sender = not.get().getSender();
+	    User recipient = not.get().getRecipient();
+	    sender.getFriends().add(recipient);
+	    recipient.getFriends().add(sender);
+	    
+	    Notification notSen = Notification.builder()
+		.content(recipient.getUsername() + " is now your friend")
+		.sender(recipient)
+		.recipient(sender)
+		.active("cf")
+		.build();
+		    
+	    Notification notRec = Notification.builder()
+		.content(sender.getUsername() + " is now your friend")
+		.sender(sender)
+		.recipient(recipient)
+		.active("cf")
+		.build();
+	    
+	    if(notDAO.save(Arrays.asList(notSen, notRec))) {
+		notDAO.delete(not.get());
+		
+		notDAO.refresh(notRec);
+		notDAO.refresh(notSen);
+		Server.serverThreadBus.sendMessageToPersion(sender.getUsername(), "add-notification", notSen);
+		Server.serverThreadBus.sendMessageToPersion(recipient.getUsername(), "add-notification", notRec);
+		
+		loadFriends();
+		Server.serverThreadBus.sendLoadFriend(sender.getUsername());
+	    }
+	}
+    }
+    
+    private void handleDeleteFriend(String argstr) throws IOException {
         
-        
+	User deleteUser = userDAO.findByUsername(argstr);
+	if(user != null){
+	    
+	    userDAO.deleteFriend(deleteUser, this.user);
+	    
+	    Notification notSen = Notification.builder()
+		.content(deleteUser.getUsername() + " is no longer your friend")
+		.sender(deleteUser)
+		.recipient(this.user)
+		.active("cf")
+		.build();
+		    
+	    Notification notRec = Notification.builder()
+		.content(this.user.getUsername() + " is no longer your friend")
+		.sender(this.user)
+		.recipient(deleteUser)
+		.active("cf")
+		.build();
+	    
+	    if(notDAO.save(Arrays.asList(notSen, notRec))) {
+		notDAO.refresh(notRec);
+		notDAO.refresh(notSen);
+		Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "add-notification", notSen);
+		Server.serverThreadBus.sendMessageToPersion(deleteUser.getUsername(), "add-notification", notRec);
+		
+		loadFriends();
+		Server.serverThreadBus.sendLoadFriend(deleteUser.getUsername());
+	    }
+	}
+    }
+
+    private void handleDeleteNotification(int notId) {
+	Optional<Notification> not = notDAO.findById(notId);
+	if(not.isPresent()) {
+	    notDAO.delete(not.get());
+	}
     }
 }

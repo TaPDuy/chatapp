@@ -40,6 +40,7 @@ public class ViewContainer extends javax.swing.JFrame implements WindowListener 
 		    setContentPane(new RegisterFrm(this, loginListener));
 		    pack();
 		}
+		break;
 	    case "ClientView":
 		if (messageLoop != null) {
 		    messageThread = new Thread(messageLoop);
@@ -48,6 +49,7 @@ public class ViewContainer extends javax.swing.JFrame implements WindowListener 
 		    messageListener.setChatView(getContentPane());
 		    messageThread.start();
 		}
+		break;
 	    default:
 		break;
 	}

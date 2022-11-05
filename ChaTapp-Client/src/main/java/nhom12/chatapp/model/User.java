@@ -1,15 +1,19 @@
 package nhom12.chatapp.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,10 +30,16 @@ public class User implements Serializable {
     private String sdt;
     private String address;
     private String status;
-    private final Set<Group> joinedGroups = new HashSet<>();
-    private final Set<User> friends = new HashSet<>();
-    private final Set<User> friendsOfThis = new HashSet<>();
-
+    
+    @Builder.Default
+    private Set<Group> joinedGroups = new HashSet<>();
+    
+    @Builder.Default
+    private Set<User> friends = new HashSet<>();
+    
+    @Builder.Default
+    private List<Notification> notifications = new ArrayList<>();
+    
     @Override
     public String toString() {
 	return

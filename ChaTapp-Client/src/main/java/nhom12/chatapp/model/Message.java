@@ -20,7 +20,9 @@ public class Message implements Serializable {
     private int id;
     private String content;
     private User sender;
-    private final Set<User> recipients = new HashSet<>();
+    
+    @Builder.Default
+    private Set<User> recipients = new HashSet<>();
     private Group group;
     private Date timeSent;
 

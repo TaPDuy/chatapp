@@ -137,6 +137,7 @@ public class ChatClient implements MessageListener, Runnable {
 			    groupList = names.collect(Collectors.toList());
 			}
 			view.updateGroupCombobox(groupList);
+			updateGroupList();
 			break;
 		    case "update-notifications":
 			notiList = (List<Notification>) server.readObject();
@@ -219,6 +220,7 @@ public class ChatClient implements MessageListener, Runnable {
 		    case "join-ok":
 			groupList.add(argstr);
 			view.updateGroupCombobox(groupList);
+			updateGroupList();
 			break;
 		    case "join-error":
 			JOptionPane.showMessageDialog(view, "Something went wrong joining group '" + argstr + "'", "Error", JOptionPane.ERROR_MESSAGE);
@@ -227,6 +229,20 @@ public class ChatClient implements MessageListener, Runnable {
 			JOptionPane.showMessageDialog(view, "You're already a member of group '" + argstr + "'", "Already in group", JOptionPane.ERROR_MESSAGE);
 			break;
 		    case "join-not-exist":
+			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' doesn't exist", "Group not found", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "leave-ok":
+			groupList.remove(argstr);
+			view.updateGroupCombobox(groupList);
+			updateGroupList();
+			break;
+		    case "leave-error":
+			JOptionPane.showMessageDialog(view, "Something went wrong leaving group '" + argstr + "'", "Error", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "leave-already":
+			JOptionPane.showMessageDialog(view, "You're not a member of group '" + argstr + "'", "Not in group", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "leave-not-exist":
 			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' doesn't exist", "Group not found", JOptionPane.ERROR_MESSAGE);
 			break;
 		    default:
@@ -251,6 +267,14 @@ public class ChatClient implements MessageListener, Runnable {
 	
 	friendList.forEach(friend -> {
 	    view.addFriendRow(friend, onlineList.contains(friend) ? "online" : "offline");
+	});
+    }
+    
+    private void updateGroupList() {
+	view.clearGroupList();
+	
+	groupList.forEach(name -> {
+	    view.addGroupRow(name);
 	});
     }
     
@@ -316,6 +340,15 @@ public class ChatClient implements MessageListener, Runnable {
 	int choice = JOptionPane.showConfirmDialog(view, "Do you want join group " + groupName + " ?", "Ask", JOptionPane.YES_NO_OPTION);
 	if (choice == JOptionPane.YES_OPTION) {
 	    server.write("join " + groupName);
+	}
+    }
+
+    @Override
+    public void processLeaveGroup(String groupName) throws IOException {
+	
+	int choice = JOptionPane.showConfirmDialog(view, "Do you want leave group " + groupName + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+	if (choice == JOptionPane.YES_OPTION) {
+	    server.write("leave " + groupName);
 	}
     }
 

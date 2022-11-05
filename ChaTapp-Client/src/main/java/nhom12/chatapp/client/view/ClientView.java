@@ -562,7 +562,7 @@ public class ClientView extends javax.swing.JPanel {
 	try {
 	    String groupName = jTextField2.getText();
 	    if (!groupName.isEmpty())
-		listener.createGroup(groupName);
+		listener.createGroup(groupName.replaceAll("\\s+", "_"));
 	} catch (IOException ex) {
 	    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
 	}
@@ -603,6 +603,15 @@ public class ClientView extends javax.swing.JPanel {
     public void printMessage(String msg) {
 	jTextArea1.setText(jTextArea1.getText() + msg + "\n");
 	jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
+    }
+    
+    public void printMessages(List<String> msg) {
+	msg.forEach(m -> printMessage(m));
+    }
+    
+    public void clearChatbox() {
+	jTextArea1.setText("");
+	jTextArea1.setCaretPosition(0);
     }
 
     public void setUser(User user) {

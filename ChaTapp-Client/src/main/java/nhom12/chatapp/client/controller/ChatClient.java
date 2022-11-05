@@ -15,6 +15,7 @@ import javax.swing.JOptionPane;
 import nhom12.chatapp.client.ServerConnection;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.view.ClientView;
+import nhom12.chatapp.model.Message;
 import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 
@@ -32,7 +33,7 @@ public class ChatClient implements MessageListener, Runnable {
     private List<User> userInsystem;
     private String receiverName;
     
-    private HashMap<String, List<String>> loadedMessages;
+    private final HashMap<String, List<String>> loadedMessages;
     
     private ClientView view;
     private Notification notification;
@@ -59,9 +60,21 @@ public class ChatClient implements MessageListener, Runnable {
     @Override
     public void setReceiverName(String name) {
 	this.receiverName = name;
-	if (receiverName != null)
+	if (receiverName != null) {
 	    view.setChatBoxTitle("Đang nhắn với " + (receiverName.charAt(0) == '#' ? "nhóm " + receiverName.substring(1) : receiverName));
-	else
+	    
+	    // Load messages
+	    if (loadedMessages.containsKey(this.receiverName)) {
+		view.clearChatbox();
+		view.printMessages(loadedMessages.get(this.receiverName));
+	    } else {
+		try {
+		    server.write("load-messages " + this.receiverName);
+		} catch (IOException ex) {
+		    Logger.getLogger(ChatClient.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	    }
+	} else
 	    view.setChatBoxTitle("");
     }
     
@@ -127,6 +140,19 @@ public class ChatClient implements MessageListener, Runnable {
 			notiList = (List<Notification>) server.readObject();
 			view.setTableNotification(notiList);
 			break;
+		    case "update-messages":
+			List<Message> msgs = (List<Message>) server.readObject();
+			
+			List<String> msgStr = new ArrayList<>();
+			msgs.forEach(msg -> {
+			    String sender = msg.getSender().getUsername();
+			    msgStr.add("[" + (sender.equals(this.user.getUsername()) ? "You" : sender) + "]: " + msg.getContent());
+			});
+			
+			loadedMessages.put(argstr, msgStr);
+			view.clearChatbox();
+			view.printMessages(loadedMessages.get(argstr));
+			break;
                     case "add-notification":
                         notification = (Notification) server.readObject();
 			notiList.add(notification);
@@ -138,7 +164,19 @@ public class ChatClient implements MessageListener, Runnable {
                         break;
 		    case "display":
 			String[] args = argstr.split(" ", 2);
-			view.printMessage("[" + args[0] + "]: " + args[1]);
+			String receiver = args[0];
+			if (loadedMessages.containsKey(receiver)) {
+			    if (receiver.charAt(0) == '#') {
+				args = args[1].split(" ", 2);
+				loadedMessages.get(receiver).add("[" + args[0] + "]: " + args[1]);
+			    } else
+				loadedMessages.get(receiver).add("[" + receiver + "]: " + args[1]);
+			    
+			    if (receiver.equals(this.receiverName)) {
+				view.clearChatbox();
+				view.printMessages(loadedMessages.get(receiver));
+			    }
+			}
 			break;
 		    case "display-server":
 			view.printMessage("[SERVER]: " + argstr);
@@ -216,6 +254,7 @@ public class ChatClient implements MessageListener, Runnable {
 	try {
 	    
 	    if(receiverName != null) {
+		loadedMessages.get(this.receiverName).add("[You]: " + msg);
 		view.printMessage("[You]: " + msg);
 		server.write("msg " + receiverName + " " + msg);
 	    }

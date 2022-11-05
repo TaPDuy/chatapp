@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.persistence.TypedQuery;
 import nhom12.chatapp.model.Group;
+import nhom12.chatapp.util.ConsoleLogger;
 import nhom12.hibernate.util.JPAUtil;
 
 
@@ -21,6 +22,19 @@ public class GroupDAO extends BasicDAO<Group> {
 	TypedQuery<Group> query = entityManager.createQuery(GET_BY_NAME, Group.class);
 	query.setParameter("name", group.getName());
 	return query.getResultList().size() == 1;
+    }
+    
+    public Group findByName(String name) {
+	
+	try {
+	    TypedQuery<Group> query = entityManager.createQuery(GET_BY_NAME, Group.class);
+	    query.setParameter("name", name);
+	    return query.getSingleResult();
+	} catch (RuntimeException e) {
+	    ConsoleLogger.log(e.getMessage(), "DB", ConsoleLogger.ERROR);
+	}
+	
+	return null;
     }
     
     @Override

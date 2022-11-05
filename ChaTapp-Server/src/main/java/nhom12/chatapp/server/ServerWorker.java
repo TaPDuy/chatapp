@@ -6,16 +6,16 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nhom12.chatapp.model.Group;
+import nhom12.chatapp.model.Message;
 import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 import nhom12.chatapp.server.dao.GroupDAO;
+import nhom12.chatapp.server.dao.MessageDAO;
 import nhom12.chatapp.server.dao.NotificationDAO;
 import nhom12.chatapp.server.dao.UserDAO;
 import nhom12.chatapp.util.ConsoleLogger;
@@ -31,6 +31,7 @@ public class ServerWorker implements Runnable {
     private final UserDAO userDAO;
     private final GroupDAO groupDAO;
     private final NotificationDAO notDAO;
+    private final MessageDAO msgDAO;
     
     private User user;
     private List<String> groupNames;
@@ -56,6 +57,7 @@ public class ServerWorker implements Runnable {
         this.userDAO = new UserDAO();
 	this.groupDAO = new GroupDAO();
 	this.notDAO = new NotificationDAO();
+	this.msgDAO = new MessageDAO();
 	
 	this.user = User.builder().username("").build();
 	
@@ -152,6 +154,9 @@ public class ServerWorker implements Runnable {
 	    case "create-group":
 		handleCreateGroup(args);
 		break;
+	    case "load-messages":
+		loadMessages(args);
+		break;
             case "groups":
                 break;
             case "online-users":
@@ -245,6 +250,19 @@ public class ServerWorker implements Runnable {
 	Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "update-notifications", nots);
     }
     
+    private void loadMessages(String argstr) {
+	
+	List<Message> msgs = new ArrayList<>();
+	if (argstr.charAt(0) == '#') {
+	    msgs.addAll(msgDAO.findByGroup(groupDAO.findByName(argstr.substring(1))));
+	} else {
+	    User receiver = userDAO.findByUsername(argstr);
+	    msgs.addAll(msgDAO.findByUser(this.user, receiver));
+	}
+	
+	Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "update-messages " + argstr, msgs);
+    }
+    
     private void handleRegister(User user) {
         try {
             if (!userDAO.checkExist(user)) {
@@ -273,17 +291,36 @@ public class ServerWorker implements Runnable {
 	userDAO.close();
 	groupDAO.close();
 	notDAO.close();
+	msgDAO.close();
 	
         clientSocket.close();
     }
     
     private void handleMsg(String argstr) {
-	String[] args = argstr.split(" ", 2);
 	
-	if (args[0].charAt(0) == '#')
-	    Server.serverThreadBus.broadCastGroup(user.getUsername(), args[0].substring(1), "display " + user.getUsername() + " " + args[1]);
-	else
-	    Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getUsername() + " " + args[1]);
+	String[] args = argstr.split(" ", 2);
+	Message msg = Message.builder()
+		.content(args[1])
+		.group(null)
+		.sender(this.user)
+		.build();
+	
+	if (args[0].charAt(0) == '#') {
+	    
+	    Group group = groupDAO.findByName(args[0].substring(1));
+	    msg.setGroup(group);
+	    group.getMembers().forEach(msg.getRecipients()::add);
+	    
+	    if (msgDAO.save(msg))
+		Server.serverThreadBus.broadCastGroup(user.getUsername(), args[0].substring(1), "display " + args[0] + " " + user.getUsername() + " " + args[1]);
+	}
+	else {
+	    
+	    msg.getRecipients().add(userDAO.findByUsername(args[0]));
+	    
+	    if (msgDAO.save(msg))
+		Server.serverThreadBus.sendMessageToPersion(args[0], "display " + user.getUsername() + " " + args[1]);
+	}
     }
     
     private void handleDeleteFriend(String argstr){
@@ -296,7 +333,6 @@ public class ServerWorker implements Runnable {
 		.content(deleteUser.getUsername() + " is no longer your friend")
 		.sender(deleteUser)
 		.recipient(this.user)
-		.timeDate(new Date())
 		.active("cf")
 		.build();
 		    
@@ -304,7 +340,6 @@ public class ServerWorker implements Runnable {
 		.content(this.user.getUsername() + " is no longer your friend")
 		.sender(this.user)
 		.recipient(deleteUser)
-		.timeDate(new Date())
 		.active("cf")
 		.build();
 	    
@@ -459,7 +494,6 @@ public class ServerWorker implements Runnable {
 		.content(this.user.getUsername() + " sent you a friend request")
 		.sender(this.user)
 		.recipient(userDAO.findByUsername(receiverName))
-		.timeDate(new Date())
 		.active("add")
 		.build();
 	
@@ -491,7 +525,6 @@ public class ServerWorker implements Runnable {
 		.content(recipient.getUsername() + " is now your friend")
 		.sender(recipient)
 		.recipient(sender)
-		.timeDate(new Date())
 		.active("cf")
 		.build();
 		    
@@ -499,7 +532,6 @@ public class ServerWorker implements Runnable {
 		.content(sender.getUsername() + " is now your friend")
 		.sender(sender)
 		.recipient(recipient)
-		.timeDate(new Date())
 		.active("cf")
 		.build();
 	    

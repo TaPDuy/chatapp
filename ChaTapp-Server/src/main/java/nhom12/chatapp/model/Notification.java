@@ -45,8 +45,13 @@ public class Notification implements Serializable{
     @JoinColumn(name="recipient_id", referencedColumnName="id")
     private User recipient;
     
-    @Column(name="time_sent")
-    @Temporal(TemporalType.DATE)
+    @Column(
+	name="time_sent", 
+	nullable=false,
+	updatable=false,
+	insertable=false,
+	columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date timeDate;
     
     @Column(name="active")

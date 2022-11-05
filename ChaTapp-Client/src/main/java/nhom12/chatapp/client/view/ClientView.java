@@ -562,7 +562,14 @@ public class ClientView extends javax.swing.JPanel {
     }//GEN-LAST:event_tbl_notificationMouseClicked
 
     private void btn_profileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_profileActionPerformed
-        // TODO add your handling code here:
+        int row = tbl_friends.getSelectedRow();
+        if (row != -1) {
+	    try {
+		listener.processViewProfile(row);
+	    } catch (IOException ex) {
+		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	}
     }//GEN-LAST:event_btn_profileActionPerformed
 
     private void btn_unfriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_unfriendActionPerformed

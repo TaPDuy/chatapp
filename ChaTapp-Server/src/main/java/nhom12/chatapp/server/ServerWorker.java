@@ -164,6 +164,11 @@ public class ServerWorker implements Runnable {
 	    case "get-friends":
 		loadFriends();
 		break;
+	    case "view-profile":
+		User u = userDAO.findByUsername(args);
+		if (u != null)
+		    Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "view-profile", u);
+		break;
             case "groups":
                 break;
             case "online-users":
@@ -403,54 +408,6 @@ public class ServerWorker implements Runnable {
 	    );
 	    write("join-not-exist " + groupName);
 	}
-	
-//	Group group = Group.builder().name(groupName).build();
-////	group.getMembers().add(user);
-//	if (groupDAO.checkExist(group)) {
-//	    
-//	    if (!groupNames.contains(groupName)) {
-//		
-////		if (groupUserDAO.insertGroupUser(group, this.user)) {
-//		if(false){
-//		    groupNames.add(groupName);
-//		    write("join-ok");
-//		    
-//		    ConsoleLogger.log(
-//			"Joined group: '" + groupName + "'", 
-//			"CLIENT-" + clientNumber, 
-//			ConsoleLogger.INFO
-//		    );
-//		    
-//		} else {
-//		    
-//		    ConsoleLogger.log(
-//			"Something went wrong trying to join group: '" + groupName + "'", 
-//			"CLIENT-" + clientNumber, 
-//			ConsoleLogger.ERROR
-//		    );
-//		    write("join-error");
-//		}
-//	    }
-//	    else {
-//		
-//		ConsoleLogger.log(
-//		    "Tried to join a group they already joined: '" + groupName + "'", 
-//		    "CLIENT-" + clientNumber, 
-//		    ConsoleLogger.ERROR
-//		);
-//		write("join-already");	
-//	    }
-//	    
-//	} else {
-//	    
-//	    ConsoleLogger.log(
-//		"Tried to join a non-existing group: '" + groupName + "'", 
-//		"CLIENT-" + clientNumber, 
-//		ConsoleLogger.ERROR
-//	    );
-//	    write("join-not-exist");
-//	}
-	    
     }
     
     private void handleLeave(String argstr) throws IOException {

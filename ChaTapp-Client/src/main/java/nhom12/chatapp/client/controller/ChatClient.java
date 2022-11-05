@@ -187,6 +187,24 @@ public class ChatClient implements MessageListener, Runnable {
 		    case "display-server":
 			view.printMessage("[SERVER]: " + argstr);
 			break;
+		    case "view-profile":
+			User profile = (User) server.readObject();
+			
+			String profileStr = ""
+			    + "Username : " + profile.getUsername() + "\n" 
+			    + "Full name : " + profile.getFullname() + "\n"
+			    + "Gender : " + profile.getGender() + "\n"
+			    + "DOB : " + new SimpleDateFormat("dd/MM/yyyy").format(profile.getDob()) + "\n"
+			    + "Phone : " + profile.getSdt() + "\n"
+			    + "Address : " + profile.getAddress() + "\n";
+			
+			JOptionPane.showMessageDialog(
+				view, 
+				profileStr, 
+				user.getUsername() + "'s profile", 
+				JOptionPane.PLAIN_MESSAGE
+			);
+			break;
 		    case "group-created":
 			JOptionPane.showMessageDialog(view, "Created group '" + argstr + "' successfully!", "Group created", JOptionPane.INFORMATION_MESSAGE);
 			groupList.add(argstr);
@@ -299,6 +317,12 @@ public class ChatClient implements MessageListener, Runnable {
 	if (choice == JOptionPane.YES_OPTION) {
 	    server.write("join " + groupName);
 	}
+    }
+
+    @Override
+    public void processViewProfile(int index) throws IOException {
+	String name = friendList.get(index);
+	server.write("view-profile " + name);
     }
     
     @Override

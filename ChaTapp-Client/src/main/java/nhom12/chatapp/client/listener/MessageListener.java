@@ -18,9 +18,11 @@ public interface MessageListener {
     
     public void processNotification(int index) throws IOException;
     public void processUnfriend(int index) throws IOException;
+    public void processViewProfile(int index) throws IOException;
     public void processJoinGroup(String groupName) throws IOException;
     
     public void updateFriends() throws IOException;
+
 
 
 }

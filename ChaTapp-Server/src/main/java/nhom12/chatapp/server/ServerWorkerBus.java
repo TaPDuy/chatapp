@@ -28,13 +28,15 @@ public class ServerWorkerBus {
     
     public void mutilCastSend(String message) { 
 
-	Server.serverThreadBus.getListServerThreads().forEach(serverThread -> {
-	    try {
-		serverThread.write(message);
-	    } catch (IOException ex) {
-		Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
-	    }
-	});
+	listServerThreads.stream()
+	    .filter(worker -> !worker.getUser().getUsername().isEmpty())
+	    .forEach(worker -> {
+		try {
+		    worker.write(message);
+		} catch (IOException ex) {
+		    Logger.getLogger(ServerWorkerBus.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	    });
     }
     
     public void boardCast(String from, String message){
@@ -63,13 +65,6 @@ public class ServerWorkerBus {
     
     public int getLength() {
         return listServerThreads.size();
-    }
-    
-    public void sendOnlineList() {
-	
-        String res = "";
-	res = Server.serverThreadBus.getListServerThreads().stream().map(worker -> worker.getUser().getUsername() + "-").reduce(res, String::concat);
-        Server.serverThreadBus.mutilCastSend("update-online-list " + res);
     }
     
     public void sendLoadFriend(String to) throws IOException {

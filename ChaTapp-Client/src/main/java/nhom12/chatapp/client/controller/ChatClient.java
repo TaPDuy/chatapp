@@ -44,6 +44,7 @@ public class ChatClient implements MessageListener, Runnable {
 	this.user.setUsername("guest");
 	
 	onlineList = new ArrayList<>();
+	friendList = new ArrayList<>();
 	groupList = new ArrayList<>();
         userInsystem = new ArrayList<>();
 	loadedMessages = new HashMap<>();
@@ -114,17 +115,20 @@ public class ChatClient implements MessageListener, Runnable {
 			String online = "";
 			String[] onlineSplit = argstr.split(" ");
 			for (String onlineSplit1 : onlineSplit) {
-			    if (!onlineSplit1.equals(this.user.getUsername()))
-				onlineList.add(onlineSplit1);
+			    onlineList.add(onlineSplit1);
 			    online += "Client " + onlineSplit1 + " is online\n";
 			}
 			view.getTextArea2().setText(online);
+			
+			updateFriendList();
 			break;
 		    case "update-friends":
 			if (!argstr.isEmpty()) {
 			    friendList = Arrays.asList(argstr.split(" "));
 			}
+			
 			view.updateCombobox(friendList);
+			updateFriendList();
 			break;
 		    case "update-groups":
 			if (!argstr.isEmpty()) {
@@ -209,6 +213,14 @@ public class ChatClient implements MessageListener, Runnable {
 
     }
     
+    private void updateFriendList() {
+	view.clearFriendList();
+	
+	friendList.forEach(friend -> {
+	    view.addFriendRow(friend, onlineList.contains(friend) ? "online" : "offline");
+	});
+    }
+    
     private void setID(int id){
         this.id = id;
     }
@@ -276,5 +288,10 @@ public class ChatClient implements MessageListener, Runnable {
     @Override
     public void sendAddFriend(String receiverName) throws IOException {
         server.write("addFriend " + receiverName);
+    }
+
+    @Override
+    public void updateFriends() throws IOException {
+	server.write("get-friends");
     }
 }

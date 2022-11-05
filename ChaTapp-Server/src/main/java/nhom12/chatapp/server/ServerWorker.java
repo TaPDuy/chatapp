@@ -157,6 +157,9 @@ public class ServerWorker implements Runnable {
 	    case "load-messages":
 		loadMessages(args);
 		break;
+	    case "get-friends":
+		loadFriends();
+		break;
             case "groups":
                 break;
             case "online-users":
@@ -221,7 +224,7 @@ public class ServerWorker implements Runnable {
 	write(cmd);
     }
     
-    private void loadOnlineNames() throws IOException {
+    public void loadOnlineNames() throws IOException {
 	
 	List<String> onlines = Server.serverThreadBus.getOnlineNames();
 	
@@ -230,7 +233,7 @@ public class ServerWorker implements Runnable {
 	    .map(name -> name + " ")
 	    .reduce(cmd, String::concat)
 	    .trim();
-	write(cmd);
+	Server.serverThreadBus.mutilCastSend(cmd);
     }
     
     private void loadGroupNames() throws IOException {
@@ -289,7 +292,7 @@ public class ServerWorker implements Runnable {
         isClosed = true;
         Server.serverThreadBus.boardCast(user.getUsername(), "display-server " + "User '" + user.getUsername() + "' logged off.");
         Server.serverThreadBus.remove(clientNumber);
-        Server.serverThreadBus.sendOnlineList();
+        loadOnlineNames();
 	
 	userDAO.close();
 	groupDAO.close();

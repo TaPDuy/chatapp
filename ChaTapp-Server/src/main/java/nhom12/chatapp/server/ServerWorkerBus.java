@@ -86,7 +86,9 @@ public class ServerWorkerBus {
     }
     
     public boolean isOnline(String username) {
-	return listServerThreads.stream().anyMatch(worker -> username.equals(worker.getUser().getUsername()));
+	if (!listServerThreads.isEmpty())
+	    return listServerThreads.stream().anyMatch(worker -> username.equals(worker.getUser().getUsername()));
+	return false;
     }
     
     public void sendMessageToPersion(String to, String msg, Object obj) {

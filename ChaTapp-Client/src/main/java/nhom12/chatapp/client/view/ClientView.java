@@ -444,6 +444,11 @@ public class ClientView extends javax.swing.JPanel {
         jScrollPane7.setBounds(20, 51, 600, 395);
 
         btn_viewMembers.setText("View Members");
+        btn_viewMembers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_viewMembersActionPerformed(evt);
+            }
+        });
         jPanel8.add(btn_viewMembers);
         btn_viewMembers.setBounds(180, 10, 140, 29);
 
@@ -663,6 +668,17 @@ public class ClientView extends javax.swing.JPanel {
 	    }
 	}
     }//GEN-LAST:event_btn_leaveActionPerformed
+
+    private void btn_viewMembersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_viewMembersActionPerformed
+        int row = tbl_groups.getSelectedRow();
+        if (row != -1) {
+	    try {
+		listener.processViewMembers(row);
+	    } catch (IOException ex) {
+		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	}
+    }//GEN-LAST:event_btn_viewMembersActionPerformed
 
     public JTextArea getTextArea1() {
         return this.jTextArea1;

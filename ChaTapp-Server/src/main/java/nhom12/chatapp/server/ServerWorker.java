@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -169,16 +170,20 @@ public class ServerWorker implements Runnable {
 		if (u != null)
 		    Server.serverThreadBus.sendMessageToPersion(this.user.getUsername(), "view-profile", u);
 		break;
-            case "groups":
-                break;
-            case "online-users":
-                break;
-            case "users":
-                break;
-            case "create-invite":
-                break;
-            case "invite-response":
-                break;
+	    case "view-members":
+		Optional<Group> group = groupDAO.findByName(args);
+		if(group.isPresent()) {
+		    
+		    Set<User> members = group.get().getMembers();
+		    String msg = "view-members ";
+		    msg = members.stream()
+			.map(mem -> mem.getUsername() + " ")
+			.reduce(msg, String::concat)
+			.trim();
+		    write(msg);
+		}
+		break;
+
             case "deleteNotification":
 		handleDeleteNotification(Integer.parseInt(args));
                 break;

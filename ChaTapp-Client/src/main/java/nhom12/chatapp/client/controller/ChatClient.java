@@ -206,6 +206,23 @@ public class ChatClient implements MessageListener, Runnable {
 				JOptionPane.PLAIN_MESSAGE
 			);
 			break;
+		    case "view-members":
+			String[] mem = argstr.split(" ");
+			
+			String msg = "Number of members: " + mem.length + "\nMembers:\n";
+			for(int i = 0; i < mem.length; ++i) {
+			    msg += mem[i] + ", ";
+			    if (i % 8 == 0)
+				msg += "\n";
+			}
+			
+			JOptionPane.showMessageDialog(
+				view, 
+				msg, 
+				user.getUsername() + "'s profile", 
+				JOptionPane.PLAIN_MESSAGE
+			);
+			break;
 		    case "group-created":
 			JOptionPane.showMessageDialog(view, "Created group '" + argstr + "' successfully!", "Group created", JOptionPane.INFORMATION_MESSAGE);
 			groupList.add(argstr);
@@ -356,6 +373,12 @@ public class ChatClient implements MessageListener, Runnable {
     public void processViewProfile(int index) throws IOException {
 	String name = friendList.get(index);
 	server.write("view-profile " + name);
+    }
+
+    @Override
+    public void processViewMembers(int index) throws IOException {
+	String name = groupList.get(index);
+	server.write("view-members " + name);
     }
     
     @Override

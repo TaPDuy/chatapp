@@ -13,7 +13,8 @@ public class NotificationDAO extends BasicDAO<Notification>{
     
     private static final String GET_BY_RECIPIENT = "SELECT n FROM Notification n WHERE n.recipient = :user";
     private static final String GET_ALL = "SELECT not FROM Notification not";
-     
+    private static final String GET_REQUEST = "SELECT n FROM Notification n WHERE n.recipient = :rec AND n.sender = :sen AND n.active = 'add'";
+    
     public NotificationDAO(){
         entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
     }
@@ -31,6 +32,14 @@ public class NotificationDAO extends BasicDAO<Notification>{
 	}
 	
 	return new ArrayList<>();
+    }
+    
+    public boolean checkRequestExist(User sender, User recipient) {
+	
+	TypedQuery<Notification> query = entityManager.createQuery(GET_REQUEST, Notification.class);
+	query.setParameter("rec", recipient);
+	query.setParameter("sen", sender);
+	return query.getResultList().size() == 1;
     }
     
     @Override

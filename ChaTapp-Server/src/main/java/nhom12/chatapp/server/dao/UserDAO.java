@@ -25,7 +25,8 @@ public class UserDAO extends BasicDAO<User> {
     private static final String GET_BY_LOGIN = "SELECT u FROM User u WHERE u.username = :name AND u.password = :pass";
     private static final String GET_BY_KEY = "SELECT u FROM User u WHERE u.username LIKE :key";
     private static final String GET_FRIENDS = "SELECT u FROM User u JOIN u.friends f WHERE f = :user";
-
+    private static final String GET_FRIEND = "SELECT u FROM User u JOIN u.friends f WHERE f = :user AND u.id = :friend_id";
+    
     public UserDAO() {
 	entityManager = JPAUtil.getEntityManagerFactory().createEntityManager();
     }
@@ -67,42 +68,6 @@ public class UserDAO extends BasicDAO<User> {
 	    
 	} catch (RuntimeException e) {
 	    ConsoleLogger.log(e.getMessage(), "DB", ConsoleLogger.ERROR);
-//=======
-//            ResultSet rs = ps.executeQuery();
-//	    user = new User();
-//            if (rs.next()) {
-//                user.setId(rs.getInt("id"));
-//                user.setViewName(rs.getString("viewname"));
-//                user.setSdt(rs.getString("sdt"));
-//                user.setPassword(password);
-//                user.setFullname(rs.getString("fullname"));
-//                user.setGender(rs.getString("gender"));
-//                user.setAddress(rs.getString("address"));
-//                user.setDob(rs.getDate("dob"));
-//                user.setStatus("online");
-//                PreparedStatement ps1 = con.prepareStatement(GET_ALL_FRIEND);
-//                ps1.setInt(1, user.getId());
-//                ps1.setInt(2, user.getId());
-//                ResultSet rs1 = ps1.executeQuery();
-//                List<User> friends = new ArrayList<>();
-//                while(rs1.next()){
-//                    User friend = new User();
-//                    friend.setId(rs1.getInt("id"));
-//                    friend.setViewName(rs1.getString("viewname"));
-//                    friend.setSdt(rs1.getString("sdt"));
-//                    friend.setFullname(rs1.getString("fullname"));
-//                    friend.setGender(rs1.getString("gender"));
-//                    friend.setAddress(rs1.getString("address"));
-//                    friend.setDob(rs1.getDate("dob"));
-//                    friends.add(friend);
-//                }
-//                user.setFriends(friends);
-//            }else
-//		return null;
-//	    
-//        } catch (SQLException ex) {
-//	    Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
-//>>>>>>> 8456aeb261e129b9beec9f8e6cb1fd8e02c72753
 	}
 	
 	return null;
@@ -112,6 +77,14 @@ public class UserDAO extends BasicDAO<User> {
 	
 	TypedQuery<User> query = entityManager.createQuery(GET_BY_USERNAME, User.class);
 	query.setParameter("name", user.getUsername());
+	return query.getResultList().size() == 1;
+    }
+    
+    public boolean isFriend(User user, User friend) {
+	
+	TypedQuery<User> query = entityManager.createQuery(GET_FRIEND, User.class);
+	query.setParameter("user", user);
+	query.setParameter("friend_id", friend.getId());
 	return query.getResultList().size() == 1;
     }
     

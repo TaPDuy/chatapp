@@ -198,15 +198,16 @@ public class ServerWorker implements Runnable {
 	String[] args = argstr.split(" ", 2);
         String viewname = args[0];
         String password = args[1];
+	
+	User login = userDAO.findByLoginInfo(viewname, password);
         
-        if (
-	    !Server.serverThreadBus.isOnline(viewname) && 
-	    (this.user = userDAO.findByLoginInfo(viewname, password)) != null
-	) {
+        if (!Server.serverThreadBus.isOnline(viewname) && login != null) {
             
             write("ok-login");
             
             ConsoleLogger.log("Login successfully with username: " + viewname, "CLIENT-" + clientNumber, ConsoleLogger.INFO);
+	    
+	    this.user = login;
 	    
 	    // Initialize worker and send post-login info to client
 	    write("set-user");
@@ -357,8 +358,10 @@ public class ServerWorker implements Runnable {
 	if (groupDAO.checkExist(group)) {
 	    write("group-existed " + argstr);
 	} else {
-	    if (groupDAO.save(group))
+	    if (groupDAO.save(group)) {
+		groupNames.add(argstr);
 		write("group-created " + argstr);
+	    }
 	    else
 		write("group-error " + argstr);
 	}
@@ -498,20 +501,64 @@ public class ServerWorker implements Runnable {
         }
     }
 
-    private void handleAddFriend(String receiverName) {
-	
-	Notification not = Notification.builder()
-		.content(this.user.getUsername() + " sent you a friend request")
-		.sender(this.user)
-		.recipient(userDAO.findByUsername(receiverName))
-		.active("add")
-		.build();
-	
-	if (notDAO.save(not)) {
-	    notDAO.refresh(not);
-	    Server.serverThreadBus.sendMessageToPersion(receiverName, "add-notification", not);
+    private void handleAddFriend(String friendName) throws IOException {
+
+	User friend = userDAO.findByUsername(friendName);
+	if(friend != null) {
+	    
+	    if (!userDAO.isFriend(this.user, friend)) {
+		
+		Notification not = Notification.builder()
+		    .content(this.user.getUsername() + " sent you a friend request")
+		    .sender(this.user)
+		    .recipient(userDAO.findByUsername(friendName))
+		    .active("add")
+		    .build();
+		
+		if (!notDAO.checkRequestExist(this.user, friend)) {
+		    
+		    if (notDAO.save(not)) {
+			notDAO.refresh(not);
+			Server.serverThreadBus.sendMessageToPersion(friendName, "add-notification", not);
+		    } else {
+			
+			ConsoleLogger.log(
+			    "Already sent request to user: '" + friendName + "'", 
+			    "CLIENT-" + clientNumber, 
+			    ConsoleLogger.ERROR
+			);
+			write("friend-request-error " + friendName);
+		    }
+		    
+		} else {
+		    
+		    ConsoleLogger.log(
+			"Already sent request to user: '" + friendName + "'", 
+			"CLIENT-" + clientNumber, 
+			ConsoleLogger.ERROR
+		    );
+		    write("friend-request-already " + friendName);
+		}
+		
+	    } else {
+		
+		ConsoleLogger.log(
+		    "Tried to befriend a friend: '" + friendName + "'", 
+		    "CLIENT-" + clientNumber, 
+		    ConsoleLogger.ERROR
+		);
+		write("friend-already " + friendName);
+	    }
+	    
+	} else {
+	    
+	    ConsoleLogger.log(
+		"Tried to befriend a non-existing user: '" + friendName + "'", 
+		"CLIENT-" + clientNumber, 
+		ConsoleLogger.ERROR
+	    );
+	    write("friend-not-exist " + friendName);
 	}
-	// TODO: add an else
     }
 
     public void handleUpDateAddFUser(User userSend, String nickName, String timeCf){

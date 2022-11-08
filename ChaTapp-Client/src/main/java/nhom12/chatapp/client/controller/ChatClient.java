@@ -31,7 +31,6 @@ public class ChatClient implements MessageListener, Runnable {
     
     private int id;
     private User user;
-    private List<User> userInsystem;
     private String receiverName;
     
     private final HashMap<String, List<String>> loadedMessages;
@@ -47,7 +46,6 @@ public class ChatClient implements MessageListener, Runnable {
 	onlineList = new ArrayList<>();
 	friendList = new ArrayList<>();
 	groupList = new ArrayList<>();
-        userInsystem = new ArrayList<>();
 	loadedMessages = new HashMap<>();
 	notiList = new ArrayList<>();
         notification = new Notification();
@@ -106,7 +104,7 @@ public class ChatClient implements MessageListener, Runnable {
 		switch (cmd) {
 		    case "set-user":
 			this.user = (User) server.readObject();
-                        view.setUser(user);
+                        view.setTitle("Logged in as " + this.user.getUsername());
 			break;
 		    case "update-online-list":
 			if (argstr.isEmpty())
@@ -162,8 +160,8 @@ public class ChatClient implements MessageListener, Runnable {
                         updateNotificationList();
                         break;
                     case "User-In-System":
-                        this.userInsystem = (List<User>) server.readObject();
-                        view.setTableUserSys(userInsystem);
+                        List<User> userInsystem = (List<User>) server.readObject();
+                        updateFriendResultList(userInsystem);
                         break;
 		    case "group-in-system":
 			List<String> results = (List<String>) server.readObject();
@@ -227,6 +225,7 @@ public class ChatClient implements MessageListener, Runnable {
 			JOptionPane.showMessageDialog(view, "Created group '" + argstr + "' successfully!", "Group created", JOptionPane.INFORMATION_MESSAGE);
 			groupList.add(argstr);
 			view.updateGroupCombobox(groupList);
+			updateGroupList();
 			break;
 		    case "group-existed":
 			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' has already been created!", "Group existed", JOptionPane.ERROR_MESSAGE);
@@ -261,6 +260,18 @@ public class ChatClient implements MessageListener, Runnable {
 			break;
 		    case "leave-not-exist":
 			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' doesn't exist", "Group not found", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "friend-request-error":
+			JOptionPane.showMessageDialog(view, "Something went wrong sending friend request to '" + argstr + "'", "Error", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "friend-request-already":
+			JOptionPane.showMessageDialog(view, "You've already sent friend request to '" + argstr + "'", "Already requested", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "friend-already":
+			JOptionPane.showMessageDialog(view, "You're already a friend of user '" + argstr + "'", "Already friend", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "friend-not-exist":
+			JOptionPane.showMessageDialog(view, "User '" + argstr + "' doesn't exist", "User not found", JOptionPane.ERROR_MESSAGE);
 			break;
 		    default:
 			break;
@@ -312,6 +323,14 @@ public class ChatClient implements MessageListener, Runnable {
 	results.forEach(result -> {
 	    String[] resSplit = result.split(" ");
 	    view.addGroupResultRow(resSplit[0], resSplit[1]);
+	});
+    }
+    
+    private void updateFriendResultList(List<User> results) {
+	view.clearFriendResultList();
+	
+	results.forEach(result -> {
+	    view.addFriendResultRow(result.getUsername(), result.getFullname());
 	});
     }
 
@@ -368,6 +387,15 @@ public class ChatClient implements MessageListener, Runnable {
 	    server.write("leave " + groupName);
 	}
     }
+    
+    @Override
+    public void processAddFriend(String friendName) throws IOException {
+	
+	int choice = JOptionPane.showConfirmDialog(view, "Do you want to befriend " + friendName + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+	if (choice == JOptionPane.YES_OPTION) {
+	    server.write("addFriend " + friendName);
+	}
+    }
 
     @Override
     public void processViewProfile(int index) throws IOException {
@@ -382,7 +410,7 @@ public class ChatClient implements MessageListener, Runnable {
     }
     
     @Override
-    public void createGroup(String name) throws IOException {
+    public void processCreateGroup(String name) throws IOException {
 	server.write("create-group " + name);
     }
     
@@ -413,11 +441,6 @@ public class ChatClient implements MessageListener, Runnable {
     @Override
     public void sendFindGroup(String key) throws IOException {
 	server.write("findGroup " + key);
-    }
-
-    @Override
-    public void sendAddFriend(String receiverName) throws IOException {
-        server.write("addFriend " + receiverName);
     }
 
     @Override

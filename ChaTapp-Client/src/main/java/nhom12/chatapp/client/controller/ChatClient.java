@@ -227,6 +227,7 @@ public class ChatClient implements MessageListener, Runnable {
 			JOptionPane.showMessageDialog(view, "Created group '" + argstr + "' successfully!", "Group created", JOptionPane.INFORMATION_MESSAGE);
 			groupList.add(argstr);
 			view.updateGroupCombobox(groupList);
+			updateGroupList();
 			break;
 		    case "group-existed":
 			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' has already been created!", "Group existed", JOptionPane.ERROR_MESSAGE);
@@ -382,7 +383,7 @@ public class ChatClient implements MessageListener, Runnable {
     }
     
     @Override
-    public void createGroup(String name) throws IOException {
+    public void processCreateGroup(String name) throws IOException {
 	server.write("create-group " + name);
     }
     

@@ -73,7 +73,7 @@ public class ClientView extends javax.swing.JPanel {
         jPanel6 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
         jTextField2 = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
+        btn_createGroup = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
         txtf_groupKey = new javax.swing.JTextField();
         btn_searchGroup = new javax.swing.JButton();
@@ -298,10 +298,10 @@ public class ClientView extends javax.swing.JPanel {
 
         jLabel5.setText("Name");
 
-        jButton2.setText("Create");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        btn_createGroup.setText("Create");
+        btn_createGroup.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                btn_createGroupActionPerformed(evt);
             }
         });
 
@@ -378,7 +378,7 @@ public class ClientView extends javax.swing.JPanel {
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel6Layout.createSequentialGroup()
                                 .addGap(32, 32, 32)
-                                .addComponent(jButton2))
+                                .addComponent(btn_createGroup))
                             .addGroup(jPanel6Layout.createSequentialGroup()
                                 .addGap(29, 29, 29)
                                 .addComponent(btn_searchGroup))))
@@ -396,7 +396,7 @@ public class ClientView extends javax.swing.JPanel {
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5)
-                    .addComponent(jButton2))
+                    .addComponent(btn_createGroup))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(14, 14, 14)
@@ -581,16 +581,16 @@ public class ClientView extends javax.swing.JPanel {
 	listener.setReceiverName("#" + (String) comboBoxGroup.getSelectedItem());
     }//GEN-LAST:event_comboBoxGroupActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void btn_createGroupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_createGroupActionPerformed
         
 	try {
 	    String groupName = jTextField2.getText();
 	    if (!groupName.isEmpty())
-		listener.createGroup(groupName.replaceAll("\\s+", "_"));
+		listener.processCreateGroup(groupName.replaceAll("\\s+", "_"));
 	} catch (IOException ex) {
 	    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
 	}
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_btn_createGroupActionPerformed
     
     public void setChatBoxTitle(String txt) {
 	jLabel3.setText(txt);
@@ -792,6 +792,7 @@ public class ClientView extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSearchAddFriend;
+    private javax.swing.JButton btn_createGroup;
     private javax.swing.JButton btn_leave;
     private javax.swing.JButton btn_profile;
     private javax.swing.JButton btn_searchGroup;
@@ -800,7 +801,6 @@ public class ClientView extends javax.swing.JPanel {
     private javax.swing.JComboBox<String> comboBoxGroup;
     private javax.swing.JComboBox<String> comboBoxUser;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

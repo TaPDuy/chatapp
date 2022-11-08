@@ -7,7 +7,6 @@ public interface MessageListener {
     
     public void sendGlobal(String msg) throws IOException;
     public void sendMessage(String msg);
-    public void createGroup(String name) throws IOException;
     
     public void setChatView(Container view);
     public String getReceiverName();
@@ -20,6 +19,7 @@ public interface MessageListener {
     public void processUnfriend(int index) throws IOException;
     public void processViewProfile(int index) throws IOException;
     public void processViewMembers(int index) throws IOException;
+    public void processCreateGroup(String groupName) throws IOException;
     public void processJoinGroup(String groupName) throws IOException;
     public void processLeaveGroup(String groupName) throws IOException;
     

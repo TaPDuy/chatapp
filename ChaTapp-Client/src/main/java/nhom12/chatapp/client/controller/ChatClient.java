@@ -31,7 +31,6 @@ public class ChatClient implements MessageListener, Runnable {
     
     private int id;
     private User user;
-    private List<User> userInsystem;
     private String receiverName;
     
     private final HashMap<String, List<String>> loadedMessages;
@@ -47,7 +46,6 @@ public class ChatClient implements MessageListener, Runnable {
 	onlineList = new ArrayList<>();
 	friendList = new ArrayList<>();
 	groupList = new ArrayList<>();
-        userInsystem = new ArrayList<>();
 	loadedMessages = new HashMap<>();
 	notiList = new ArrayList<>();
         notification = new Notification();
@@ -106,7 +104,7 @@ public class ChatClient implements MessageListener, Runnable {
 		switch (cmd) {
 		    case "set-user":
 			this.user = (User) server.readObject();
-                        view.setUser(user);
+                        view.setTitle("Logged in as " + this.user.getUsername());
 			break;
 		    case "update-online-list":
 			if (argstr.isEmpty())
@@ -162,8 +160,8 @@ public class ChatClient implements MessageListener, Runnable {
                         updateNotificationList();
                         break;
                     case "User-In-System":
-                        this.userInsystem = (List<User>) server.readObject();
-                        view.setTableUserSys(userInsystem);
+                        List<User> userInsystem = (List<User>) server.readObject();
+                        updateFriendResultList(userInsystem);
                         break;
 		    case "group-in-system":
 			List<String> results = (List<String>) server.readObject();
@@ -313,6 +311,14 @@ public class ChatClient implements MessageListener, Runnable {
 	results.forEach(result -> {
 	    String[] resSplit = result.split(" ");
 	    view.addGroupResultRow(resSplit[0], resSplit[1]);
+	});
+    }
+    
+    private void updateFriendResultList(List<User> results) {
+	view.clearFriendResultList();
+	
+	results.forEach(result -> {
+	    view.addFriendResultRow(result.getUsername(), result.getFullname());
 	});
     }
 

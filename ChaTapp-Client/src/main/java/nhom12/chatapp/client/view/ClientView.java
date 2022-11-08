@@ -1,7 +1,7 @@
 package nhom12.chatapp.client.view;
 
+import java.awt.Frame;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -10,18 +10,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import nhom12.chatapp.client.listener.MessageListener;
 import nhom12.chatapp.client.listener.WindowListener;
-import nhom12.chatapp.model.Notification;
 import nhom12.chatapp.model.User;
 
 public class ClientView extends javax.swing.JPanel {
     
     private MessageListener listener;
-    private WindowListener windowListener;
-    private List<String> onlineUser;
-    private User user;
     public List<User> listFriend;
     private List<User> usInSysList;
     
@@ -29,12 +26,10 @@ public class ClientView extends javax.swing.JPanel {
 
         initComponents();
 	
-	this.windowListener = windowListener;
 	this.listener = messageListener;
 	
         jTextArea1.setEditable(false);
         jTextArea2.setEditable(false);
-        user = new User();
         listFriend = new ArrayList<>();
         usInSysList = new ArrayList<>();
     }
@@ -61,10 +56,10 @@ public class ClientView extends javax.swing.JPanel {
         jLabel10 = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
-        btnSearchAddFriend = new javax.swing.JButton();
+        btn_SearchFriend = new javax.swing.JButton();
         txtKeyNickName = new javax.swing.JTextField();
         jScrollPane4 = new javax.swing.JScrollPane();
-        tblUserInSys = new javax.swing.JTable();
+        tbl_friendResult = new javax.swing.JTable();
         jPanel5 = new javax.swing.JPanel();
         btn_unfriend = new javax.swing.JButton();
         jScrollPane5 = new javax.swing.JScrollPane();
@@ -180,35 +175,42 @@ public class ClientView extends javax.swing.JPanel {
 
         jLabel4.setText("Nick Name");
 
-        btnSearchAddFriend.setText("Search");
-        btnSearchAddFriend.addActionListener(new java.awt.event.ActionListener() {
+        btn_SearchFriend.setText("Search");
+        btn_SearchFriend.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSearchAddFriendActionPerformed(evt);
+                btn_SearchFriendActionPerformed(evt);
             }
         });
 
-        tblUserInSys.setModel(new javax.swing.table.DefaultTableModel(
+        tbl_friendResult.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
-                "Nick Name", "Full Name", "Status", "Is Friend"
+                "Nick Name", "Full Name"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
             };
 
             public Class getColumnClass(int columnIndex) {
                 return types [columnIndex];
             }
-        });
-        tblUserInSys.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tblUserInSysMouseClicked(evt);
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
             }
         });
-        jScrollPane4.setViewportView(tblUserInSys);
+        tbl_friendResult.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tbl_friendResultMouseClicked(evt);
+            }
+        });
+        jScrollPane4.setViewportView(tbl_friendResult);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -225,7 +227,7 @@ public class ClientView extends javax.swing.JPanel {
                         .addGap(18, 18, 18)
                         .addComponent(txtKeyNickName, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
-                        .addComponent(btnSearchAddFriend)
+                        .addComponent(btn_SearchFriend)
                         .addGap(26, 26, 26))))
         );
         jPanel4Layout.setVerticalGroup(
@@ -234,7 +236,7 @@ public class ClientView extends javax.swing.JPanel {
                 .addGap(17, 17, 17)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
-                    .addComponent(btnSearchAddFriend)
+                    .addComponent(btn_SearchFriend)
                     .addComponent(txtKeyNickName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 392, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -528,31 +530,27 @@ public class ClientView extends javax.swing.JPanel {
             return;
         }
 
-//	String[] parner = ((String) comboBoxUser.getSelectedItem()).split(" ");
 	listener.sendMessage(messageContent);
-//	jTextArea1.setText(jTextArea1.getText() + "Bạn (tới Client " + parner[1] + "): " + messageContent + "\n");
-//	jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
-
         txtf_chat.setText("");
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void btnSearchAddFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchAddFriendActionPerformed
+    private void btn_SearchFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_SearchFriendActionPerformed
 
         try {
             listener.sendFindFriend(txtKeyNickName.getText());
         } catch (IOException ex) {
             Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_btnSearchAddFriendActionPerformed
+    }//GEN-LAST:event_btn_SearchFriendActionPerformed
 
-    private void tblUserInSysMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblUserInSysMouseClicked
-        int column = tblUserInSys.getColumnModel().
+    private void tbl_friendResultMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_friendResultMouseClicked
+        int column = tbl_friendResult.getColumnModel().
                 getColumnIndexAtX(evt.getX()); // get the coloum of the button
-        int row = evt.getY() / tblUserInSys.getRowHeight(); // get row 
+        int row = evt.getY() / tbl_friendResult.getRowHeight(); // get row 
         // *Checking the row or column is valid or not
 
-        if (row < tblUserInSys.getRowCount() && row >= 0
-                && column < tblUserInSys.getColumnCount() && column >= 0) {
+        if (row < tbl_friendResult.getRowCount() && row >= 0
+                && column < tbl_friendResult.getColumnCount() && column >= 0) {
             User addFriend = usInSysList.get(row);
             int choice = JOptionPane.showConfirmDialog(this, "Do you want add friend " + addFriend.getUsername()+ " ?", "Ask", JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
@@ -569,7 +567,7 @@ public class ClientView extends javax.swing.JPanel {
                 }
             }
         }
-    }//GEN-LAST:event_tblUserInSysMouseClicked
+    }//GEN-LAST:event_tbl_friendResultMouseClicked
 
     private void comboBoxUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxUserActionPerformed
 
@@ -688,6 +686,11 @@ public class ClientView extends javax.swing.JPanel {
         return this.jTextArea2;
     }
     
+    public void setTitle(String title) {
+	Frame parent = (Frame) SwingUtilities.getWindowAncestor(this);
+	parent.setTitle(title);
+    }
+    
     public void printMessage(String msg) {
 	jTextArea1.setText(jTextArea1.getText() + msg + "\n");
 	jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
@@ -700,13 +703,6 @@ public class ClientView extends javax.swing.JPanel {
     public void clearChatbox() {
 	jTextArea1.setText("");
 	jTextArea1.setCaretPosition(0);
-    }
-
-    public void setUser(User user) {
-        listFriend = new ArrayList<>();
-        this.user = user;
-//        listFriend = user.getFriends();
-//        this.setTitle(user.getUsername());
     }
 
     public void updateCombobox(List<String> onlineList) {
@@ -727,6 +723,16 @@ public class ClientView extends javax.swing.JPanel {
     public void addFriendRow(String username, String status) {
 	DefaultTableModel dtm = (DefaultTableModel) tbl_friends.getModel();
 	dtm.addRow(new String[] {username, status});
+    }
+    
+    public void clearFriendResultList() {
+	DefaultTableModel dtm = (DefaultTableModel) tbl_friendResult.getModel();
+	dtm.setRowCount(0);
+    }
+    
+    public void addFriendResultRow(String username, String fullName) {
+	DefaultTableModel dtm = (DefaultTableModel) tbl_friendResult.getModel();
+	dtm.addRow(new String[] {username, fullName});
     }
     
     public void clearGroupResultList() {
@@ -759,39 +765,12 @@ public class ClientView extends javax.swing.JPanel {
 	dtm.addRow(new String[] {content, time});
     }
 
-    public void setTableUserSys(List<User> usInSys) {
-        if (usInSys != null) {
-            usInSysList = usInSys;
-            DefaultTableModel dtm = new DefaultTableModel();
-            dtm.setRowCount(0);
-            dtm.setColumnIdentifiers(new String[]{"Nick Name", "Full Name", "Status", "Is Friend"});
-
-            for (User us : usInSysList) {
-                if (!listFriend.isEmpty()) {
-                    for (User friend : listFriend) {
-                        if (!us.getUsername().equals(friend.getUsername()) && !us.getUsername().equalsIgnoreCase(user.getUsername())) {
-                            dtm.addRow(new String[]{us.getUsername(), us.getFullname(), "", ""});
-                        }
-                    }
-                } else {
-                    if(!us.getUsername().equalsIgnoreCase(user.getUsername()))
-                        dtm.addRow(new String[]{us.getUsername(), us.getFullname(), "", ""});
-                }
-            }
-            tblUserInSys.setModel(dtm);
-        }
-    }
-
     public void setMessageListener(MessageListener listener) {
         this.listener = listener;
     }
 
-    public void setWindowListener(WindowListener listener) {
-        this.windowListener = listener;
-    }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnSearchAddFriend;
+    private javax.swing.JButton btn_SearchFriend;
     private javax.swing.JButton btn_createGroup;
     private javax.swing.JButton btn_leave;
     private javax.swing.JButton btn_profile;
@@ -830,7 +809,7 @@ public class ClientView extends javax.swing.JPanel {
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextArea jTextArea2;
     private javax.swing.JTextField jTextField2;
-    private javax.swing.JTable tblUserInSys;
+    private javax.swing.JTable tbl_friendResult;
     private javax.swing.JTable tbl_friends;
     private javax.swing.JTable tbl_groupResult;
     private javax.swing.JTable tbl_groups;

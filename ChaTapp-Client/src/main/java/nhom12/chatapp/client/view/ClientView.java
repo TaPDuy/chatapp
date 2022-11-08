@@ -2,8 +2,6 @@ package nhom12.chatapp.client.view;
 
 import java.awt.Frame;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -20,7 +18,6 @@ public class ClientView extends javax.swing.JPanel {
     
     private MessageListener listener;
     public List<User> listFriend;
-    private List<User> usInSysList;
     
     public ClientView(WindowListener windowListener, MessageListener messageListener) {
 
@@ -31,7 +28,6 @@ public class ClientView extends javax.swing.JPanel {
         jTextArea1.setEditable(false);
         jTextArea2.setEditable(false);
         listFriend = new ArrayList<>();
-        usInSysList = new ArrayList<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -544,29 +540,23 @@ public class ClientView extends javax.swing.JPanel {
     }//GEN-LAST:event_btn_SearchFriendActionPerformed
 
     private void tbl_friendResultMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_friendResultMouseClicked
-        int column = tbl_friendResult.getColumnModel().
-                getColumnIndexAtX(evt.getX()); // get the coloum of the button
+	
+	int column = tbl_friendResult.getColumnModel().getColumnIndexAtX(evt.getX()); // get the coloum of the button
         int row = evt.getY() / tbl_friendResult.getRowHeight(); // get row 
+	
         // *Checking the row or column is valid or not
-
-        if (row < tbl_friendResult.getRowCount() && row >= 0
-                && column < tbl_friendResult.getColumnCount() && column >= 0) {
-            User addFriend = usInSysList.get(row);
-            int choice = JOptionPane.showConfirmDialog(this, "Do you want add friend " + addFriend.getUsername()+ " ?", "Ask", JOptionPane.YES_NO_OPTION);
-            if (choice == JOptionPane.YES_OPTION) {
-                try {
-                    LocalDateTime myDateObj = LocalDateTime.now();
-                    DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-
-                    String formattedDate = myDateObj.format(myFormatObj);
-                    String[] fms = formattedDate.split(" ");
-                    String time = "Ngay " + fms[0] + " luc " + fms[1];
-                    listener.sendAddFriend(addFriend.getUsername());
-                } catch (IOException ex) {
-                    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
+        if (
+	    row < tbl_friendResult.getRowCount() && 
+	    row >= 0 && 
+	    column < tbl_friendResult.getColumnCount() && 
+	    column >= 0
+	) {
+	    try {
+		listener.processAddFriend((String) tbl_friendResult.getModel().getValueAt(row, 0));
+	    } catch (IOException ex) {
+		Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	}
     }//GEN-LAST:event_tbl_friendResultMouseClicked
 
     private void comboBoxUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxUserActionPerformed
@@ -646,8 +636,17 @@ public class ClientView extends javax.swing.JPanel {
     }//GEN-LAST:event_btn_searchGroupActionPerformed
 
     private void tbl_groupResultMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_groupResultMouseClicked
-        int row = tbl_groupResult.getSelectedRow();
-        if (row != -1) {
+        
+	int column = tbl_groupResult.getColumnModel().getColumnIndexAtX(evt.getX()); // get the coloum of the button
+        int row = evt.getY() / tbl_groupResult.getRowHeight(); // get row 
+	
+        // *Checking the row or column is valid or not
+        if (
+	    row < tbl_groupResult.getRowCount() && 
+	    row >= 0 && 
+	    column < tbl_groupResult.getColumnCount() && 
+	    column >= 0
+	) {
 	    try {
 		listener.processJoinGroup((String) tbl_groupResult.getModel().getValueAt(row, 0));
 	    } catch (IOException ex) {

@@ -501,20 +501,64 @@ public class ServerWorker implements Runnable {
         }
     }
 
-    private void handleAddFriend(String receiverName) {
-	
-	Notification not = Notification.builder()
-		.content(this.user.getUsername() + " sent you a friend request")
-		.sender(this.user)
-		.recipient(userDAO.findByUsername(receiverName))
-		.active("add")
-		.build();
-	
-	if (notDAO.save(not)) {
-	    notDAO.refresh(not);
-	    Server.serverThreadBus.sendMessageToPersion(receiverName, "add-notification", not);
+    private void handleAddFriend(String friendName) throws IOException {
+
+	User friend = userDAO.findByUsername(friendName);
+	if(friend != null) {
+	    
+	    if (!userDAO.isFriend(this.user, friend)) {
+		
+		Notification not = Notification.builder()
+		    .content(this.user.getUsername() + " sent you a friend request")
+		    .sender(this.user)
+		    .recipient(userDAO.findByUsername(friendName))
+		    .active("add")
+		    .build();
+		
+		if (!notDAO.checkRequestExist(this.user, friend)) {
+		    
+		    if (notDAO.save(not)) {
+			notDAO.refresh(not);
+			Server.serverThreadBus.sendMessageToPersion(friendName, "add-notification", not);
+		    } else {
+			
+			ConsoleLogger.log(
+			    "Already sent request to user: '" + friendName + "'", 
+			    "CLIENT-" + clientNumber, 
+			    ConsoleLogger.ERROR
+			);
+			write("friend-request-error " + friendName);
+		    }
+		    
+		} else {
+		    
+		    ConsoleLogger.log(
+			"Already sent request to user: '" + friendName + "'", 
+			"CLIENT-" + clientNumber, 
+			ConsoleLogger.ERROR
+		    );
+		    write("friend-request-already " + friendName);
+		}
+		
+	    } else {
+		
+		ConsoleLogger.log(
+		    "Tried to befriend a friend: '" + friendName + "'", 
+		    "CLIENT-" + clientNumber, 
+		    ConsoleLogger.ERROR
+		);
+		write("friend-already " + friendName);
+	    }
+	    
+	} else {
+	    
+	    ConsoleLogger.log(
+		"Tried to befriend a non-existing user: '" + friendName + "'", 
+		"CLIENT-" + clientNumber, 
+		ConsoleLogger.ERROR
+	    );
+	    write("friend-not-exist " + friendName);
 	}
-	// TODO: add an else
     }
 
     public void handleUpDateAddFUser(User userSend, String nickName, String timeCf){

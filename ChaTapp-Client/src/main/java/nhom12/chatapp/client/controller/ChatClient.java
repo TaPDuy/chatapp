@@ -261,6 +261,18 @@ public class ChatClient implements MessageListener, Runnable {
 		    case "leave-not-exist":
 			JOptionPane.showMessageDialog(view, "Group '" + argstr + "' doesn't exist", "Group not found", JOptionPane.ERROR_MESSAGE);
 			break;
+		    case "friend-request-error":
+			JOptionPane.showMessageDialog(view, "Something went wrong sending friend request to '" + argstr + "'", "Error", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "friend-request-already":
+			JOptionPane.showMessageDialog(view, "You've already sent friend request to '" + argstr + "'", "Already requested", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "friend-already":
+			JOptionPane.showMessageDialog(view, "You're already a friend of user '" + argstr + "'", "Already friend", JOptionPane.ERROR_MESSAGE);
+			break;
+		    case "friend-not-exist":
+			JOptionPane.showMessageDialog(view, "User '" + argstr + "' doesn't exist", "User not found", JOptionPane.ERROR_MESSAGE);
+			break;
 		    default:
 			break;
 		}
@@ -375,6 +387,15 @@ public class ChatClient implements MessageListener, Runnable {
 	    server.write("leave " + groupName);
 	}
     }
+    
+    @Override
+    public void processAddFriend(String friendName) throws IOException {
+	
+	int choice = JOptionPane.showConfirmDialog(view, "Do you want to befriend " + friendName + " ?", "Ask", JOptionPane.YES_NO_OPTION);
+	if (choice == JOptionPane.YES_OPTION) {
+	    server.write("addFriend " + friendName);
+	}
+    }
 
     @Override
     public void processViewProfile(int index) throws IOException {
@@ -420,11 +441,6 @@ public class ChatClient implements MessageListener, Runnable {
     @Override
     public void sendFindGroup(String key) throws IOException {
 	server.write("findGroup " + key);
-    }
-
-    @Override
-    public void sendAddFriend(String receiverName) throws IOException {
-        server.write("addFriend " + receiverName);
     }
 
     @Override

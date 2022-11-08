@@ -13,9 +13,9 @@ public interface MessageListener {
     public void setReceiverName(String name);
     public void sendFindFriend(String key) throws IOException;
     public void sendFindGroup(String key) throws IOException;
-    public void sendAddFriend(String receiverName) throws IOException;
     
     public void processNotification(int index) throws IOException;
+    public void processAddFriend(String friendName) throws IOException;
     public void processUnfriend(int index) throws IOException;
     public void processViewProfile(int index) throws IOException;
     public void processViewMembers(int index) throws IOException;

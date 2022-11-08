@@ -358,8 +358,10 @@ public class ServerWorker implements Runnable {
 	if (groupDAO.checkExist(group)) {
 	    write("group-existed " + argstr);
 	} else {
-	    if (groupDAO.save(group))
+	    if (groupDAO.save(group)) {
+		groupNames.add(argstr);
 		write("group-created " + argstr);
+	    }
 	    else
 		write("group-error " + argstr);
 	}

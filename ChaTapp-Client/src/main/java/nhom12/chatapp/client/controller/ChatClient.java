@@ -200,27 +200,28 @@ public class ChatClient implements MessageListener, Runnable {
 			JOptionPane.showMessageDialog(
 				view, 
 				profileStr, 
-				user.getUsername() + "'s profile", 
+				profile.getUsername() + "'s profile", 
 				JOptionPane.PLAIN_MESSAGE
 			);
 			break;
 		    case "view-members":
 			String[] mem = argstr.split(" ");
 			
-			String msg = "Number of members: " + mem.length + "\nMembers:\n";
-			for(int i = 0; i < mem.length; ++i) {
-			    msg += mem[i] + ", ";
-			    if (i % 8 == 0)
-				msg += "\n";
-			}
+			String msg = "Number of members: " + (mem.length-1) + "\nMembers:\n";
+                        for (int i = 1;i< mem.length-1;i++) {
+                            msg += mem[i] + ", ";
+                            msg += "\n";
+                        }
+                        msg += mem[mem.length-1];
 			
 			JOptionPane.showMessageDialog(
 				view, 
 				msg, 
-				user.getUsername() + "'s profile", 
+				mem[0] + "'s profile", 
 				JOptionPane.PLAIN_MESSAGE
 			);
 			break;
+
 		    case "group-created":
 			JOptionPane.showMessageDialog(view, "Created group '" + argstr + "' successfully!", "Group created", JOptionPane.INFORMATION_MESSAGE);
 			groupList.add(argstr);
@@ -322,7 +323,9 @@ public class ChatClient implements MessageListener, Runnable {
 	
 	results.forEach(result -> {
 	    String[] resSplit = result.split(" ");
-	    view.addGroupResultRow(resSplit[0], resSplit[1]);
+            if(!groupList.contains(resSplit[0])){
+                view.addGroupResultRow(resSplit[0], resSplit[1]);
+            }
 	});
     }
     
@@ -330,7 +333,16 @@ public class ChatClient implements MessageListener, Runnable {
 	view.clearFriendResultList();
 	
 	results.forEach(result -> {
-	    view.addFriendResultRow(result.getUsername(), result.getFullname());
+            if(!result.getUsername().equalsIgnoreCase(user.getUsername())){
+                if(!friendList.contains(result.getUsername())){
+                    if(onlineList.contains(result.getUsername())){
+                        view.addFriendResultRow(result.getUsername(), result.getFullname(), "Online");
+                    }
+                else{
+                        view.addFriendResultRow(result.getUsername(), result.getFullname(), "Offline");
+                    }
+                }
+            }
 	});
     }
 

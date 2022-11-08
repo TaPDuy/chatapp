@@ -121,7 +121,7 @@ public class ClientView extends javax.swing.JPanel {
         jPanel2.add(jScrollPane1);
         jScrollPane1.setBounds(6, 107, 610, 270);
         jPanel2.add(txtf_chat);
-        txtf_chat.setBounds(10, 420, 480, 29);
+        txtf_chat.setBounds(10, 420, 480, 22);
 
         jButton1.setText("Gửi");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -130,11 +130,11 @@ public class ClientView extends javax.swing.JPanel {
             }
         });
         jPanel2.add(jButton1);
-        jButton1.setBounds(510, 420, 100, 29);
+        jButton1.setBounds(510, 420, 100, 22);
 
         jLabel2.setText("Nhập tin nhắn");
         jPanel2.add(jLabel2);
-        jLabel2.setBounds(10, 390, 112, 21);
+        jLabel2.setBounds(10, 390, 112, 16);
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -142,9 +142,9 @@ public class ClientView extends javax.swing.JPanel {
         jPanel2.add(jLabel3);
         jLabel3.setBounds(160, 80, 290, 20);
 
-        jLabel6.setText("Group");
+        jLabel6.setText("Chat Group");
         jPanel2.add(jLabel6);
-        jLabel6.setBounds(520, 10, 48, 21);
+        jLabel6.setBounds(510, 10, 70, 16);
 
         comboBoxGroup.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -152,7 +152,7 @@ public class ClientView extends javax.swing.JPanel {
             }
         });
         jPanel2.add(comboBoxGroup);
-        comboBoxGroup.setBounds(470, 40, 140, 29);
+        comboBoxGroup.setBounds(470, 40, 140, 22);
 
         comboBoxUser.setToolTipText("");
         comboBoxUser.addActionListener(new java.awt.event.ActionListener() {
@@ -161,11 +161,11 @@ public class ClientView extends javax.swing.JPanel {
             }
         });
         jPanel2.add(comboBoxUser);
-        comboBoxUser.setBounds(20, 40, 140, 29);
+        comboBoxUser.setBounds(20, 40, 140, 22);
 
-        jLabel10.setText("Online Friend");
+        jLabel10.setText("Chat Friend");
         jPanel2.add(jLabel10);
-        jLabel10.setBounds(40, 10, 90, 21);
+        jLabel10.setBounds(60, 10, 90, 16);
 
         jTabbedPane1.addTab("Nhắn tin", jPanel2);
 
@@ -183,14 +183,14 @@ public class ClientView extends javax.swing.JPanel {
 
             },
             new String [] {
-                "Nick Name", "Full Name"
+                "Nick Name", "Full Name", "Status"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false
+                false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -250,7 +250,7 @@ public class ClientView extends javax.swing.JPanel {
             }
         });
         jPanel5.add(btn_unfriend);
-        btn_unfriend.setBounds(340, 10, 100, 29);
+        btn_unfriend.setBounds(340, 10, 100, 22);
 
         tbl_friends.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -290,7 +290,7 @@ public class ClientView extends javax.swing.JPanel {
             }
         });
         jPanel5.add(btn_profile);
-        btn_profile.setBounds(180, 10, 120, 29);
+        btn_profile.setBounds(180, 10, 120, 22);
 
         jTabbedPane1.addTab("My Friend", jPanel5);
 
@@ -439,7 +439,7 @@ public class ClientView extends javax.swing.JPanel {
         jScrollPane7.setViewportView(tbl_groups);
 
         jPanel8.add(jScrollPane7);
-        jScrollPane7.setBounds(20, 51, 600, 395);
+        jScrollPane7.setBounds(20, 30, 600, 395);
 
         btn_viewMembers.setText("View Members");
         btn_viewMembers.addActionListener(new java.awt.event.ActionListener() {
@@ -448,7 +448,7 @@ public class ClientView extends javax.swing.JPanel {
             }
         });
         jPanel8.add(btn_viewMembers);
-        btn_viewMembers.setBounds(180, 10, 140, 29);
+        btn_viewMembers.setBounds(80, 460, 140, 22);
 
         btn_leave.setText("Leave");
         btn_leave.addActionListener(new java.awt.event.ActionListener() {
@@ -457,7 +457,7 @@ public class ClientView extends javax.swing.JPanel {
             }
         });
         jPanel8.add(btn_leave);
-        btn_leave.setBounds(350, 10, 94, 29);
+        btn_leave.setBounds(450, 460, 94, 22);
 
         jTabbedPane1.addTab("My Groups", jPanel8);
 
@@ -729,9 +729,9 @@ public class ClientView extends javax.swing.JPanel {
 	dtm.setRowCount(0);
     }
     
-    public void addFriendResultRow(String username, String fullName) {
+    public void addFriendResultRow(String username, String fullName, String status) {
 	DefaultTableModel dtm = (DefaultTableModel) tbl_friendResult.getModel();
-	dtm.addRow(new String[] {username, fullName});
+	dtm.addRow(new String[] {username, fullName, status});
     }
     
     public void clearGroupResultList() {

@@ -175,7 +175,7 @@ public class ServerWorker implements Runnable {
 		if(group.isPresent()) {
 		    
 		    Set<User> members = group.get().getMembers();
-		    String msg = "view-members ";
+		    String msg = "view-members "+group.get().getName()+" ";
 		    msg = members.stream()
 			.map(mem -> mem.getUsername() + " ")
 			.reduce(msg, String::concat)

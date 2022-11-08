@@ -198,15 +198,16 @@ public class ServerWorker implements Runnable {
 	String[] args = argstr.split(" ", 2);
         String viewname = args[0];
         String password = args[1];
+	
+	User login = userDAO.findByLoginInfo(viewname, password);
         
-        if (
-	    !Server.serverThreadBus.isOnline(viewname) && 
-	    (this.user = userDAO.findByLoginInfo(viewname, password)) != null
-	) {
+        if (!Server.serverThreadBus.isOnline(viewname) && login != null) {
             
             write("ok-login");
             
             ConsoleLogger.log("Login successfully with username: " + viewname, "CLIENT-" + clientNumber, ConsoleLogger.INFO);
+	    
+	    this.user = login;
 	    
 	    // Initialize worker and send post-login info to client
 	    write("set-user");
